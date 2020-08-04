@@ -1,0 +1,107 @@
+#! /bin/bash
+# configure based on on from iproute2
+#
+# This is not an autoconf generated configure
+#
+INCLUDE=${1:-"$PWD/include"}
+
+# Output file which is input to Makefile
+CONFIG=config.mk
+
+# Make a temp directory in build tree.
+TMPDIR=$(mktemp -d config.XXXXXX)
+trap 'status=$?; rm -rf $TMPDIR; exit $status' EXIT HUP INT QUIT TERM
+
+check_prog()
+{
+    echo -n "$2"
+    command -v $1 >/dev/null 2>&1 && (echo "$3:=y" >> $CONFIG; echo "yes") || (echo "no"; return 1)
+}
+
+#check_docs()
+#{
+#    if check_prog latex " latex: " HAVE_LATEX; then
+#        check_prog pdflatex " pdflatex: " HAVE_PDFLATEX || echo " WARNING: no PDF docs can be built from LaTeX files"
+#        check_prog sgml2latex " sgml2latex: " HAVE_SGML2LATEX || echo " WARNING: no LaTeX files can be build from SGML files"
+#    else
+#        echo " WARNING: no docs can be built from LaTeX files"
+#    fi
+#
+#    check_prog sgml2html " sgml2html: " HAVE_SGML2HTML || echo " WARNING: no HTML docs can be built from SGML"
+#}
+
+check_toolchain()
+{
+    : ${PKG_CONFIG:=pkg-config}
+    : ${AR=ar}
+    : ${CC=gcc}
+    echo "PKG_CONFIG:=${PKG_CONFIG}" >>$CONFIG
+    echo "AR:=${AR}" >>$CONFIG
+    echo "CC:=${CC}" >>$CONFIG
+}
+
+check_libpcap()
+{
+	cat >$TMPDIR/pcaptest.c <<EOF
+#include <pcap.h>
+int main(int, char **);
+int main(int argc, char **argv)
+{
+	pcap_t *p;
+	char errbuf[PCAP_ERRBUF_SIZE];
+
+	p = pcap_open_offline("foo", &errbuf[0]);
+	pcap_close(p);
+	return (0);
+}
+EOF
+	$CC -I$INCLUDE -o $TMPDIR/pcaptest $TMPDIR/pcaptest.c -lpcap >/dev/null 2>&1
+	case $? in
+		0)	;;
+		*)	echo libcap missing or broken\! 1>&2
+			exit 1
+			;;
+	esac
+	rm -f $TMPDIR/pcaptest.c $TMPDIR/pcaptest
+}
+
+quiet_config()
+{
+	cat <<EOF
+# user can control verbosity similar to kernel builds (e.g., V=1)
+ifeq ("\$(origin V)", "command line")
+  VERBOSE = \$(V)
+endif
+ifndef VERBOSE
+  VERBOSE = 0
+endif
+ifeq (\$(VERBOSE),1)
+  Q =
+else
+  Q = @
+endif
+
+ifeq (\$(VERBOSE), 0)
+    QUIET_CC       = @echo '    CC       '\$@;
+    QUIET_AR       = @echo '    AR       '\$@;
+    QUIET_LINK     = @echo '    LINK     '\$@;
+    QUIET_INSTALL  = @echo '    INSTALL  '\$(TARGETS);
+endif
+EOF
+}
+
+echo "# Generated config based on" $INCLUDE >$CONFIG
+quiet_config >> $CONFIG
+
+check_toolchain
+
+check_libpcap
+
+#echo
+#echo -n "docs:"
+#check_docs
+#echo
+
+echo >> $CONFIG
+echo "%.o: %.c" >> $CONFIG
+echo '	$(QUIET_CC)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<' >> $CONFIG
