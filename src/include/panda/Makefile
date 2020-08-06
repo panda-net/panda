@@ -2,14 +2,19 @@ include ../../config.mk
 
 TOPTARGETS := all clean install
 
-TARGETS= utility.h
+SUBDIRS = proto_nodes parsers
+
+$(TOPTARGETS) : $(SUBDIRS)
+
+$(SUBDIRS):
+	@make -C $@ $(MAKECMDGOALS)
+
+.PHONY: $(TOPTARGETS) $(SUBDIRS)
 
 INCDIR=$(INSTALLDIR)$(HDRDIR)/panda
 
-all: $(TARGET)
+TARGETS= utility.h parser.h proto_nodes.h proto_nodes_def.h
 
 install: $(TARGETS)
 	@install -m 0755 -d $(INCDIR)
 	$(QUIET_INSTALL)$(INSTALL) -m 0644 $(TARGETS) $(INCDIR)
-
-clean:
