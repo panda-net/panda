@@ -2,7 +2,7 @@ include ../../../config.mk
 
 INCDIR=$(INSTALLDIR)$(HDRDIR)/panda/parsers
 
-TARGETS = parser_big.h
+TARGETS = parser_big.h parser_simple_hash.h
 
 .PHONY: all
 all: $(TARGETS)
