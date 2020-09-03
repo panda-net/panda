@@ -49,7 +49,7 @@ endif
 CFLAGS += $(DEFINES)
 
 YACCFLAGS = -d -t -v
-LDFLAGS += -L$(CURRDIR)/lib/siphash
+LDFLAGS += -L$(CURRDIR)/lib/siphash -L$(CURRDIR)/lib/flowdis
 
 SUBDIRS= lib include
 

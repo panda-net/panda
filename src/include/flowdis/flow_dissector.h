@@ -7,7 +7,7 @@
  */
 
 #include "flowdis/local_defs.h"
-#include "siphash.h"
+#include "siphash/siphash.h"
 
 /**
  * struct flow_dissector_key_control:
@@ -229,6 +229,7 @@ struct flow_dissector_key_ct {
 };
 
 enum flow_dissector_key_id {
+	FLOW_DISSECTOR_KEY_INVALID = 0, /* Invalid key ID */
 	FLOW_DISSECTOR_KEY_CONTROL, /* struct flow_dissector_key_control */
 	FLOW_DISSECTOR_KEY_BASIC, /* struct flow_dissector_key_basic */
 	FLOW_DISSECTOR_KEY_IPV4_ADDRS, /* struct flow_dissector_key_ipv4_addrs */
