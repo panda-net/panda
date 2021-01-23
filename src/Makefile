@@ -45,7 +45,7 @@ WFLAGS += -Wmissing-declarations -Wold-style-definition -Wformat=2
 CFLAGS := $(WFLAGS) $(CCOPTS) -I$(CURRDIR)/include $(DEFINES) $(CFLAGS)
 YACCFLAGS = -d -t -v
 
-SUBDIRS=
+SUBDIRS= lib include
 
 all: config.mk
 	@set -e; \
