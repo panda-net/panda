@@ -2,6 +2,8 @@
 #ifndef __FLOWDIS_DISSECTOR_H__
 #define __FLOWDIS_DISSECTOR_H__
 
+#include <arpa/inet.h>
+
 /* Adapted from kernel include/net/flow_dissector.h and include/linux/skbuff.h
  * with some customizations.
  */
@@ -378,11 +380,23 @@ void skb_flow_dissect_meta(const struct sk_buff *skb,
 			   struct flow_dissector *flow_dissector,
 			   void *target_container);
 
-bool __skb_flow_dissect(const struct sk_buff *skb,
-			struct flow_dissector *flow_dissector,
-			void *target_container, void *data,
+bool __skb_flow_dissect_err(const struct sk_buff *skb,
+			    struct flow_dissector *flow_dissector,
+			    void *target_container, void *data,
+			    __be16 proto, int nhoff, int hlen,
+			    unsigned int flags, const char **errmsg);
+
+static inline bool __skb_flow_dissect(const struct sk_buff *skb,
+			struct flow_dissector *fd,
+			void *tgt, void *data,
 			__be16 proto, int nhoff, int hlen,
-			unsigned int flags);
+			unsigned int flags)
+{
+	const char *err;
+
+	return(__skb_flow_dissect_err(skb, fd, tgt, data, proto, nhoff, hlen,
+				      flags, &err));
+}
 
 static inline bool skb_flow_dissect(const struct sk_buff *skb,
 				    struct flow_dissector *flow_dissector,
