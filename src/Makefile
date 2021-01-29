@@ -42,7 +42,12 @@ CCOPTS = -O2
 WFLAGS := -Wall -Wstrict-prototypes  -Wmissing-prototypes
 WFLAGS += -Wmissing-declarations -Wold-style-definition -Wformat=2
 
-CFLAGS := $(WFLAGS) $(CCOPTS) -I$(CURRDIR)/include $(DEFINES) $(CFLAGS)
+CFLAGS := $(WFLAGS) $(CCOPTS) -I$(CURRDIR)/include
+ifeq ($(UAPI), 1)
+CFLAGS += -I$(CURRDIR)/include/uapi
+endif
+CFLAGS += $(DEFINES)
+
 YACCFLAGS = -d -t -v
 
 SUBDIRS= lib include
