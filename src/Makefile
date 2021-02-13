@@ -52,7 +52,7 @@ YACCFLAGS = -d -t -v
 LDFLAGS += -L$(CURRDIR)/lib/siphash -L$(CURRDIR)/lib/flowdis
 LDFLAGS += -L$(CURRDIR)/lib/panda -L$(CURRDIR)/lib/parselite
 
-SUBDIRS= lib include
+SUBDIRS= lib include test
 
 all: config.mk
 	@set -e; \
