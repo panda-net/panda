@@ -113,6 +113,20 @@ enum panda_addr_types {
 
 #define PANDA_METADATA_flow_label	__u32 flow_label
 
+#define PANDA_METADATA_ports						\
+	union {								\
+		__be32 ports;						\
+		__be16 port16[2];					\
+		struct {						\
+			__be16 src_port;				\
+			__be16 dst_port;				\
+		};							\
+		struct {						\
+			__be16 sport;					\
+			__be16 dport;					\
+		} port_pair;						\
+	}
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -127,6 +141,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_eth_proto __aligned(8);
 	PANDA_METADATA_ip_proto;
 	PANDA_METADATA_flow_label;
+	PANDA_METADATA_ports;
 
 	PANDA_METADATA_addrs; /* Must be last */
 };
@@ -142,24 +157,33 @@ struct panda_metadata_all {
 #define PANDA_HASH_CONSISTENTIFY(FRAME) do {				\
 	int addr_diff, i;						\
 									\
-	switch (frame->addr_type) {					\
+	switch ((FRAME)->addr_type) {					\
 	case PANDA_ADDR_TYPE_IPV4:					\
-		addr_diff = frame->addrs.v4_addrs[1] -			\
-				frame->addrs.v4_addrs[0];		\
-		if ((addr_diff < 0)					\
-			PANDA_SWAP(frame->addrs.v4_addrs[0],		\
-			     frame->addrs.v4_addrs[1]);			\
+		addr_diff = (FRAME)->addrs.v4_addrs[1] -		\
+					(FRAME)->addrs.v4_addrs[0];	\
+		if ((addr_diff < 0) ||					\
+		    (addr_diff == 0 && ((FRAME)->port16[1] <		\
+					(FRAME)->port16[0]))) {		\
+			PANDA_SWAP((FRAME)->addrs.v4_addrs[0],		\
+				   (FRAME)->addrs.v4_addrs[1]);		\
+			PANDA_SWAP((FRAME)->port16[0],			\
+				   (FRAME)->port16[1]);			\
+		}							\
 		break;							\
 	case PANDA_ADDR_TYPE_IPV6:					\
-		addr_diff = memcmp(&frame->addrs.v6_addrs[1],		\
-				   &frame->addrs.v6_addrs[0],		\
-				   sizeof(frame->addrs.v6_addrs[1]));	\
-		if ((addr_diff < 0) {					\
+		addr_diff = memcmp(&(FRAME)->addrs.v6_addrs[1],		\
+				   &(FRAME)->addrs.v6_addrs[0],		\
+				   sizeof((FRAME)->addrs.v6_addrs[1]));	\
+		if ((addr_diff < 0) ||					\
+		    (addr_diff == 0 && ((FRAME)->port16[1] <		\
+					(FRAME)->port16[0]))) {		\
 			for (i = 0; i < 4; i++)				\
-				PANDA_SWAP(frame->addrs.v6_addrs[0].	\
+				PANDA_SWAP((FRAME)->addrs.v6_addrs[0].	\
 							s6_addr32[i],	\
-				     frame->addrs.v6_addrs[1].		\
+				     (FRAME)->addrs.v6_addrs[1].	\
 							s6_addr32[i]);	\
+			PANDA_SWAP((FRAME)->port16[0],			\
+				   (FRAME)->port16[1]);			\
 		}							\
 		break;							\
 	}								\
@@ -285,6 +309,17 @@ static void NAME(const void *viph, void *iframe)			\
 	frame->addr_type = PANDA_ADDR_TYPE_IPV6;			\
 	memcpy(frame->addrs.v6_addrs, &iph->saddr,			\
 	       sizeof(frame->addrs.v6_addrs));				\
+}
+
+/* Meta data helper for transport ports.
+ * Uses common metadata fields: ports
+ */
+#define PANDA_METADATA_TEMP_ports(NAME, STRUCT)				\
+static void NAME(const void *vphdr, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->ports = ((struct port_hdr *)vphdr)->ports;		\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

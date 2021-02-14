@@ -753,6 +753,8 @@ void panda_print_hash_input(const void *start, size_t len);
 				 a6buf, sizeof(a6buf)));		\
 		break;							\
 	}								\
+	printf("Source port %04x\n", ntohs((FRAME)->port16[0]));	\
+	printf("Destination port %04x\n", ntohs((FRAME)->port16[1]));	\
 } while (0)
 
 /* Default functions that can be set for various call backs */

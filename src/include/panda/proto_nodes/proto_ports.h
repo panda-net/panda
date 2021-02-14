@@ -24,9 +24,30 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_PORTS_H__
+#define __PANDA_PROTO_PORTS_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
+#include "panda/parser.h"
+
+/* Tranport nodes with ports definitions */
+
+struct port_hdr {
+	__u32   ports;
+};
+
+#endif /* __PANDA_PROTO_PORTS_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* Generic PANDA parse nodes for transport protocols that contain port
+ * numbers cnanonical location
+ *
+ * Transport header starts with sixteen bit source and destination port
+ * numbers. Applicable protocols include TCP, UDP, SCTP, etc.
+ */
+static struct panda_proto_node panda_parse_ports __unused() = {
+	.name = "Transport with ports",
+	.min_len = sizeof(struct port_hdr),
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
