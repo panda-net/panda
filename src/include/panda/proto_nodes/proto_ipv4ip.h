@@ -24,13 +24,37 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_IPV4IP_H__
+#define __PANDA_PROTO_IPV4IP_H__
 
-#include "panda/proto_nodes/proto_ether.h"
+/* IPv4 in IP node definitions */
+
+#include <linux/ip.h>
+
+#include "panda/parser.h"
 #include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
+
+static inline int ipv4_proto_default(const void *viph)
+{
+	return 0; /* Indicates IPv4 */
+}
+
+#endif /* __PANDA_PROTO_IPV4IP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* parse_ipv4ip protocol node
+ *
+ * Parses IPv4IP header
+ *
+ * Next protocol operation returns 0 indicating IPv4
+ */
+static struct panda_proto_node panda_parse_ipv4ip __unused() = {
+	.name = "IPv4 in IP",
+	.encap = 1,
+	.overlay = 1,
+	.min_len = sizeof(struct iphdr),
+	.ops.next_proto = ipv4_proto_default,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
