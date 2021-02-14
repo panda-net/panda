@@ -28,3 +28,4 @@
 
 #include "panda/proto_nodes/proto_ether.h"
 #include "panda/proto_nodes/proto_ipv4.h"
+#include "panda/proto_nodes/proto_ipv6.h"

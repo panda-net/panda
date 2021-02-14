@@ -85,6 +85,7 @@
 enum panda_addr_types {
 	PANDA_ADDR_TYPE_INVALID = 0, /* Invalid addr type */
 	PANDA_ADDR_TYPE_IPV4,
+	PANDA_ADDR_TYPE_IPV6,
 };
 
 #define	PANDA_METADATA_addr_type	__u8 addr_type
@@ -97,11 +98,20 @@ enum panda_addr_types {
 				__be32	daddr;				\
 			} v4;						\
 		};							\
+		union {							\
+			struct in6_addr v6_addrs[2];			\
+			struct {					\
+				struct in6_addr saddr;			\
+				struct in6_addr daddr;			\
+			} v6;						\
+		};							\
 	} addrs
 
 #define	PANDA_METADATA_ip_proto	__u8 ip_proto
 #define	PANDA_METADATA_is_fragment	__u8 is_fragment: 1
 #define	PANDA_METADATA_first_frag	__u8 first_frag: 1
+
+#define PANDA_METADATA_flow_label	__u32 flow_label
 
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
@@ -116,6 +126,7 @@ struct panda_metadata_all {
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
 	PANDA_METADATA_ip_proto;
+	PANDA_METADATA_flow_label;
 
 	PANDA_METADATA_addrs; /* Must be last */
 };
@@ -129,7 +140,7 @@ struct panda_metadata_all {
  * directions.
  */
 #define PANDA_HASH_CONSISTENTIFY(FRAME) do {				\
-	int addr_diff;							\
+	int addr_diff, i;						\
 									\
 	switch (frame->addr_type) {					\
 	case PANDA_ADDR_TYPE_IPV4:					\
@@ -138,6 +149,18 @@ struct panda_metadata_all {
 		if ((addr_diff < 0)					\
 			PANDA_SWAP(frame->addrs.v4_addrs[0],		\
 			     frame->addrs.v4_addrs[1]);			\
+		break;							\
+	case PANDA_ADDR_TYPE_IPV6:					\
+		addr_diff = memcmp(&frame->addrs.v6_addrs[1],		\
+				   &frame->addrs.v6_addrs[0],		\
+				   sizeof(frame->addrs.v6_addrs[1]));	\
+		if ((addr_diff < 0) {					\
+			for (i = 0; i < 4; i++)				\
+				PANDA_SWAP(frame->addrs.v6_addrs[0].	\
+							s6_addr32[i],	\
+				     frame->addrs.v6_addrs[1].		\
+							s6_addr32[i]);	\
+		}							\
 		break;							\
 	}								\
 } while (0)
@@ -163,6 +186,10 @@ struct panda_metadata_all {
 	case PANDA_ADDR_TYPE_IPV4:					\
 		diff -= sizeof((FRAME)->addrs.v4_addrs);		\
 		break;							\
+	case PANDA_ADDR_TYPE_IPV6:					\
+		diff -= sizeof((FRAME)->addrs.v6_addrs);		\
+		break;							\
+	}								\
 	sizeof(*(FRAME)) - diff;					\
 })
 
@@ -227,6 +254,37 @@ static void NAME(const void *viph, void *iframe)			\
 	frame->ip_proto = iph->protocol;				\
 	memcpy(frame->addrs.v4_addrs, &iph->saddr,			\
 	       sizeof(frame->addrs.v4_addrs));				\
+}
+
+/* Meta data helper for IPv6.
+ * Uses common metadata fields: ip_proto, addr_type, flow_label, addrs.v6_addrs
+ */
+#define PANDA_METADATA_TEMP_ipv6(NAME, STRUCT)				\
+static void NAME(const void *viph, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct ipv6hdr *iph = viph;				\
+									\
+	frame->ip_proto = iph->nexthdr;					\
+	frame->addr_type = PANDA_ADDR_TYPE_IPV6;			\
+	frame->flow_label = ntohl(ip6_flowlabel(iph));			\
+	memcpy(frame->addrs.v6_addrs, &iph->saddr,			\
+	       sizeof(frame->addrs.v6_addrs));				\
+}
+
+/* Meta data helper for IPv6 to only extract IP address.
+ * Uses common metadata fields: ip_proto, addr_type, addrs.v6_addrs
+ */
+#define PANDA_METADATA_TEMP_ipv6_addrs(NAME, STRUCT)			\
+static void NAME(const void *viph, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct ipv6hdr *iph = viph;				\
+									\
+	frame->ip_proto = iph->nexthdr;					\
+	frame->addr_type = PANDA_ADDR_TYPE_IPV6;			\
+	memcpy(frame->addrs.v6_addrs, &iph->saddr,			\
+	       sizeof(frame->addrs.v6_addrs));				\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

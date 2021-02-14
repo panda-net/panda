@@ -2,7 +2,7 @@ include ../../../config.mk
 
 INCDIR=$(INSTALLDIR)$(HDRDIR)/panda/proto_nodes
 
-TARGETS = proto_ether.h proto_ipv4.h
+TARGETS = proto_ether.h proto_ipv4.h proto_ipv6.h
 
 .PHONY: all
 all: $(TARGETS)
