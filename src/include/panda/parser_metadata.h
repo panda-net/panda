@@ -158,6 +158,13 @@ enum panda_addr_types {
 		__be16  tpid;						\
 	} vlan[PANDA_MAX_VLAN_CNT]
 
+#define PANDA_METADATA_icmp						\
+	struct {							\
+		__u8	type;						\
+		__u8	code;						\
+		__u16	id;						\
+	} icmp
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -177,6 +184,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_vlan;
 	PANDA_METADATA_keyid;
 	PANDA_METADATA_ports;
+	PANDA_METADATA_icmp;
 
 	PANDA_METADATA_addrs; /* Must be last */
 };
@@ -527,5 +535,22 @@ static void NAME(const void *vvlan, void *iframe)			\
 
 #define PANDA_METADATA_TEMP_vlan_8021Q(NAME, STRUCT)			\
 	PANDA_METADATA_TEMP_vlan_set_tpid(NAME, STRUCT, ETH_P_8021Q)
+
+/* Meta data helper for ICMP (ICMPv4 or ICMPv6).
+ * Uses common metadata fields: icmp.type, icmp.code, icmp.id
+ */
+#define PANDA_METADATA_TEMP_icmp(NAME, STRUCT)				\
+static void NAME(const void *vicmp, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct icmphdr *icmp = vicmp;				\
+									\
+	frame->icmp.type = icmp->type;					\
+	frame->icmp.code = icmp->code;					\
+	if (icmp_has_id(icmp->type))					\
+		frame->icmp.id = icmp->un.echo.id ? : 1;		\
+	else								\
+		frame->icmp.id = 0;					\
+}
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

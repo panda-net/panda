@@ -24,17 +24,51 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_ICMP_H__
+#define __PANDA_PROTO_ICMP_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
-#include "panda/proto_nodes/proto_icmp.h"
+/* Generic ICMP node definitions */
+
+#include <linux/icmp.h>
+#include <linux/icmpv6.h>
+
+#include "panda/parser.h"
+
+static inline bool icmp_has_id(__u8 type)
+{
+	switch (type) {
+	case ICMP_ECHO:
+	case ICMP_ECHOREPLY:
+	case ICMP_TIMESTAMP:
+	case ICMP_TIMESTAMPREPLY:
+	case ICMPV6_ECHO_REQUEST:
+	case ICMPV6_ECHO_REPLY:
+		return true;
+	}
+
+	return false;
+}
+
+#endif /* __PANDA_PROTO_ICMP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_icmpv4 protocol node
+ *
+ * Parse ICMPv4 header
+ */
+static struct panda_proto_node panda_parse_icmpv4 __unused() = {
+	.name = "ICMPv4",
+	.min_len = sizeof(struct icmphdr),
+};
+
+/* panda_parse_icmpv6 protocol node
+ *
+ * Parse ICMPv6 header
+ */
+static struct panda_proto_node panda_parse_icmpv6 __unused() = {
+	.name = "ICMPv6",
+	.min_len = sizeof(struct icmp6hdr),
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */

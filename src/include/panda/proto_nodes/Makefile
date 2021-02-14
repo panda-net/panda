@@ -4,7 +4,7 @@ INCDIR=$(INSTALLDIR)$(HDRDIR)/panda/proto_nodes
 
 TARGETS = proto_ether.h proto_ipv4.h proto_ipv6.h proto_ports.h
 TARGETS += proto_tcp.h proto_ip.h proto_ipv6_eh.h proto_ipv4ip.h
-TARGETS += proto_ipv6ip.h proto_gre.h proto_vlan.h
+TARGETS += proto_ipv6ip.h proto_gre.h proto_vlan.h proto_icmp.h
 
 .PHONY: all
 all: $(TARGETS)
