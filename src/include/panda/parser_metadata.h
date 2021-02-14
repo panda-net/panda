@@ -141,6 +141,8 @@ enum panda_addr_types {
 		} sack[TCP_MAX_SACKS];					\
 	} tcp_options
 
+#define PANDA_METADATA_keyid		__be32  keyid
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -156,6 +158,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_eth_proto __aligned(8);
 	PANDA_METADATA_ip_proto;
 	PANDA_METADATA_flow_label;
+	PANDA_METADATA_keyid;
 	PANDA_METADATA_ports;
 
 	PANDA_METADATA_addrs; /* Must be last */
@@ -449,6 +452,37 @@ static void NAME(const void *vfrag, void *iframe)			\
 {									\
 	((struct STRUCT *)iframe)->ip_proto =				\
 			((struct ipv6_frag_hdr *)vfrag)->nexthdr;	\
+}
+
+/* Meta data helper for GRE version 0.
+ * Uses common metadata fields: keyid
+ */
+#define PANDA_METADATA_TEMP_gre_v0(NAME, STRUCT)			\
+static void NAME(const void *vgre, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct gre_hdr *gre = vgre;				\
+									\
+	frame->keyid = panda_get_flag_field32(gre->fields,		\
+					      GRE_FLAGS_KEY_IDX,	\
+					      gre->flags,		\
+					      &gre_flag_fields);	\
+}
+
+/* Meta data helper for GRE version 1.
+ * Uses common metadata fields: keyid
+ */
+#define PANDA_METADATA_TEMP_gre_v1(NAME, STRUCT)			\
+static void NAME(const void *vgre, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct gre_hdr *gre = vgre;				\
+									\
+	frame->keyid = panda_get_flag_field32(gre->fields,		\
+					      GRE_PPTP_FLAGS_KEY_IDX,	\
+					      gre->flags,		\
+					      &pptp_gre_flag_fields) &	\
+				GRE_PPTP_KEY_MASK;			\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

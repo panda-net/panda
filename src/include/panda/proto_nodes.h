@@ -35,3 +35,4 @@
 #include "panda/proto_nodes/proto_ipv6_eh.h"
 #include "panda/proto_nodes/proto_ipv4ip.h"
 #include "panda/proto_nodes/proto_ipv6ip.h"
+#include "panda/proto_nodes/proto_gre.h"
