@@ -34,6 +34,8 @@
 #ifndef __PANDA_PARSER_METADATA_H__
 #define __PANDA_PARSER_METADATA_H__
 
+#include <linux/if_ether.h>
+
 #include "panda/parser.h"
 #include "panda/proto_nodes.h"
 
@@ -77,13 +79,23 @@
  * data names to this list
  */
 
+#define PANDA_METADATA_eth_proto	__be16	eth_proto
+#define PANDA_METADATA_eth_addrs	__u8 eth_addrs[2 * ETH_ALEN]
+
 /* Meta data structure containing all common metadata in canonical field
- * order.
+ * order. eth_proto is declared as the hash start field for the common
+ * metadata structure.
  */
 struct panda_metadata_all {
+	PANDA_METADATA_eth_addrs;
+
+#define PANDA_HASH_START_FIELD_ALL eth_proto
+	PANDA_METADATA_eth_proto __aligned(8);
 };
 
-#define PANDA_HASH_OFFSET_ALL		0
+#define PANDA_HASH_OFFSET_ALL					\
+	offsetof(struct panda_metadata_all,			\
+		 PANDA_HASH_START_FIELD_ALL)
 
 /* Template for hash consistentify. Sort the source and destination IP (and the
  * ports if the IP address are the same) to have consistent hash within the two
@@ -113,5 +125,29 @@ struct panda_metadata_all {
 })
 
 /* Helpers to extract common metadata */
+
+/* Meta data helper for Ethernet.
+ * Uses common metadata fields: eth_proto, eth_addrs
+ */
+#define PANDA_METADATA_TEMP_ether(NAME, STRUCT)				\
+static void NAME(const void *veth, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->eth_proto = ((struct ethhdr *)veth)->h_proto;		\
+	memcpy(frame->eth_addrs, &((struct ethhdr *)veth)->h_dest,	\
+	       sizeof(frame->eth_addrs));				\
+}
+
+/* Meta data helper for Ethernet without extracting addresses.
+ * Uses common metadata fields: eth_proto
+ */
+#define PANDA_METADATA_TEMP_ether_noaddrs(NAME, STRUCT)			\
+static void NAME(const void *veth, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->eth_proto = ((struct ethhdr *)veth)->h_proto;		\
+}
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

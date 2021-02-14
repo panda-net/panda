@@ -24,6 +24,36 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_ETHER_H__
+#define __PANDA_PROTO_ETHER_H__
 
-#include "panda/proto_nodes/proto_ether.h"
+/* Ethernet node definitions */
+
+#include <linux/if_ether.h>
+
+#include "panda/parser.h"
+
+
+static inline int ether_proto(const void *veth)
+{
+	return ((struct ethhdr *)veth)->h_proto;
+}
+
+#endif /* __PANDA_PROTO_ETHER_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_ether protocol node
+ *
+ * Parses Ethernet header
+ *
+ * Next protocol operation returns Ethertype (e.g. ETH_P_IPV4)
+ */
+
+static struct panda_proto_node panda_parse_ether __unused() = {
+	.name = "Ethernet",
+	.min_len = sizeof(struct ethhdr),
+	.ops.next_proto = ether_proto,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
