@@ -3,7 +3,7 @@ include parsers.mk
 
 CFLAGS += -fPIC
 
-UTILOBJ = parser.o
+UTILOBJ = parser.o pcap.o
 
 # Parser files are in parsers subdirectory
 
