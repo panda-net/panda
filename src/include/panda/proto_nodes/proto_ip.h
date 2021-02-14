@@ -24,11 +24,49 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_IP_H__
+#define __PANDA_PROTO_IP_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
+#include "panda/parser.h"
+
+/* IP overlay node definitions */
+
+#include <asm/byteorder.h>
+
+struct ip_hdr_byte {
+#if defined(__LITTLE_ENDIAN_BITFIELD)
+	__u8    rsvd:4,
+		version:4;
+#elif defined(__BIG_ENDIAN_BITFIELD)
+	__u8    version:4,
+		rsvd:4;
+#else
+#error "Please fix <asm/byteorder.h>"
+#endif
+};
+
+static inline int ip_proto(const void *viph)
+{
+	return ((struct ip_hdr_byte *)viph)->version;
+}
+
+#endif /* __PANDA_PROTO_IP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* parse_ip protocol node
+ *
+ * Parses first byte of IP header to distinguish IP version (i.e. IPv4
+ * and IPv6)
+ *
+ * Next protocol operation returns IP version number (e.g. 4 for IPv4,
+ * 6 for IPv6)
+ */
+static struct panda_proto_node panda_parse_ip __unused() = {
+	.name = "IP overlay",
+	.overlay = 1,
+	.min_len = sizeof(struct ip_hdr_byte),
+	.ops.next_proto = ip_proto,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */

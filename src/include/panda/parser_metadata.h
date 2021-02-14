@@ -398,4 +398,23 @@ static void NAME(const void *vopt, void *iframe)			\
 	}								\
 }
 
+/* Meta data helper for IP overlay (differentiate based on version number).
+ * Uses common metadata fields: eth_proto
+ */
+
+#define PANDA_METADATA_TEMP_ip_overlay(NAME, STRUCT)			\
+static void NAME(const void *viph, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	switch (((struct ip_hdr_byte *)viph)->version) {		\
+	case 4:								\
+		frame->eth_proto = __cpu_to_be16(ETH_P_IP);		\
+		break;							\
+	case 6:								\
+		frame->eth_proto = __cpu_to_be16(ETH_P_IPV6);		\
+		break;							\
+	}								\
+}
+
 #endif /* __PANDA_PARSER_METADATA_H__ */
