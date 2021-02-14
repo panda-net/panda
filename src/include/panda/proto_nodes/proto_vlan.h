@@ -24,16 +24,41 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_VLAN_H__
+#define __PANDA_PROTO_VLAN_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
+#include "panda/parser.h"
+
+#define VLAN_PRIO_MASK		0xe000 /* Priority Code Point */
+#define VLAN_PRIO_SHIFT		13
+#define VLAN_VID_MASK		0x0fff /* VLAN Identifier */
+
+/* VLAN node definitions */
+
+struct vlan_hdr {
+	__be16  h_vlan_TCI;
+	__be16  h_vlan_encapsulated_proto;
+};
+
+static inline int vlan_proto(const void *vvlan)
+{
+	return ((struct vlan_hdr *)vvlan)->h_vlan_encapsulated_proto;
+}
+
+#endif /* __PANDA_PROTO_VLAN_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_vlan protocol node
+ *
+ * Parse VLAN header
+ *
+ * Next protocol operation returns Ethertype (e.g. ETH_P_IPV4)
+ */
+static struct panda_proto_node panda_parse_vlan __unused() = {
+	.name = "VLAN",
+	.min_len = sizeof(struct vlan_hdr),
+	.ops.next_proto = vlan_proto,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */

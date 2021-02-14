@@ -143,6 +143,21 @@ enum panda_addr_types {
 
 #define PANDA_METADATA_keyid		__be32  keyid
 
+#define PANDA_MAX_VLAN_CNT	2
+#define PANDA_METADATA_vlan_count	__u8 vlan_count : 2
+#define PANDA_METADATA_vlan						\
+	struct {							\
+		union {							\
+			struct {					\
+				__u16   id:12,				\
+					dei:1,				\
+					priority:3;			\
+			};						\
+			__be16  tci;					\
+		};							\
+		__be16  tpid;						\
+	} vlan[PANDA_MAX_VLAN_CNT]
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -151,6 +166,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_addr_type;
 	PANDA_METADATA_is_fragment;
 	PANDA_METADATA_first_frag;
+	PANDA_METADATA_vlan_count;
 	PANDA_METADATA_eth_addrs;
 	PANDA_METADATA_tcp_options;
 
@@ -158,6 +174,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_eth_proto __aligned(8);
 	PANDA_METADATA_ip_proto;
 	PANDA_METADATA_flow_label;
+	PANDA_METADATA_vlan;
 	PANDA_METADATA_keyid;
 	PANDA_METADATA_ports;
 
@@ -484,5 +501,31 @@ static void NAME(const void *vgre, void *iframe)			\
 					      &pptp_gre_flag_fields) &	\
 				GRE_PPTP_KEY_MASK;			\
 }
+
+/* Meta data helper for VLAN.
+ * Uses common metadata fields: vlan_count, vlan[0].id, vlan[0].priority,
+ * vlan[0].tci, vlan[0].tpid, vlan[1].id, vlan[1].priority, vlan[1].tci,
+ * vlan[1].tpid
+ */
+#define PANDA_METADATA_TEMP_vlan_set_tpid(NAME, STRUCT, TPID)		\
+static void NAME(const void *vvlan, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct vlan_hdr *vlan = vvlan;				\
+	int index = (frame->vlan_count < PANDA_MAX_VLAN_CNT) ?		\
+			frame->vlan_count++ : PANDA_MAX_VLAN_CNT - 1;	\
+									\
+	frame->vlan[index].id = ntohs(vlan->h_vlan_TCI) &		\
+				VLAN_VID_MASK;				\
+	frame->vlan[index].priority = (ntohs(vlan->h_vlan_TCI) &	\
+				VLAN_PRIO_MASK) >> VLAN_PRIO_SHIFT;	\
+	frame->vlan[index].tpid = TPID;					\
+}
+
+#define PANDA_METADATA_TEMP_vlan_8021AD(NAME, STRUCT)			\
+	PANDA_METADATA_TEMP_vlan_set_tpid(NAME, STRUCT, ETH_P_8021AD)
+
+#define PANDA_METADATA_TEMP_vlan_8021Q(NAME, STRUCT)			\
+	PANDA_METADATA_TEMP_vlan_set_tpid(NAME, STRUCT, ETH_P_8021Q)
 
 #endif /* __PANDA_PARSER_METADATA_H__ */
