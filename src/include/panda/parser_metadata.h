@@ -127,6 +127,20 @@ enum panda_addr_types {
 		} port_pair;						\
 	}
 
+#define PANDA_METADATA_tcp_options					\
+	struct {							\
+		__u16 mss;						\
+		__u8 window_scaling;					\
+		struct {						\
+			__u32 value;					\
+			__u32 echo;					\
+		} timestamp;						\
+		struct {						\
+			__u32 left_edge;				\
+			__u32 right_edge;				\
+		} sack[TCP_MAX_SACKS];					\
+	} tcp_options
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -136,6 +150,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_is_fragment;
 	PANDA_METADATA_first_frag;
 	PANDA_METADATA_eth_addrs;
+	PANDA_METADATA_tcp_options;
 
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
@@ -320,6 +335,67 @@ static void NAME(const void *vphdr, void *iframe)			\
 	struct STRUCT *frame = iframe;					\
 									\
 	frame->ports = ((struct port_hdr *)vphdr)->ports;		\
+}
+
+/* Meta data helpers for TCP options */
+
+/* Meta data helper for TCP MSS option
+ * Uses common metadata field: tcp_options
+ */
+#define PANDA_METADATA_TEMP_tcp_option_mss(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe)			\
+{									\
+	const struct tcp_opt_union *opt = vopt;				\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->tcp_options.mss = ntohs(opt->mss);			\
+}
+
+/* Meta data helper for TCP window scaling option
+ * Uses common metadata field: tcp_options
+ */
+#define PANDA_METADATA_TEMP_tcp_option_window_scaling(NAME, STRUCT)	\
+static void NAME(const void *vopt, void *iframe)			\
+{									\
+	const struct tcp_opt_union *opt = vopt;				\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->tcp_options.window_scaling = opt->window_scaling;	\
+}
+
+/* Meta data helper for TCP timestamps option
+ * Uses common metadata field: tcp_options
+ */
+#define PANDA_METADATA_TEMP_tcp_option_timestamp(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe)			\
+{									\
+	const struct tcp_opt_union *opt = vopt;				\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->tcp_options.timestamp.value =				\
+				ntohl(opt->timestamp.value);		\
+	frame->tcp_options.timestamp.echo =				\
+				ntohl(opt->timestamp.echo);		\
+}
+
+/* Meta data helper for TCP sack option
+ * Uses common metadata field: tcp_options
+ */
+#define PANDA_METADATA_TEMP_tcp_option_sack(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe)			\
+{									\
+	const struct tcp_opt_union *opt = vopt;				\
+	size_t dlen = opt->opt.len - sizeof(struct tcp_opt);		\
+	unsigned int num_sacks = dlen / 8;				\
+	struct STRUCT *frame = iframe;					\
+	int i;								\
+									\
+	for (i = 0; i < num_sacks; i++) {				\
+		frame->tcp_options.sack[i].left_edge =			\
+				ntohl(opt->sack[i].left_edge);		\
+		frame->tcp_options.sack[i].right_edge =			\
+				ntohl(opt->sack[i].right_edge);		\
+	}								\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */
