@@ -24,18 +24,40 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_PPP_H__
+#define __PANDA_PROTO_PPP_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
-#include "panda/proto_nodes/proto_icmp.h"
-#include "panda/proto_nodes/proto_ppp.h"
+#include <linux/ppp_defs.h>
+
+#include "panda/parser.h"
+
+/* PPP node definitions */
+
+struct ppp_hdr {
+	__u8 address;
+	__u8 control;
+	__be16 protocol;
+};
+
+static inline int ppp_proto(const void *vppp)
+{
+	return ((struct ppp_hdr *)vppp)->protocol;
+}
+
+#endif /* __PANDA_PROTO_PPP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_ppp protocol node
+ *
+ * Parse PPP header
+ *
+ * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
+ */
+static struct panda_proto_node panda_parse_ppp __unused() = {
+	.name = "PPP",
+	.min_len = sizeof(struct ppp_hdr),
+	.ops.next_proto = ppp_proto,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
