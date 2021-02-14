@@ -42,3 +42,4 @@
 #include "panda/proto_nodes/proto_mpls.h"
 #include "panda/proto_nodes/proto_arp_rarp.h"
 #include "panda/proto_nodes/proto_tipc.h"
+#include "panda/proto_nodes/proto_batman.h"
