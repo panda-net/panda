@@ -24,14 +24,37 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_IPV6IP_H__
+#define __PANDA_PROTO_IPV6IP_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
+/* IPv6 in IP node definitions */
+
+#include <linux/ipv6.h>
+
+#include "panda/parser.h"
 #include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
+
+static inline int ipv6_proto_default(const void *viph)
+{
+	return 0; /* Indicates IPv6 */
+}
+
+#endif /* __PANDA_PROTO_IPV6IP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_ipv6ip protocol node
+ *
+ * Parses IPv6IP header
+ *
+ * Next protocol operation returns 0 indicating IPv4
+ */
+static struct panda_proto_node panda_parse_ipv6ip __unused() = {
+	.name = "IPv6 in IP",
+	.encap = 1,
+	.overlay = 1,
+	.min_len = sizeof(struct ipv6hdr),
+	.ops.next_proto = ipv6_proto_default,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
