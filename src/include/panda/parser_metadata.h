@@ -35,6 +35,7 @@
 #define __PANDA_PARSER_METADATA_H__
 
 #include <linux/if_ether.h>
+#include <linux/mpls.h>
 
 #include "panda/parser.h"
 #include "panda/proto_nodes.h"
@@ -165,6 +166,14 @@ enum panda_addr_types {
 		__u16	id;						\
 	} icmp
 
+#define PANDA_METADATA_mpls						\
+	struct {							\
+		__u32	ttl: 8;						\
+		__u32	bos: 1;						\
+		__u32	tc: 3;						\
+		__u32	label: 20;					\
+	} mpls
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -176,6 +185,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_vlan_count;
 	PANDA_METADATA_eth_addrs;
 	PANDA_METADATA_tcp_options;
+	PANDA_METADATA_mpls;
 
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
@@ -551,6 +561,30 @@ static void NAME(const void *vicmp, void *iframe)			\
 		frame->icmp.id = icmp->un.echo.id ? : 1;		\
 	else								\
 		frame->icmp.id = 0;					\
+}
+
+/* Meta data helper for MPLS.
+ * Uses common metadata fields: mpls.label, mpls.ttl, mpls.tc, mpls.bos, keyid
+ */
+#define PANDA_METADATA_TEMP_mpls(NAME, STRUCT)				\
+static void NAME(const void *vmpls, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct mpls_label *mpls = vmpls;				\
+	__u32 entry, label;						\
+									\
+	entry = ntohl(mpls[0].entry);					\
+	label = (entry & MPLS_LS_LABEL_MASK) >> MPLS_LS_LABEL_SHIFT;	\
+									\
+	frame->mpls.label = label;					\
+	frame->mpls.ttl =						\
+		(entry & MPLS_LS_TTL_MASK) >> MPLS_LS_TTL_SHIFT;	\
+	frame->mpls.tc = (entry & MPLS_LS_TC_MASK) >> MPLS_LS_TC_SHIFT;	\
+	frame->mpls.bos = (entry & MPLS_LS_S_MASK) >> MPLS_LS_S_SHIFT;	\
+									\
+	if (label == MPLS_LABEL_ENTROPY)				\
+		frame->keyid =						\
+			mpls[1].entry & htonl(MPLS_LS_LABEL_MASK);	\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

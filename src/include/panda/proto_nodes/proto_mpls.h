@@ -24,19 +24,26 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_MPLS_H__
+#define __PANDA_PROTO_MPLS_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
-#include "panda/proto_nodes/proto_icmp.h"
-#include "panda/proto_nodes/proto_ppp.h"
-#include "panda/proto_nodes/proto_mpls.h"
+/* MPLS node definitions */
+
+#include <linux/mpls.h>
+
+#include "panda/parser.h"
+
+#endif /* __PANDA_PROTO_MPLS_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_mpls protocol node
+ *
+ * Parse MPLS header
+ */
+static struct panda_proto_node panda_parse_mpls __unused() = {
+	.name = "MPLS",
+	.min_len = 2 * sizeof(struct mpls_label),
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
