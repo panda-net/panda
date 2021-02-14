@@ -87,6 +87,7 @@ enum panda_addr_types {
 	PANDA_ADDR_TYPE_INVALID = 0, /* Invalid addr type */
 	PANDA_ADDR_TYPE_IPV4,
 	PANDA_ADDR_TYPE_IPV6,
+	PANDA_ADDR_TYPE_TIPC,
 };
 
 #define	PANDA_METADATA_addr_type	__u8 addr_type
@@ -106,6 +107,7 @@ enum panda_addr_types {
 				struct in6_addr daddr;			\
 			} v6;						\
 		};							\
+		__be32		tipckey;				\
 	} addrs
 
 #define	PANDA_METADATA_ip_proto	__u8 ip_proto
@@ -612,6 +614,28 @@ static void NAME(const void *vmpls, void *iframe)			\
 	if (label == MPLS_LABEL_ENTROPY)				\
 		frame->keyid =						\
 			mpls[1].entry & htonl(MPLS_LS_LABEL_MASK);	\
+}
+
+/* Meta data helper for tipc.
+ * Uses common metadata fields: addr_type, tipckwy
+ *
+ * For non keepalive message set source node identity in tipc addresses.
+ * For keepalive messages set the tipc address to a random number fo
+ * spread PROBE/PROBE_REPLY messages across cores.
+ */
+#define PANDA_METADATA_TEMP_tipc(NAME, STRUCT)				\
+static void NAME(const void *vtipc, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct tipc_basic_hdr *tipc = vtipc;			\
+									\
+	__u32 w0 = ntohl(tipc->w[0]);					\
+	bool keepalive_msg;						\
+									\
+	keepalive_msg = (w0 & TIPC_KEEPALIVE_MSG_MASK) ==		\
+					TIPC_KEEPALIVE_MSG_MASK;	\
+	frame->addrs.tipckey = keepalive_msg ? rand() : tipc->w[3];	\
+	frame->addr_type = PANDA_ADDR_TYPE_TIPC;			\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

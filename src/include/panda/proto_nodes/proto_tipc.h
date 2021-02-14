@@ -24,21 +24,33 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_TIPC_H__
+#define __PANDA_PROTO_TIPC_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
-#include "panda/proto_nodes/proto_icmp.h"
-#include "panda/proto_nodes/proto_ppp.h"
-#include "panda/proto_nodes/proto_mpls.h"
-#include "panda/proto_nodes/proto_arp_rarp.h"
-#include "panda/proto_nodes/proto_tipc.h"
+/* TIPC node definitions */
+
+#include <linux/ppp_defs.h>
+
+#include "panda/parser.h"
+
+/* LINK_PROTOCOL + MSG_IS_KEEPALIVE */
+#define TIPC_KEEPALIVE_MSG_MASK		0x0e080000
+
+struct tipc_basic_hdr {
+	__be32 w[4];
+};
+
+#endif /* __PANDA_PROTO_TIPC_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_tipc protocol node
+ *
+ * Parse TIPC header
+ */
+static struct panda_proto_node panda_parse_tipc __unused() = {
+	.name = "TIPC",
+	.min_len = sizeof(struct tipc_basic_hdr),
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
