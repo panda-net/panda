@@ -417,4 +417,38 @@ static void NAME(const void *viph, void *iframe)			\
 	}								\
 }
 
+/* Meta data helper for Routing, DestOpt, and Hop-by-Hop extension headers.
+ * Uses common metadata fields: ip_proto
+ */
+#define PANDA_METADATA_TEMP_ipv6_eh(NAME, STRUCT)			\
+static void NAME(const void *vopt, void *iframe)			\
+{									\
+	((struct STRUCT *)iframe)->ip_proto =				\
+			((struct ipv6_opt_hdr *)vopt)->nexthdr;		\
+}
+
+/* Meta data helper for Fragmentation extension header.
+ * Uses common metadata fields: ip_proto, is_fragment, first_frag
+ */
+#define PANDA_METADATA_TEMP_ipv6_frag(NAME, STRUCT)			\
+static void NAME(const void *vfrag, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct ipv6_frag_hdr *frag = vfrag;			\
+									\
+	frame->ip_proto = frag->nexthdr;				\
+	frame->is_fragment = 1;						\
+	frame->first_frag = !(frag->frag_off & htons(IP6_OFFSET));	\
+}
+
+/* Meta data helper for Fragmentation extension header without info.
+ * Uses common metadata fields: ip_proto
+ */
+#define PANDA_METADATA_TEMP_ipv6_frag_noinfo(NAME, STRUCT)		\
+static void NAME(const void *vfrag, void *iframe)			\
+{									\
+	((struct STRUCT *)iframe)->ip_proto =				\
+			((struct ipv6_frag_hdr *)vfrag)->nexthdr;	\
+}
+
 #endif /* __PANDA_PARSER_METADATA_H__ */

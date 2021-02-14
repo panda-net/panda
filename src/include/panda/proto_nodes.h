@@ -32,3 +32,4 @@
 #include "panda/proto_nodes/proto_ports.h"
 #include "panda/proto_nodes/proto_tcp.h"
 #include "panda/proto_nodes/proto_ip.h"
+#include "panda/proto_nodes/proto_ipv6_eh.h"
