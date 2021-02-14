@@ -82,15 +82,42 @@
 #define PANDA_METADATA_eth_proto	__be16	eth_proto
 #define PANDA_METADATA_eth_addrs	__u8 eth_addrs[2 * ETH_ALEN]
 
+enum panda_addr_types {
+	PANDA_ADDR_TYPE_INVALID = 0, /* Invalid addr type */
+	PANDA_ADDR_TYPE_IPV4,
+};
+
+#define	PANDA_METADATA_addr_type	__u8 addr_type
+#define PANDA_METADATA_addrs						\
+	union {								\
+		union {							\
+			__be32		v4_addrs[2];			\
+			struct {					\
+				__be32	saddr;				\
+				__be32	daddr;				\
+			} v4;						\
+		};							\
+	} addrs
+
+#define	PANDA_METADATA_ip_proto	__u8 ip_proto
+#define	PANDA_METADATA_is_fragment	__u8 is_fragment: 1
+#define	PANDA_METADATA_first_frag	__u8 first_frag: 1
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
- * metadata structure.
+ * metadata structure. addrs is last field for canonical hashing.
  */
 struct panda_metadata_all {
+	PANDA_METADATA_addr_type;
+	PANDA_METADATA_is_fragment;
+	PANDA_METADATA_first_frag;
 	PANDA_METADATA_eth_addrs;
 
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
+	PANDA_METADATA_ip_proto;
+
+	PANDA_METADATA_addrs; /* Must be last */
 };
 
 #define PANDA_HASH_OFFSET_ALL					\
@@ -102,6 +129,17 @@ struct panda_metadata_all {
  * directions.
  */
 #define PANDA_HASH_CONSISTENTIFY(FRAME) do {				\
+	int addr_diff;							\
+									\
+	switch (frame->addr_type) {					\
+	case PANDA_ADDR_TYPE_IPV4:					\
+		addr_diff = frame->addrs.v4_addrs[1] -			\
+				frame->addrs.v4_addrs[0];		\
+		if ((addr_diff < 0)					\
+			PANDA_SWAP(frame->addrs.v4_addrs[0],		\
+			     frame->addrs.v4_addrs[1]);			\
+		break;							\
+	}								\
 } while (0)
 
 /* Helper to get starting address for hash start. This is just the
@@ -119,8 +157,12 @@ struct panda_metadata_all {
  * where the hash starts as indicated by the HASH_OFFSET argument.
  */
 #define PANDA_HASH_LENGTH(FRAME, HASH_OFFSET) ({			\
-	size_t diff = HASH_OFFSET;					\
+	size_t diff = HASH_OFFSET + sizeof((FRAME)->addrs);		\
 									\
+	switch ((FRAME)->addr_type) {					\
+	case PANDA_ADDR_TYPE_IPV4:					\
+		diff -= sizeof((FRAME)->addrs.v4_addrs);		\
+		break;							\
 	sizeof(*(FRAME)) - diff;					\
 })
 
@@ -148,6 +190,43 @@ static void NAME(const void *veth, void *iframe)			\
 	struct STRUCT *frame = iframe;					\
 									\
 	frame->eth_proto = ((struct ethhdr *)veth)->h_proto;		\
+}
+
+/* Meta data helper for IPv4.
+ * Uses common metadata fields: is_fragment, first_frag, ip_proto,
+ * addr_type, addrs.v4_addrs
+ */
+#define PANDA_METADATA_TEMP_ipv4(NAME, STRUCT)				\
+static void NAME(const void *viph, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct iphdr *iph = viph;					\
+									\
+	if (ip_is_fragment(iph)) {					\
+		frame->is_fragment = 1;					\
+		frame->first_frag =					\
+				!(iph->frag_off & htons(IP_OFFSET));	\
+	}								\
+									\
+	frame->addr_type = PANDA_ADDR_TYPE_IPV4;			\
+	frame->ip_proto = iph->protocol;				\
+	memcpy(frame->addrs.v4_addrs, &iph->saddr,			\
+	       sizeof(frame->addrs.v4_addrs));				\
+}
+
+/* Meta data helper for IPv4 to only extract IP address.
+ * Uses common meta * data fields: ip_proto, addr_type, addrs.v4_addrs
+ */
+#define PANDA_METADATA_TEMP_ipv4_addrs(NAME, STRUCT)			\
+static void NAME(const void *viph, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct iphdr *iph = viph;					\
+									\
+	frame->addr_type = PANDA_ADDR_TYPE_IPV4;			\
+	frame->ip_proto = iph->protocol;				\
+	memcpy(frame->addrs.v4_addrs, &iph->saddr,			\
+	       sizeof(frame->addrs.v4_addrs));				\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

@@ -27,3 +27,4 @@
 /* Include for all defined proto nodes */
 
 #include "panda/proto_nodes/proto_ether.h"
+#include "panda/proto_nodes/proto_ipv4.h"

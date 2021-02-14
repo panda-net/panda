@@ -732,6 +732,17 @@ void panda_print_hash_input(const void *start, size_t len);
 
 /* Helper function to define a function to print common metadata */
 #define PANDA_PRINT_METADATA(FRAME) do {				\
+	char a4buf[INET_ADDRSTRLEN];					\
+									\
+	switch ((FRAME)->addr_type) {					\
+	case PANDA_ADDR_TYPE_IPV4:					\
+		printf("IPv4 source address: %s\n",			\
+		inet_ntop(AF_INET, &(FRAME)->addrs.v4_addrs[0],		\
+			  a4buf, sizeof(a4buf)));			\
+		printf("IPv4 destination address: %s\n",		\
+		       inet_ntop(AF_INET, &(FRAME)->addrs.v4_addrs[1],	\
+		       a4buf, sizeof(a4buf)));				\
+	}								\
 } while (0)
 
 /* Default functions that can be set for various call backs */
