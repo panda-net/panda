@@ -24,20 +24,62 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_ARP_RARP_H__
+#define __PANDA_PROTO_ARP_RARP_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
-#include "panda/proto_nodes/proto_icmp.h"
-#include "panda/proto_nodes/proto_ppp.h"
-#include "panda/proto_nodes/proto_mpls.h"
-#include "panda/proto_nodes/proto_arp_rarp.h"
+#include <arpa/inet.h>
+#include <linux/if_arp.h>
+
+#include "panda/parser.h"
+
+/* ARP and RARP node definitions */
+
+struct earphdr {
+	struct arphdr arp;
+	__u8 ar_sha[ETH_ALEN];
+	__u8 ar_sip[4];
+	__u8 ar_tha[ETH_ALEN];
+	__u8 ar_tip[4];
+};
+
+static inline ssize_t arp_len_check(const void *vearp)
+{
+	const struct earphdr *earp = vearp;
+	const struct arphdr *arp = &earp->arp;
+
+	if (arp->ar_hrd != htons(ARPHRD_ETHER) ||
+	    arp->ar_pro != htons(ETH_P_IP) ||
+	    arp->ar_hln != ETH_ALEN ||
+	    arp->ar_pln != 4 ||
+	    (arp->ar_op != htons(ARPOP_REPLY) &&
+	     arp->ar_op != htons(ARPOP_REQUEST)))
+		return PANDA_STOP_FAIL;
+
+	return sizeof(struct earphdr);
+}
+
+#endif /* __PANDA_PROTO_ARP_RARP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_arp protocol node
+ *
+ * Parse ARP header
+ */
+static struct panda_proto_node panda_parse_arp __unused() = {
+	.name = "ARP",
+	.min_len = sizeof(struct earphdr),
+	.ops.len = arp_len_check,
+};
+
+/* panda_parse_rarp protocol node
+ *
+ * Parse RARP header
+ */
+static struct panda_proto_node panda_parse_rarp __unused() = {
+	.name = "RARP",
+	.min_len = sizeof(struct earphdr),
+	.ops.len = arp_len_check,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */

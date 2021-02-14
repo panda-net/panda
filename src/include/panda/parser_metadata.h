@@ -174,6 +174,15 @@ enum panda_addr_types {
 		__u32	label: 20;					\
 	} mpls
 
+#define PANDA_METADATA_arp						\
+	struct {							\
+		__u32	sip;						\
+		__u32	tip;						\
+		__u8	op;						\
+		__u8	sha[ETH_ALEN];					\
+		__u8	tha[ETH_ALEN];					\
+	} arp
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -186,6 +195,7 @@ struct panda_metadata_all {
 	PANDA_METADATA_eth_addrs;
 	PANDA_METADATA_tcp_options;
 	PANDA_METADATA_mpls;
+	PANDA_METADATA_arp;
 
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
@@ -518,6 +528,23 @@ static void NAME(const void *vgre, void *iframe)			\
 					      gre->flags,		\
 					      &pptp_gre_flag_fields) &	\
 				GRE_PPTP_KEY_MASK;			\
+}
+
+#define PANDA_METADATA_TEMP_arp_rarp(NAME, STRUCT)			\
+static void NAME(const void *vearp, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	const struct earphdr *earp = vearp;				\
+									\
+	frame->arp.op = ntohs(earp->arp.ar_op) & 0xff;			\
+									\
+	/* Record Ethernet addresses */					\
+	memcpy(frame->arp.sha, earp->ar_sha, ETH_ALEN);			\
+	memcpy(frame->arp.tha, earp->ar_tha, ETH_ALEN);			\
+									\
+	/* Record IP addresses */					\
+	memcpy(&frame->arp.sip, &earp->ar_sip, sizeof(frame->arp.sip));	\
+	memcpy(&frame->arp.tip, &earp->ar_tip, sizeof(frame->arp.tip));	\
 }
 
 /* Meta data helper for VLAN.
