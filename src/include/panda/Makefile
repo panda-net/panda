@@ -14,6 +14,7 @@ $(SUBDIRS):
 INCDIR=$(INSTALLDIR)$(HDRDIR)/panda
 
 TARGETS= utility.h parser.h proto_nodes.h proto_nodes_def.h
+TARGETS += parser_metadata.h
 
 install: $(TARGETS)
 	@install -m 0755 -d $(INCDIR)
