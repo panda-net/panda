@@ -53,13 +53,140 @@ const struct panda_parse_node *panda_parse_lookup_by_proto(
 	return lookup_node(proto, node->proto_table);
 }
 
-static void panda_parser_run_funcs(const struct panda_parse_node *node,
-				   const void *hdr, void *frame)
+/* Lookup a type in a node TLV table */
+static const struct panda_parse_tlv_node *lookup_tlv_node(int type,
+				const struct panda_proto_tlvs_table *table)
 {
-	if (node->ops.extract_metadata)
-		node->ops.extract_metadata(hdr, frame);
-	if (node->ops.handle_proto)
-		node->ops.handle_proto(hdr, frame);
+	int i;
+
+	for (i = 0; i < table->num_ents; i++)
+		if (type == table->entries[i].type)
+			return table->entries[i].node;
+
+	return NULL;
+}
+
+/* Lookup up a protocol for the table associated with a parse node */
+const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
+		const struct panda_parse_tlvs_node *node,
+		unsigned int type)
+{
+	return lookup_tlv_node(type, node->tlv_proto_table);
+}
+
+
+static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
+			    const void *hdr, void *frame, size_t hlen)
+{
+	const struct panda_parse_tlvs_node *parse_tlvs_node;
+	const struct panda_proto_tlvs_node *proto_tlvs_node;
+	const struct panda_parse_tlv_node *parse_tlv_node;
+	const __u8 *cp = hdr;
+	size_t offset, len;
+	ssize_t tlv_len;
+	int type;
+
+	parse_tlvs_node = (struct panda_parse_tlvs_node *)parse_node;
+	proto_tlvs_node = (struct panda_proto_tlvs_node *)
+						parse_node->proto_node;
+
+	/* Assume hlen marks end of TLVs */
+	offset = proto_tlvs_node->ops.start_offset(hdr);
+
+	/* We assume start offset is less than or equal to minimal length */
+	len = hlen - offset;
+
+	cp += offset;
+
+	while (len > 0) {
+		if (proto_tlvs_node->pad1_enable &&
+		   *cp == proto_tlvs_node->pad1_val) {
+			/* One byte padding, just advance */
+			cp++;
+			len--;
+			continue;
+		}
+
+		if (proto_tlvs_node->eol_enable &&
+		    *cp == proto_tlvs_node->eol_val) {
+			cp++;
+			len--;
+
+			/* Hit EOL, we're done */
+			break;
+		}
+
+		if (len < proto_tlvs_node->min_len) {
+			/* Length error */
+			return PANDA_STOP_TLV_LENGTH;
+		}
+
+		/* If the len function is not set this degenerates to an
+		 * array of fixed sized values (which maybe be useful in
+		 * itself now that I think about it)
+		 */
+		if (proto_tlvs_node->ops.len) {
+			tlv_len = proto_tlvs_node->ops.len(cp);
+			if (!tlv_len || len < tlv_len)
+				return PANDA_STOP_TLV_LENGTH;
+
+			if (tlv_len < proto_tlvs_node->min_len)
+				return tlv_len < 0 ? tlv_len :
+						PANDA_STOP_TLV_LENGTH;
+		} else {
+			tlv_len = proto_tlvs_node->min_len;
+		}
+
+		type = proto_tlvs_node->ops.type(cp);
+
+		/* Get TLV node */
+		parse_tlv_node = lookup_tlv_node(type,
+				parse_tlvs_node->tlv_proto_table);
+		if (parse_tlv_node) {
+			const struct panda_parse_tlv_node_ops *ops =
+						&parse_tlv_node->tlv_ops;
+
+			if (ops->check_length) {
+				int ret = ops->check_length(cp, frame);
+
+				if (ret != PANDA_OKAY) {
+					if (!parse_tlvs_node->ops.unknown_type)
+						goto next_tlv;
+
+					ret = parse_tlvs_node->ops.unknown_type(
+							hdr, frame, type, ret);
+
+					if (ret == PANDA_OKAY)
+						goto next_tlv;
+				}
+			}
+
+			if (ops->extract_metadata)
+				ops->extract_metadata(cp, frame);
+
+			if (ops->handle_tlv)
+				ops->handle_tlv(cp, frame);
+		} else {
+			int ret;
+
+			/* Unknown TLV */
+
+			if (parse_tlvs_node->ops.unknown_type)
+				goto next_tlv;
+
+			ret = parse_tlvs_node->ops.unknown_type(hdr, frame,
+						type, PANDA_STOP_UNKNOWN_TLV);
+			if (ret != PANDA_OKAY)
+				return ret;
+		}
+
+next_tlv:
+		/* Move over current header */
+		cp += tlv_len;
+		len -= tlv_len;
+	}
+
+	return PANDA_OKAY;
 }
 
 /* Parse a packet
@@ -81,7 +208,7 @@ int __panda_parse(const struct panda_parser *parser,
 	const struct panda_parse_node *next_parse_node;
 	void *frame = metadata->frame_data;
 	unsigned int frame_num = 0;
-	int type;
+	int type, ret;
 
 	/* Main parsing loop. The loop normal teminates when we encounter a
 	 * leaf protocol node, an error condition, hitting limit on layers of
@@ -115,8 +242,33 @@ int __panda_parse(const struct panda_parser *parser,
 			hlen = proto_node->min_len;
 		}
 
+		/* Callback processing order
+		 *    1) Extract Metadata
+		 *    2) Process TLVs
+		 *	2.a) Extract metadata from TLVs
+		 *	2.b) Process TLVs
+		 *    3) Process protocol
+		 */
+
 		/* Extract metadata, per node processing */
-		panda_parser_run_funcs(parse_node, hdr, frame);
+
+		if (parse_node->ops.extract_metadata)
+			parse_node->ops.extract_metadata(hdr, frame);
+
+		/* Process TLV nodes */
+		if (parse_node->tlvs_node &&
+		    parse_node->proto_node->tlvs_node) {
+			/* Need error in case parse_node TLVs are set but
+			 * proto_node TLVs are not
+			 */
+			ret = panda_parse_tlvs(parse_node, hdr, frame, hlen);
+			if (ret != PANDA_OKAY)
+				return ret;
+		}
+
+		/* Process protocol */
+		if (parse_node->ops.handle_proto)
+			parse_node->ops.handle_proto(hdr, frame);
 
 		/* Proceed to next protocol layer */
 

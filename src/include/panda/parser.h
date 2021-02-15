@@ -50,6 +50,8 @@ enum {
 	PANDA_STOP_LENGTH = -3,
 	PANDA_STOP_UNKNOWN_PROTO = -4,
 	PANDA_STOP_ENCAP_DEPTH = -5,
+	PANDA_STOP_UNKNOWN_TLV = -6,
+	PANDA_STOP_TLV_LENGTH = -7,
 };
 
 /* Protocol parsing operations:
@@ -76,6 +78,7 @@ struct panda_parse_ops {
  * This structure contains the definitions to describe parsing of one type
  * of protocol header. Fields are:
  *
+ * tlvs_node: The node includes parsing related TLVs for the protocol layer
  * encap: Indicates an encapsulation protocol (e.g. IPIP, GRE)
  * overlay: Indicates an overlay protocol. This is used, for example, to
  *	switch on version number of a protocol header (e.g. IP version number
@@ -85,6 +88,7 @@ struct panda_parse_ops {
  * ops: Operations to parse protocol header
  */
 struct panda_proto_node {
+	__u8 tlvs_node: 1;
 	__u8 encap: 1;
 	__u8 overlay: 1;
 	char *name;
@@ -168,12 +172,15 @@ struct panda_proto_table {
 /* Parse node definition. Defines parsing and processing for one node in
  * the parse graph of a parser. Contains:
  *
+ * tlvs_node: The node includes parsing and processing related TLVs for the
+ *	protocol layer
  * proto_node: Protocol node
  * ops: Parse node operations
  * proto_table: Protocol table for next protocol. This must be non-null if
  * next_proto is not NULL
  */
 struct panda_parse_node {
+	__u8 tlvs_node: 1;
 	const struct panda_proto_node *proto_node;
 	const struct panda_parse_node_ops ops;
 	const struct panda_proto_table *proto_table;
@@ -391,6 +398,216 @@ static inline __u64 panda_get_flag_field64(const __u8 *fields, __u32 targ_idx,
 	return *(__u64 *)&fields[offset];
 }
 
+/* Definitions for parsing TLVs
+ *
+ * TLVs are a common protocol header structure consisting of Type, Length,
+ * Value tuple (e.g. for handling TCP or IPv6 HBH options TLVs)
+ */
+
+/* Descriptor for parsing operations of one type of TLV. Fields are:
+ *
+ * len: Return length of a TLV. Must be set. If the return value < 0 (a
+ *	PANDA_STOP_* return code value) this indicates an error and parsing
+ *	is stopped. A the return value greater than or equal to zero then
+ *	gives the protocol length. If the returned length is less than the
+ *	minimum TLV option length, indicated by min_len by the TLV protocol
+ *	node, then this considered and error.
+ * type: Return the type of the TLV. If the return value is less than zero
+ *	(PANDA_STOP_* value) then this indicates and error and parsing stops
+ * data_offset: Return the offset of the data in a TLV
+ */
+struct panda_proto_tlvs_opts {
+	size_t (*start_offset)(const void *hdr);
+	ssize_t (*len)(const void *hdr);
+	int (*type)(const void *hdr);
+	size_t (*data_offset)(const void *hdr);
+};
+
+/* TLV parse node operations
+ *
+ * Operations to process a sigle TLV parsenode
+ *
+ * check_length: Check the length of a TLV is appropriate for the type (may
+ *	also perform other validations for proper format)
+ * extract_metadata: Extract metadata for the node. Input is the meta
+ *	data frame which points to a parser defined metadata structure.
+ *	If the value is NULL then no metadata is extracted
+ * handle_tlv: Per TLV type handler which allows arbitrary processing
+ *	of a TLV. Input is the TLV data and a parser defined metadata
+ *	structure for the current frame. Return value is a parser
+ *	return code: PANDA_OKAY indicates no errors, PANDA_STOP* return
+ *	values indicate to stop parsing
+ */
+struct panda_parse_tlv_node_ops {
+	int (*check_length)(const void *hdr, void *frame);
+	void (*extract_metadata)(const void *hdr, void *frame);
+	int (*handle_tlv)(const void *hdr, void *frame);
+};
+
+/* Parse node for a single TLV. Use common parse node operations
+ * (extract_metadata and handle_proto)
+ */
+struct panda_parse_tlv_node {
+	const struct panda_parse_tlv_node_ops tlv_ops;
+};
+
+/* One entry in a TLV table:
+ *	value: TLV type
+ *	node: associated TLV parse structure for the type
+ */
+struct panda_proto_tlvs_table_entry {
+	int type;
+	const struct panda_parse_tlv_node *node;
+};
+
+/* TLV table
+ *
+ * Contains a table that maps a TLV type to a TLV parse node
+ */
+struct panda_proto_tlvs_table {
+	int num_ents;
+	const struct panda_proto_tlvs_table_entry *entries;
+};
+
+/* TLV specific operations for TLVs parse node */
+struct panda_parse_tlvs_ops {
+	int (*post_tlv_handle_proto)(const void *hdr, void *frame);
+	int (*unknown_type)(const void *hdr, void *frame, int type,
+			    int err);
+};
+
+/* Parse node for parsing a protocol header that contains TLVs to be
+ * parser:
+ *
+ * parse_node: Node for main protocol header (e.g. IPv6 node in case
+ *	of HBH options) Note that tlvs_node is set in parse_node and
+ *	that the parse node can then be cast to a parse_tlv_node
+ * tlv_proto_table: Lookup table for TLV type
+ * max_tlvs: Maximum number of TLVs that are to be parseed in one list
+ * max_tlv_len: Maximum length allowed for any TLV in a list
+ *	one type of TLVS.
+ */
+struct panda_parse_tlvs_node {
+	const struct panda_parse_node parse_node;
+	const struct panda_parse_tlvs_ops ops;
+	const struct panda_proto_tlvs_table *tlv_proto_table;
+	size_t max_tlvs;
+	size_t max_tlv_len;
+};
+
+/* A protocol node for parsing proto with TLVs
+ *
+ * proto_node: proto node
+ * ops: Operations for parsing TLVs
+ * pad1_val: Type value indicating one byte of TLV padding (e.g. would be
+ *	for IPv6 HBH TLVs)
+ * pad1_enable: Pad1 value is used to detect single byte padding
+ * eol_val: Type value that indicates end of TLV list
+ * eol_enable: End of list value in eol_val is used
+ * start_offset: When there TLVs start relative the enapsulating protocol
+ *	(e.g. would be twenty for TCP)
+ * min_len: Minimal length of a TLV option
+ */
+struct panda_proto_tlvs_node {
+	struct panda_proto_node proto_node;
+	struct panda_proto_tlvs_opts ops;
+	__u8 pad1_val;
+	__u8 eol_val;
+	__u8 pad1_enable: 1;
+	__u8 eol_enable: 1;
+	size_t min_len;
+};
+
+/* Look up a TLV parse node given
+ *
+ * Arguments:
+ *	- node: A TLVs parse node containing lookup table
+ *	- type: TLV type to lookup
+ *
+ * Returns pointer to parse node if the protocol is matched else returns
+ * NULL if the parse node isn't found
+ */
+const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
+				const struct panda_parse_tlvs_node *node,
+				unsigned int type);
+
+/* Helper to create a TLV protocol table */
+#define PANDA_MAKE_TLV_TABLE(NAME, ...)					\
+	static const struct panda_proto_tlvs_table_entry __##NAME[] =	\
+						{ __VA_ARGS__ };	\
+	static const struct panda_proto_tlvs_table NAME = {		\
+		.num_ents = sizeof(__##NAME) /				\
+			sizeof(struct panda_proto_tlvs_table_entry),	\
+		.entries = __##NAME,					\
+	}
+
+/* Forward declarations for TLV parser nodes */
+#define PANDA_DECL_TLVS_PARSE_NODE(TLVS_PARSE_NODE)			\
+	static const struct panda_parse_tlvs_node TLVS_PARSE_NODE
+
+/* Forward declarations for TLV type tables */
+#define PANDA_DECL_TLVS_TABLE(TLVS_TABLE)				\
+	static const struct panda_proto_tlvs_table TLVS_TABLE;
+
+/* Helper to create a parse node with a next protocol table */
+#define __PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
+				     EXTRACT_METADATA, HANDLER,		\
+				     UNKNOWN_NEXT_PROTO,		\
+				     UNKNOWN_TLV_TYPE,			\
+				     POST_TLV_HANDLER,			\
+				     PROTO_TABLE, TLV_TABLE)		\
+	static const struct panda_parse_tlvs_node PARSE_TLV_NODE = {	\
+		.parse_node.tlvs_node = 1,				\
+		.parse_node.proto_node = &PROTO_TLV_NODE.proto_node,	\
+		.parse_node.ops.extract_metadata = EXTRACT_METADATA,	\
+		.parse_node.ops.handle_proto = HANDLER,			\
+		.parse_node.ops.unknown_next_proto = UNKNOWN_NEXT_PROTO,\
+		.parse_node.proto_table = PROTO_TABLE,			\
+		.tlv_proto_table = TLV_TABLE,				\
+		.ops.unknown_type = UNKNOWN_TLV_TYPE,			\
+		.ops.post_tlv_handle_proto = POST_TLV_HANDLER,		\
+	}
+
+/* Helper to create a TLVs parse node with default unknown next proto
+ * function that returns parse failure code and default unknown TLV
+ * function that ignores unknown TLVs
+ */
+#define PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
+				   EXTRACT_METADATA, HANDLER,		\
+				   POST_TLV_HANDLER, PROTO_TABLE,	\
+				   TLV_TABLE)				\
+	PANDA_DECL_TLVS_TABLE(TLV_TABLE);				\
+	PANDA_DECL_PROTO_TABLE(PROTO_TABLE)				\
+	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE,			\
+				    (PROTO_NODE).pnode,			\
+				    EXTRACT_METADATA, HANDLER,		\
+				    panda_unknown_next_proto_fail,	\
+				    panda_unknown_tlv_ignore,		\
+				    POST_TLV_HANDLER,			\
+				    &PROTO_TABLE, &TLV_TABLE)
+
+/* Helper to create a leaf TLVs parse node with default unknown TLV
+ * function that ignores unknown TLVs
+ */
+#define PANDA_MAKE_LEAF_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
+					EXTRACT_METADATA, HANDLER,	\
+					POST_TLV_HANDLER, TLV_TABLE)	\
+	PANDA_DECL_TLVS_TABLE(TLV_TABLE);				\
+	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
+				     EXTRACT_METADATA, HANDLER,		\
+				     panda_unknown_next_proto_fail,	\
+				     panda_unknown_tlv_ignore,		\
+				     POST_TLV_HANDLER,			\
+				     NULL, &TLV_TABLE)
+
+#define PANDA_MAKE_TLV_PARSE_NODE(NODE_NAME, CHECK_LENGTH,		\
+				  METADATA_FUNC, HANDLER_FUNC)		\
+	struct panda_parse_tlv_node NODE_NAME = {			\
+		.tlv_ops.check_length = CHECK_LENGTH,			\
+		.tlv_ops.extract_metadata = METADATA_FUNC,		\
+		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
+	}
+
 /* Parsing functions */
 
 /* Flags to Panda parser functions */
@@ -538,6 +755,37 @@ static inline int panda_unknown_next_proto_ignore(const void *hdr, void *frame,
 						  int type, int err)
 {
 	return PANDA_STOP_OKAY;
+}
+
+static inline int panda_null_post_tlv_handle(const void *hdr, void *frame)
+{
+	return PANDA_OKAY;
+}
+
+static inline int panda_unknown_tlv_fail(const void *hdr, void *frame,
+					 int type, int err)
+{
+	return PANDA_STOP_UNKNOWN_TLV;
+}
+
+static inline int panda_unknown_tlv_ignore(const void *hdr, void *frame,
+					   int type, int err)
+{
+	return PANDA_OKAY;
+}
+
+static inline void panda_null_tlv_extract_metadata(const void *hdr, void *frame)
+{
+}
+
+static inline int panda_null_handle_tlv(const void *hdr, void *frame)
+{
+	return PANDA_OKAY;
+}
+
+static inline int panda_null_tlv_check_length(const void *hdr, void *frame)
+{
+	return PANDA_OKAY;
 }
 
 #endif /* __PANDA_PARSER_H__ */
