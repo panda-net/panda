@@ -134,8 +134,15 @@ To build the simple_parser examples:
 
 **make ROOTDIR=$(MYINSTALLDIR)**
 
-where MYINSTALLDIR is the directory in which the target files were installed
-when building PANDA.
+where MYINSTALLDIR is to the path for the directory in which the target files
+were installed when building PANDA.
+
+The parser binaries load the siphash and panda shared libraries at run time.
+Please set LD_LIBRARY_PATH to include the lib directory the directory where
+PANDA files were installed. Assuming that MYINSTALLDIR contains the path
+to the directory in which PANDA was install, the library path could be set by :
+
+**export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(MYINSTALLDIR)/lib**
 
 The executables are **parser_tmpl** and **parser_notmpl**. They both take one
 command line argument that is a pcap file. For example:
