@@ -75,6 +75,10 @@ snapshot:
 	echo "static const char SNAPSHOT[] = \""`date +%y%m%d`"\";" \
 		> include/SNAPSHOT.h
 
+help:
+	@echo "For verbose output: make V=1"
+	@echo "To include UAPI headers: make UAPI=1"
+
 clean:
 	@for i in $(SUBDIRS) ;\
 	do $(MAKE) $(MFLAGS) -C $$i clean; done
