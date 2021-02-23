@@ -88,9 +88,9 @@ struct panda_parse_ops {
  * ops: Operations to parse protocol header
  */
 struct panda_proto_node {
-	__u8 tlvs_node: 1;
-	__u8 encap: 1;
-	__u8 overlay: 1;
+	__u8 tlvs_node;
+	__u8 encap;
+	__u8 overlay;
 	char *name;
 	size_t min_len;
 	const struct panda_parse_ops ops;
