@@ -32,7 +32,6 @@
 #include <linux/ip.h>
 
 #include "panda/parser.h"
-#include "panda/proto_nodes/proto_ipv4.h"
 
 static inline int ipv4_proto_default(const void *viph)
 {

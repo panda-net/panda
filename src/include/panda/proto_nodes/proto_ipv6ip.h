@@ -32,7 +32,6 @@
 #include <linux/ipv6.h>
 
 #include "panda/parser.h"
-#include "panda/proto_nodes/proto_ipv6.h"
 
 static inline int ipv6_proto_default(const void *viph)
 {
