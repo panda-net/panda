@@ -209,7 +209,7 @@ PANDA_MAKE_PROTO_TABLE(ipv6_table,
 	{ IPPROTO_SCTP, &ports_node },
 	{ IPPROTO_DCCP, &ports_node },
 	{ IPPROTO_GRE, &gre_base_node },
-	{ IPPROTO_ICMP, &icmpv6_node },
+	{ IPPROTO_ICMPV6, &icmpv6_node },
 	{ IPPROTO_IGMP, &igmp_node },
 	{ IPPROTO_MPLS, &mpls_node },
 );
