@@ -55,7 +55,7 @@ static inline int vlan_proto(const void *vvlan)
  *
  * Next protocol operation returns Ethertype (e.g. ETH_P_IPV4)
  */
-static struct panda_proto_node panda_parse_vlan __unused() = {
+static const struct panda_proto_node panda_parse_vlan __unused() = {
 	.name = "VLAN",
 	.min_len = sizeof(struct vlan_hdr),
 	.ops.next_proto = vlan_proto,

@@ -45,7 +45,7 @@ struct port_hdr {
  * Transport header starts with sixteen bit source and destination port
  * numbers. Applicable protocols include TCP, UDP, SCTP, etc.
  */
-static struct panda_proto_node panda_parse_ports __unused() = {
+static const struct panda_proto_node panda_parse_ports __unused() = {
 	.name = "Transport with ports",
 	.min_len = sizeof(struct port_hdr),
 };

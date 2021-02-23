@@ -49,7 +49,7 @@ static inline int ipv4_proto_default(const void *viph)
  *
  * Next protocol operation returns 0 indicating IPv4
  */
-static struct panda_proto_node panda_parse_ipv4ip __unused() = {
+static const struct panda_proto_node panda_parse_ipv4ip __unused() = {
 	.name = "IPv4 in IP",
 	.encap = 1,
 	.overlay = 1,

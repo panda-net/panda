@@ -41,7 +41,7 @@
  *
  * Parse MPLS header
  */
-static struct panda_proto_node panda_parse_mpls __unused() = {
+static const struct panda_proto_node panda_parse_mpls __unused() = {
 	.name = "MPLS",
 	.min_len = 2 * sizeof(struct mpls_label),
 };

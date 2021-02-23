@@ -160,7 +160,7 @@ static inline int tcp_option_sack_check_length(const void *hdr, void *frame)
  *
  * Parse TCP header and any TLVs
  */
-static struct panda_proto_tlvs_node panda_parse_tcp_tlvs __unused() = {
+static const struct panda_proto_tlvs_node panda_parse_tcp_tlvs __unused() = {
 	.proto_node.tlvs_node = 1,
 	.proto_node.name = "TCP with TLVs",
 	.proto_node.min_len = sizeof(struct tcphdr),
@@ -179,7 +179,7 @@ static struct panda_proto_tlvs_node panda_parse_tcp_tlvs __unused() = {
  *
  * Parse TCP header without considering TLVs
  */
-static struct panda_proto_node panda_parse_tcp_notlvs __unused() = {
+static const struct panda_proto_node panda_parse_tcp_notlvs __unused() = {
 	.name = "TCP without TLVs",
 	.min_len = sizeof(struct tcphdr),
 	.ops.len = tcp_len,

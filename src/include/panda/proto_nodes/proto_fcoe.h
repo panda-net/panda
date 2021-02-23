@@ -41,7 +41,7 @@
  *
  * Parse FCOE header
  */
-static struct panda_proto_node panda_parse_fcoe __unused() = {
+static const struct panda_proto_node panda_parse_fcoe __unused() = {
 	.name = "FCOE",
 	.min_len = FCOE_HEADER_LEN,
 };

@@ -66,7 +66,7 @@ static inline ssize_t arp_len_check(const void *vearp)
  *
  * Parse ARP header
  */
-static struct panda_proto_node panda_parse_arp __unused() = {
+static const struct panda_proto_node panda_parse_arp __unused() = {
 	.name = "ARP",
 	.min_len = sizeof(struct earphdr),
 	.ops.len = arp_len_check,
@@ -76,7 +76,7 @@ static struct panda_proto_node panda_parse_arp __unused() = {
  *
  * Parse RARP header
  */
-static struct panda_proto_node panda_parse_rarp __unused() = {
+static const struct panda_proto_node panda_parse_rarp __unused() = {
 	.name = "RARP",
 	.min_len = sizeof(struct earphdr),
 	.ops.len = arp_len_check,

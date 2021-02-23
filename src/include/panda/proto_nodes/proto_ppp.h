@@ -54,7 +54,7 @@ static inline int ppp_proto(const void *vppp)
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ppp __unused() = {
+static const struct panda_proto_node panda_parse_ppp __unused() = {
 	.name = "PPP",
 	.min_len = sizeof(struct ppp_hdr),
 	.ops.next_proto = ppp_proto,

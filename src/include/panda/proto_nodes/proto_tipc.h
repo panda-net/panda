@@ -48,7 +48,7 @@ struct tipc_basic_hdr {
  *
  * Parse TIPC header
  */
-static struct panda_proto_node panda_parse_tipc __unused() = {
+static const struct panda_proto_node panda_parse_tipc __unused() = {
 	.name = "TIPC",
 	.min_len = sizeof(struct tipc_basic_hdr),
 };

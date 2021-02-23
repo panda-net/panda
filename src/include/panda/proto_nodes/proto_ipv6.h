@@ -71,7 +71,7 @@ static inline int ipv6_proto_stopflowlabel(const void *viph)
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ipv6 __unused() = {
+static const struct panda_proto_node panda_parse_ipv6 __unused() = {
 	.name = "IPv6",
 	.min_len = sizeof(struct ipv6hdr),
 	.ops.next_proto = ipv6_proto,
@@ -83,7 +83,8 @@ static struct panda_proto_node panda_parse_ipv6 __unused() = {
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ipv6_stopflowlabel __unused() = {
+static const struct panda_proto_node
+				panda_parse_ipv6_stopflowlabel __unused() = {
 	.name = "IPv6 stop at non-zero flow label",
 	.min_len = sizeof(struct ipv6hdr),
 	.ops.next_proto = ipv6_proto_stopflowlabel,

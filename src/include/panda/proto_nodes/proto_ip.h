@@ -50,6 +50,11 @@ static inline int ip_proto(const void *viph)
 	return ((struct ip_hdr_byte *)viph)->version;
 }
 
+static inline size_t ip_min_len(const void *viph)
+{
+	return sizeof(struct ip_hdr_byte);
+}
+
 #endif /* __PANDA_PROTO_IP_H__ */
 
 #ifdef PANDA_DEFINE_PARSE_NODE
@@ -62,7 +67,7 @@ static inline int ip_proto(const void *viph)
  * Next protocol operation returns IP version number (e.g. 4 for IPv4,
  * 6 for IPv6)
  */
-static struct panda_proto_node panda_parse_ip __unused() = {
+static const struct panda_proto_node panda_parse_ip __unused() = {
 	.name = "IP overlay",
 	.overlay = 1,
 	.min_len = sizeof(struct ip_hdr_byte),

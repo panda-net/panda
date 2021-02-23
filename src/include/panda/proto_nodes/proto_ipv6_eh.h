@@ -69,7 +69,7 @@ static inline int ipv6_frag_proto(const void *vfraghdr)
 
 #ifdef PANDA_DEFINE_PARSE_NODE
 
-static struct panda_proto_node panda_parse_ipv6_eh __unused() = {
+static const struct panda_proto_node panda_parse_ipv6_eh __unused() = {
 	.name = "IPv6 EH",
 	.min_len = sizeof(struct ipv6_opt_hdr),
 	.ops.next_proto = ipv6_eh_proto,
@@ -83,7 +83,7 @@ static struct panda_proto_node panda_parse_ipv6_eh __unused() = {
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ipv6_frag_eh __unused() = {
+static const struct panda_proto_node panda_parse_ipv6_frag_eh __unused() = {
 	.name = "IPv6 EH",
 	.min_len = sizeof(struct ipv6_frag_hdr),
 	.ops.next_proto = ipv6_frag_proto,
@@ -95,7 +95,7 @@ static struct panda_proto_node panda_parse_ipv6_frag_eh __unused() = {
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ipv6_frag_eh_stop1stfrag
+static const struct panda_proto_node panda_parse_ipv6_frag_eh_stop1stfrag
 							__unused() = {
 	.name = "IPv6 EH",
 	.min_len = sizeof(struct ipv6_frag_hdr),

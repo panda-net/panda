@@ -88,7 +88,7 @@ static inline ssize_t ipv4_length(const void *viph)
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ipv4 __unused() = {
+static const struct panda_proto_node panda_parse_ipv4 __unused() = {
 	.name = "IPv4",
 	.min_len = sizeof(struct iphdr),
 	.ops.len = ipv4_length,
@@ -101,7 +101,7 @@ static struct panda_proto_node panda_parse_ipv4 __unused() = {
  *
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
-static struct panda_proto_node panda_parse_ipv4_stop1stfrag __unused() = {
+static const struct panda_proto_node panda_parse_ipv4_stop1stfrag __unused() = {
 	.name = "IPv4 without parsing 1st fragment",
 	.min_len = sizeof(struct iphdr),
 	.ops.len = ipv4_length,

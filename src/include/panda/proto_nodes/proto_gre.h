@@ -190,7 +190,7 @@ static inline int gre_v1_proto(const void *vgre)
  *
  * Next protocol operation returns GRE version number (i.e. 0 or 1).
  */
-static struct panda_proto_node panda_parse_gre_base __unused() = {
+static const struct panda_proto_node panda_parse_gre_base __unused() = {
 	.name = "GRE base",
 	.overlay = 1,
 	.min_len = sizeof(struct gre_hdr),
@@ -204,7 +204,7 @@ static struct panda_proto_node panda_parse_gre_base __unused() = {
  *
  * Next protocol operation returns a GRE protocol (e.g. ETH_P_IPV4).
  */
-static struct panda_proto_node panda_parse_gre_v0 __unused() = {
+static const struct panda_proto_node panda_parse_gre_v0 __unused() = {
 	.name = "GRE v0",
 	.encap = 1,
 	.min_len = sizeof(struct gre_hdr),
@@ -218,7 +218,7 @@ static struct panda_proto_node panda_parse_gre_v0 __unused() = {
  *
  * Next protocol operation returns GRE_PROTO_PPP.
  */
-static struct panda_proto_node panda_parse_gre_v1 __unused() = {
+static const struct panda_proto_node panda_parse_gre_v1 __unused() = {
 	.name = "GRE v1 - pptp",
 	.encap = 1,
 	.min_len = sizeof(struct gre_hdr),

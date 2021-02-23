@@ -50,7 +50,7 @@ static inline int ether_proto(const void *veth)
  * Next protocol operation returns Ethertype (e.g. ETH_P_IPV4)
  */
 
-static struct panda_proto_node panda_parse_ether __unused() = {
+static const struct panda_proto_node panda_parse_ether __unused() = {
 	.name = "Ethernet",
 	.min_len = sizeof(struct ethhdr),
 	.ops.next_proto = ether_proto,

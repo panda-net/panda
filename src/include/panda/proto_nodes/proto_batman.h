@@ -95,7 +95,7 @@ static inline int batman_proto(const void *vbeth)
  *
  * Next protocol operation returns Ethertype (e.g. ETH_P_IPV4)
  */
-static struct panda_proto_node panda_parse_batman __unused() = {
+static const struct panda_proto_node panda_parse_batman __unused() = {
 	.name = "BATMAN",
 	.encap = 1,
 	.min_len = sizeof(struct batadv_eth),

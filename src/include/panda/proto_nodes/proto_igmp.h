@@ -17,7 +17,7 @@
  *
  * Parse IGMP header
  */
-static struct panda_proto_node panda_parse_igmp __unused() = {
+static const struct panda_proto_node panda_parse_igmp __unused() = {
 	.name = "IGMP",
 	.min_len = sizeof(struct igmphdr),
 };

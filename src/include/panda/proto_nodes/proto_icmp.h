@@ -57,7 +57,7 @@ static inline bool icmp_has_id(__u8 type)
  *
  * Parse ICMPv4 header
  */
-static struct panda_proto_node panda_parse_icmpv4 __unused() = {
+static const struct panda_proto_node panda_parse_icmpv4 __unused() = {
 	.name = "ICMPv4",
 	.min_len = sizeof(struct icmphdr),
 };
@@ -66,7 +66,7 @@ static struct panda_proto_node panda_parse_icmpv4 __unused() = {
  *
  * Parse ICMPv6 header
  */
-static struct panda_proto_node panda_parse_icmpv6 __unused() = {
+static const struct panda_proto_node panda_parse_icmpv6 __unused() = {
 	.name = "ICMPv6",
 	.min_len = sizeof(struct icmp6hdr),
 };
