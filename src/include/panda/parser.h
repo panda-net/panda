@@ -513,8 +513,8 @@ struct panda_proto_tlvs_node {
 	struct panda_proto_tlvs_opts ops;
 	__u8 pad1_val;
 	__u8 eol_val;
-	__u8 pad1_enable: 1;
-	__u8 eol_enable: 1;
+	__u8 pad1_enable;
+	__u8 eol_enable;
 	size_t min_len;
 };
 
@@ -602,7 +602,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 
 #define PANDA_MAKE_TLV_PARSE_NODE(NODE_NAME, CHECK_LENGTH,		\
 				  METADATA_FUNC, HANDLER_FUNC)		\
-	struct panda_parse_tlv_node NODE_NAME = {			\
+	const struct panda_parse_tlv_node NODE_NAME = {			\
 		.tlv_ops.check_length = CHECK_LENGTH,			\
 		.tlv_ops.extract_metadata = METADATA_FUNC,		\
 		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
