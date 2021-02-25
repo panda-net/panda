@@ -69,8 +69,8 @@ struct tcp_opt_union {
 		__u8 window_scaling;
 		struct tcp_timestamp_option_data timestamp;
 		struct tcp_sack_option_data sack[TCP_MAX_SACKS];
-	};
-};
+	} __attribute__((packed));
+} __attribute__((packed));
 
 static inline ssize_t tcp_len(const void *vtcp)
 {
