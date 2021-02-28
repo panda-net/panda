@@ -24,25 +24,49 @@
  * SUCH DAMAGE.
  */
 
-/* Include for all defined proto nodes */
+#ifndef __PANDA_PROTO_PPPOE_H__
+#define __PANDA_PROTO_PPPOE_H__
 
-#include "panda/proto_nodes/proto_ether.h"
-#include "panda/proto_nodes/proto_pppoe.h"
-#include "panda/proto_nodes/proto_ipv4.h"
-#include "panda/proto_nodes/proto_ipv6.h"
-#include "panda/proto_nodes/proto_ports.h"
-#include "panda/proto_nodes/proto_tcp.h"
-#include "panda/proto_nodes/proto_ip.h"
-#include "panda/proto_nodes/proto_ipv6_eh.h"
-#include "panda/proto_nodes/proto_ipv4ip.h"
-#include "panda/proto_nodes/proto_ipv6ip.h"
-#include "panda/proto_nodes/proto_gre.h"
-#include "panda/proto_nodes/proto_vlan.h"
-#include "panda/proto_nodes/proto_icmp.h"
-#include "panda/proto_nodes/proto_ppp.h"
-#include "panda/proto_nodes/proto_mpls.h"
-#include "panda/proto_nodes/proto_arp_rarp.h"
-#include "panda/proto_nodes/proto_tipc.h"
-#include "panda/proto_nodes/proto_batman.h"
-#include "panda/proto_nodes/proto_igmp.h"
-#include "panda/proto_nodes/proto_fcoe.h"
+#include "panda/parser.h"
+
+struct pppoe_hdr {
+#if defined(__LITTLE_ENDIAN_BITFIELD)
+	__u8 type : 4;
+	__u8 ver : 4;
+#elif defined(__BIG_ENDIAN_BITFIELD)
+	__u8 ver : 4;
+	__u8 type : 4;
+#else
+#error	"Please fix <asm/byteorder.h>"
+#endif
+	__u8 code;
+	__be16 sid;
+	__be16 length;
+	__be16 protocol;
+} __attribute__((packed));
+
+//int static_assert_global_v[sizeof(struct pppoe_hdr) == 6 ? -1 : 1];
+
+/* PPP node definitions */
+static inline int pppoe_proto(const void *vppp)
+{
+	return ((struct pppoe_hdr*)vppp)->protocol;
+}
+
+#endif /* __PANDA_PROTO_PPP_H__ */
+
+#ifdef PANDA_DEFINE_PARSE_NODE
+
+/* panda_parse_ppp protocol node
+ *
+ * Parse PPP header
+ *
+ * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
+ */
+static const struct panda_proto_node panda_parse_pppoe __unused() = {
+	.name = "PPPoE",
+	.min_len = sizeof(struct pppoe_hdr),
+	.ops.next_proto = pppoe_proto,
+};
+
+#endif /* PANDA_DEFINE_PARSE_NODE */
