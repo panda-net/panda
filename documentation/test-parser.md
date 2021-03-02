@@ -235,47 +235,30 @@ $ ./run-tests.sh
 
 ## Performance Testing
 
-For performance testing we need to collect execution time for each
-specific parser. This is done with differential calculation: first we
-get the cost of executing the parser with a specific input method, then
-run again with -N (see above) and subtract the two values.
+It is possible to get the cost of executing the parser with
+a specific input method and selected pcap file.
 
-As a concrete example, we can run each packet ten million times from
-pcap-in.pcap with
+For example to test pcap-in.pcap(which has 11 packets)
+with the kernel-derived flowdissector parser:
 
-$ time ./test_parser -n 10000000 -i pcap,test-in.pcap -c flowdis -o null
+$./test_parser -n 10000000 -i pcap,test-in.pcap -c flowdis -o null
+Packet 1 (repeated 10000000): avg 36 ns/p 27 Mpps
+Packet 2 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 3 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 4 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 5 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 6 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 7 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 8 (repeated 10000000): avg 35 ns/p 28 Mpps
+Packet 9 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 10 (repeated 10000000): avg 34 ns/p 29 Mpps
+Packet 11 (repeated 10000000): avg 34 ns/p 29 Mpps
+Total avg 34 ns/packet 29 Mpps
 
-real	0m10.913s
-user	0m10.774s
-sys	0m0.004s
-
-and then repeat, bypassing the invocation of the parser (notice the
--n), with
-
-$ time ./test_parser -N -n 10000000 -i pcap,test-in.pcap -c flowdis -o null
-
-real	0m8.102s
-user	0m8.052s
-sys	0m0.004s
-
-The computational cost of the parser proper is then the difference
-between the two:
-
-real (10.913-8.102) 2.811s
-user (10.774-8.052) 2.722s
-sys  (0.004 - 0.004) 0s
-
-To get per-packet costs, you then divide this by the number of
-times each packet is processed (ten million in the above example) and
-the number of packets in the file (11 in the above example, assuming
-test-in.pcap is the one shipped with the software); in this case this
-works out to approximately 25.55 nanoseconds per packet.
-
-There is a script that is a rudimentary implementation of the above called
-see perfscript. Run this script with the name of a pcap file and the name of a
-core. For example:
-
-$ ./perfscript sample.pcap panda
+The above shows the flowdissector parser being exercised
+10000000 times for each packet with the output presenting
+the average time cost per packet (in nanoseconds) and in
+millions of packets/second.
 
 ## Fuzz Testing
 
