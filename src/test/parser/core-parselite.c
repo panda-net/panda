@@ -52,6 +52,7 @@ static void *core_parselite_init(const char *args)
 		fprintf(stderr, "The parselite core takes no arguments.\n");
 		exit(-1);
 	}
+
 	p = malloc(sizeof(struct parselite_priv));
 	if (!p) {
 		fprintf(stderr, "Parselite init failed\n");
@@ -64,18 +65,29 @@ static void *core_parselite_init(const char *args)
 static const char *core_parselite_process(void *pv, void *data,
 					  size_t len,
 					  struct test_parser_out *out,
-					  unsigned int flags)
+					  unsigned int flags, long long *time)
 {
 	struct parselite_priv *p = pv;
+	int suc = false;
 
 	memset(&p->md, 0, sizeof(p->md));
 	memset(out, 0, sizeof(*out));
 
-	if (!(flags & CORE_F_NOCORE) && !parselite_parse(data, len, &p->md,
-						 PARSELITE_F_STOP_FLOWLABEL,
-						 PARSELITE_ENCAP_DEPTH,
-						 PARSELITE_START_ETHER)) {
-		return "parselite_parse failed";
+
+	if (!(flags & CORE_F_NOCORE)) {
+		struct timespec begin_tp, now_tp;
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &begin_tp);
+		suc = parselite_parse(data, len, &p->md,
+				  PARSELITE_F_STOP_FLOWLABEL,
+				  PARSELITE_ENCAP_DEPTH,
+				  PARSELITE_START_ETHER);
+		if (!suc)
+			return "parselite_parse failed";
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &now_tp);
+		*time += (now_tp.tv_sec - begin_tp.tv_sec) * 1000000000 +
+			 (now_tp.tv_nsec - begin_tp.tv_nsec);
 	}
 
 	if (flags & CORE_F_HASH)

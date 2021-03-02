@@ -133,27 +133,34 @@ static void *core_flowdis_init(const char *args)
 
 static const char *core_flowdis_process(void *pv, void *data, size_t len,
 					struct test_parser_out *out,
-					unsigned int flags)
+					unsigned int flags, long long *time)
 {
 	struct flowdis_priv *p = pv;
 	struct ethhdr *ehdr = data;
+	const char *msg = NULL;
+	int suc = 0;
 	struct all_keys keys;
 
 	memset(&keys, 0, sizeof(keys));
 	memset(out, 0, sizeof(*out));
 
 	if (!(flags & CORE_F_NOCORE)) {
-		const char *msg = NULL;
+		struct timespec begin_tp, now_tp;
 
-		if (!__skb_flow_dissect_err(0, &p->fd, &keys, data,
-					    ehdr->h_proto, ETH_HLEN, len, 0,
-					    &msg)) {
+		clock_gettime(CLOCK_MONOTONIC_RAW, &begin_tp);
+		suc = __skb_flow_dissect_err(0, &p->fd, &keys, data,
+					     ehdr->h_proto, ETH_HLEN, len, 0,
+					     &msg);
+		if (!suc) {
 			if (!msg)
 				msg = "__skb_flow_dissect_err failed but "
-				    "provided no message";
-
+				      "provided no message";
 			return msg;
 		}
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &now_tp);
+		*time += (now_tp.tv_sec - begin_tp.tv_sec) * 1000000000 +
+			 (now_tp.tv_nsec - begin_tp.tv_nsec);
 	}
 
 	out->k_control.thoff = keys.f.control.thoff;

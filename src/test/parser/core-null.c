@@ -57,7 +57,7 @@ static void *core_null_init(const char *args)
 
 static const char *core_null_process(void *pv, void *data, size_t len,
 				     struct test_parser_out *out,
-				     unsigned int flags)
+				     unsigned int flags, long long *time)
 {
 	memset(out, 0, sizeof(*out));
 

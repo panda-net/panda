@@ -97,6 +97,8 @@ static int readpkt(void)
 	}
 }
 
+static long long _time;
+
 static void processpkt(void)
 {
 	struct test_parser_out out;
@@ -121,7 +123,8 @@ static void processpkt(void)
 	}
 	pktnum++;
 	(*omethod->pre) (omarg, &pktdata[0], pktlen, pktnum);
-	coreerr = (*core->process) (carg, &pktdata[0], pktlen, &out, coreflags);
+	coreerr = (*core->process) (carg, &pktdata[0], pktlen, &out, coreflags,
+			      &_time);
 	(*omethod->post) (omarg, coreerr, &out);
 }
 
@@ -403,14 +406,30 @@ static void handleargs(int argc, char **argv)
 
 int main(int argc, char **argv)
 {
+	long long old_time = _time;
 	handleargs(argc, argv);
+	long long avg = 0;
+	int j = 0;
 
 	while (readpkt()) {
 		int i;
 
+		old_time = _time;
+		_time = 0;
+
 		for (i = repeat; i > 0; i--)
 			processpkt();
+
+		++j;
+		avg = (_time / repeat);
+		printf("Packet %d (repeated %d): avg %lld ns/p %lld Mpps\n",
+			j, repeat, avg, avg ? 1000 / avg : 0);
+		_time += old_time;
 	}
 
-	return (0);
+	avg = (_time / (j*repeat));
+	printf("Total avg %lld ns/packet %lld Mpps\n", avg,
+		avg ? 1000 / avg : 0);
+
+	return 0;
 }

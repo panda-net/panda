@@ -33,6 +33,7 @@
 
 #include "panda/parser_metadata.h"
 #include "panda/parsers/parser_big.h"
+#include <time.h>
 
 struct panda_priv {
 	struct panda_parser_big_metadata_one md;
@@ -55,18 +56,19 @@ static void *core_panda_init(const char *args)
 		fprintf(stderr, "The panda core takes no arguments.\n");
 		exit(-1);
 	}
-	p = calloc(1, sizeof(struct panda_priv));
 
+	p = calloc(1, sizeof(struct panda_priv));
 	if (!p || panda_parser_init() < 0) {
 		fprintf(stderr, "panda_parser_init failed\n");
 		exit(-11);
 	}
-	return (p);
+
+	return p;
 }
 
 static const char *core_panda_process(void *pv, void *data, size_t len,
 				      struct test_parser_out *out,
-				      unsigned int flags)
+				      unsigned int flags, long long *time)
 {
 	struct panda_priv *p = pv;
 	int i, err;
@@ -74,9 +76,20 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 	memset(&p->md, 0, sizeof(p->md));
 	memset(out, 0, sizeof(*out));
 
-	err = (flags & CORE_F_NOCORE) ? (int)PANDA_OKAY :
-	    panda_parse(panda_parser_big_ether, data, len, &p->md.panda_data, 0,
-			PANDA_PARSER_BIG_ENCAP_DEPTH);
+	err = (int)PANDA_OKAY;
+
+	if (!(flags & CORE_F_NOCORE)) {
+		struct timespec begin_tp, now_tp;
+
+		clock_gettime(CLOCK_MONOTONIC_RAW, &begin_tp);
+
+		err = panda_parse(panda_parser_big_ether, data, len,
+				  &p->md.panda_data, 0,
+				  PANDA_PARSER_BIG_ENCAP_DEPTH);
+		clock_gettime(CLOCK_MONOTONIC_RAW, &now_tp);
+		*time += (now_tp.tv_sec - begin_tp.tv_sec) * 1000000000 +
+			 (now_tp.tv_nsec - begin_tp.tv_nsec);
+	}
 
 	switch (err) {
 	case PANDA_OKAY:

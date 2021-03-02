@@ -67,8 +67,8 @@ struct test_parser_core {
 	void (*help)(void);
 	void *(*init)(const char *args);
 	const char *(*process)(void *pv, void *data, size_t len,
-				struct test_parser_out *out,
-				unsigned int flags);
+			       struct test_parser_out *out, unsigned int flags,
+			       long long*);
 #define CORE_F_NOCORE 0x1
 #define CORE_F_HASH   0x2
 	void (*done)(void *pv);

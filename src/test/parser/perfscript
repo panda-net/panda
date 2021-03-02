@@ -90,30 +90,4 @@ if [ $n -lt 1 ]; then
 fi
 r=$((100000000 / $n))
 
-./test_parser -i pcap,$pcap -c $core -o null > $d/one.out 2> $d/one.err
-maybe=:
-if [ -s $d/one.out ]; then
-	exec 1>&2
-	echo Test parser run stdout:
-	sed -e 's/^/	/' < $d/one.out
-	maybe=
-fi
-if [ -s $d/one.err ]; then
-	exec 1>&2
-	echo Test parser run stderr:
-	sed -e 's/^/	/' < $d/one.err
-	maybe=
-fi
-$maybe exit 1
-
-echo -n "Time: "
-with=`time -f %e ./test_parser -n $r -i pcap,$pcap -c $core -o null 2>&1`
-echo -n "$with - "
-without=`time -f %e ./test_parser -N -n $r -i pcap,$pcap -c $core -o null 2>&1`
-echo -n "$without = "
-delta=`echo $with $without - p | dc`
-echo -n "$delta, for "
-# delta is seconds; convert to ns and divide by packet count -> ns per packet
-ns=`echo 4 k $delta 1000000000 \* $n $r \* / p | dc`
-pps=`echo 2 k 1000000000 $ns / p | dc`
-echo "$ns ns/packet, $pps packets/sec"
+./test_parser -n $r -i pcap,$pcap -c $core -o null
