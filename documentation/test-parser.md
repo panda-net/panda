@@ -236,27 +236,29 @@ $ ./run-tests.sh
 ## Performance Testing
 
 It is possible to get the cost of executing the parser with
-a specific input method and selected pcap file.
+a specific input method and selected pcap file using the *-v*
+option.
 
-For example to test pcap-in.pcap(which has 11 packets)
-with the kernel-derived flowdissector parser:
+For example to test *pcap-in.pcap*(which has 11 packets)
+with the kernel-derived *flowdissector* parser:
 
-$./test_parser -n 10000000 -i pcap,test-in.pcap -c flowdis -o null
-Packet 1 (repeated 10000000): avg 36 ns/p 27 Mpps
-Packet 2 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 3 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 4 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 5 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 6 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 7 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 8 (repeated 10000000): avg 35 ns/p 28 Mpps
-Packet 9 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 10 (repeated 10000000): avg 34 ns/p 29 Mpps
-Packet 11 (repeated 10000000): avg 34 ns/p 29 Mpps
-Total avg 34 ns/packet 29 Mpps
+$./test_parser -v -n 10000000 -i pcap,test-in.pcap -c flowdis -o null
 
-The above shows the flowdissector parser being exercised
-10000000 times for each packet with the output presenting
+	 Packet 1 (repeated 10000000): avg 36 ns/p 27 Mpps
+	 Packet 2 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 3 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 4 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 5 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 6 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 7 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 8 (repeated 10000000): avg 35 ns/p 28 Mpps
+	 Packet 9 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 10 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Packet 11 (repeated 10000000): avg 34 ns/p 29 Mpps
+	 Total avg 34 ns/packet 29 Mpps
+
+The above shows the flowdissector parser being exercised on 11 packets;
+10000000 times for each packet. The illustrated output presents
 the average time cost per packet (in nanoseconds) and in
 millions of packets/second.
 
