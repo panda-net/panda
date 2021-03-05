@@ -338,6 +338,25 @@ struct panda_parser *panda_parser_create(const char *name,
 	return parser;
 }
 
+static
+struct panda_parser *panda_parser_opt_create(const char *name,
+				const struct panda_parse_node *root_node,
+				panda_parser_opt_entry_point parser_entry_point)
+{
+	struct panda_parser *parser;
+
+	parser = calloc(1, sizeof(*parser));
+	if (!parser)
+		return NULL;
+
+	parser->name = name;
+	parser->root_node = root_node;
+	parser->parser_type = PANDA_OPTIMIZED;
+	parser->parser_entry_point = parser_entry_point;
+
+	return parser;
+}
+
 void panda_parser_destroy(struct panda_parser *parser)
 {
 	free(parser);
@@ -383,10 +402,27 @@ int panda_parser_init(void)
 		if (!def->name && !def->root_node)
 			continue;
 
-		*def->parser = panda_parser_create(def->name, def->root_node);
-		if (!def->parser) {
-			fprintf(stderr, "Create parser \"%s\" failed\n",
-				def->name);
+		switch (def->parser_type) {
+		case  PANDA_GENERIC:
+			*def->parser = panda_parser_create(def->name,
+							   def->root_node);
+			if (!def->parser) {
+				fprintf(stderr, "Create parser \"%s\" failed\n",
+					def->name);
+				goto fail;
+			}
+			break;
+		case PANDA_OPTIMIZED:
+			*def->parser = panda_parser_opt_create(def->name,
+						def->root_node,
+						def->parser_entry_point);
+			if (!def->parser) {
+				fprintf(stderr, "Create parser \"%s\" failed\n",
+					def->name);
+				goto fail;
+			}
+			break;
+		default:
 			goto fail;
 		}
 	}

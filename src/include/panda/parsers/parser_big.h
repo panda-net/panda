@@ -37,6 +37,7 @@
 #include <unistd.h>
 
 #include "panda/parser_metadata.h"
+#include "parsers/parser_big.p.h"
 
 /* Meta data structure for multiple frames (i.e. to retrieve metadata
  * for multiple levels of encapsulation)

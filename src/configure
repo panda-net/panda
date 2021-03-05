@@ -35,9 +35,11 @@ check_toolchain()
     : ${PKG_CONFIG:=pkg-config}
     : ${AR=ar}
     : ${CC=gcc}
+    : ${CXX=g++}
     echo "PKG_CONFIG:=${PKG_CONFIG}" >>$CONFIG
     echo "AR:=${AR}" >>$CONFIG
     echo "CC:=${CC}" >>$CONFIG
+    echo "CXX:=${CXX}" >>$CONFIG
 }
 
 check_libpcap()
@@ -175,6 +177,7 @@ endif
 
 ifeq (\$(VERBOSE), 0)
     QUIET_CC       = @echo '    CC       '\$@;
+    QUIET_CXX      = @echo '    CXX      '\$@;
     QUIET_AR       = @echo '    AR       '\$@;
     QUIET_LINK     = @echo '    LINK     '\$@;
     QUIET_INSTALL  = @echo '    INSTALL  '\$(TARGETS);
@@ -201,3 +204,5 @@ check_boostfilesystem
 echo >> $CONFIG
 echo "%.o: %.c" >> $CONFIG
 echo '	$(QUIET_CC)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<' >> $CONFIG
+echo "%.o: %.cpp" >> $CONFIG
+echo '	$(QUIET_CXX)$(CXX) $(CXXFLAGS) $(EXTRA_CXXFLAGS) -c -o $@ $<' >> $CONFIG

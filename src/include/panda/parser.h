@@ -54,6 +54,14 @@ enum {
 	PANDA_STOP_TLV_LENGTH = -7,
 };
 
+/* Panda parser type codes */
+enum panda_parser_type {
+	/* Use non-optimized loop panda parser algorithm */
+	PANDA_GENERIC = 0,
+	/* Use optimized, generated, parser algorithm  */
+	PANDA_OPTIMIZED = 1,
+};
+
 /* Protocol parsing operations:
  *
  * len: Return length of protocol header. If value is NULL then the length of
@@ -186,6 +194,18 @@ struct panda_parse_node {
 	const struct panda_proto_table *proto_table;
 };
 
+/* Declaration of a PANDA parser */
+struct panda_parser;
+
+/* Panda entry-point for optimized parsers */
+typedef int (*panda_parser_opt_entry_point)(const struct panda_parser *parser,
+					    const struct panda_parse_node
+								*parse_node,
+					    const void *hdr, size_t len,
+					    struct panda_metadata *metadata,
+					    unsigned int flags,
+					    unsigned int max_encaps);
+
 /* Definition of a PANDA parser. Fields are:
  *
  * name: Text name for the parser
@@ -195,6 +215,8 @@ struct panda_parse_node {
 struct panda_parser {
 	const char *name;
 	const struct panda_parse_node *root_node;
+	enum panda_parser_type parser_type;
+	panda_parser_opt_entry_point parser_entry_point;
 };
 
 /* Helper to create a parser */
@@ -202,6 +224,18 @@ struct panda_parser {
 struct panda_parser __##PARSER = {					\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
+	.parser_type = PANDA_GENERIC,					\
+	.parser_entry_point = NULL					\
+};									\
+struct panda_parser *PARSER = &__##PARSER;
+
+/* Helper to create an optimized parser vairant */
+#define PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)			\
+struct panda_parser __##PARSER = {					\
+	.name = NAME,							\
+	.root_node = ROOT_NODE,						\
+	.parser_type = PANDA_OPTIMIZED,					\
+	.parser_entry_point = &FUNC					\
 };									\
 struct panda_parser *PARSER = &__##PARSER;
 
@@ -636,14 +670,24 @@ static inline int panda_parse(const struct panda_parser *parser,
 			      struct panda_metadata *metadata,
 			      unsigned int flags, unsigned int max_encaps)
 {
-	return __panda_parse(parser, parser->root_node, hdr, len, metadata,
-			     flags, max_encaps);
+	switch (parser->parser_type) {
+	case PANDA_GENERIC:
+		return __panda_parse(parser, parser->root_node, hdr, len,
+				     metadata, flags, max_encaps);
+	case PANDA_OPTIMIZED:
+		return (parser->parser_entry_point)(parser, parser->root_node,
+			hdr, len, metadata, flags, max_encaps);
+	default:
+		return PANDA_STOP_FAIL;
+	}
 }
 
 struct panda_parser_def {
 	struct panda_parser **parser;
 	const char *name;
 	const struct panda_parse_node *root_node;
+	enum panda_parser_type parser_type;
+	panda_parser_opt_entry_point parser_entry_point;
 } PANDA_ALIGN_SECTION;
 
 /* Helper to make an extern for a parser */
@@ -660,6 +704,19 @@ static struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
 	.parser = &PARSER,						\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
+	.parser_type = PANDA_GENERIC,					\
+}
+
+/* Helper to add parser to list of parser at initialization */
+#define PANDA_PARSER_OPT_ADD(PARSER, NAME, ROOT_NODE, FUNC)		\
+struct panda_parser *PARSER;						\
+static struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
+			PANDA_UNIQUE_NAME(__panda_parsers_,) = {	\
+	.parser = &PARSER,						\
+	.name = NAME,							\
+	.root_node = ROOT_NODE,						\
+	.parser_type = PANDA_OPTIMIZED,					\
+	.parser_entry_point = &FUNC					\
 }
 
 struct panda_parser *panda_parser_create(const char *name,

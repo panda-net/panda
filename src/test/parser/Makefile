@@ -7,6 +7,8 @@ OMETHODS_OBJ := $(foreach m,$(OMETHODS),out-$(m).o)
 CORES != sed -f method.sed < cores.list
 CORES_OBJ := $(foreach m,$(CORES),core-$(m).o)
 
+CFLAGS += -I../../lib/panda
+
 OBJ = $(CORES_OBJ) $(IMETHODS_OBJ) $(OMETHODS_OBJ)		\
       cores.o imethods.o main.o omethods.o
 
