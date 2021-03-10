@@ -4,5 +4,6 @@
 #  suitable for use as a C symbol.
 flowdis
 panda
+pandaopt
 parselite
 null
