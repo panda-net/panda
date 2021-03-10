@@ -107,6 +107,9 @@ PANDA_MAKE_PARSE_NODE(e8021Q_node, panda_parse_vlan, e8021Q_metadata,
 		      panda_null_handle_proto, ether_table);
 PANDA_MAKE_PARSE_NODE(ppp_node, panda_parse_ppp, panda_null_extract_metadata,
 		      panda_null_handle_proto, ppp_table);
+PANDA_MAKE_PARSE_NODE(pppoe_node, panda_parse_pppoe,
+		      panda_null_extract_metadata,
+		      panda_null_handle_proto, pppoe_table);
 PANDA_MAKE_PARSE_NODE(ipv4ip_node, panda_parse_ipv4ip,
 		      panda_null_extract_metadata, panda_null_handle_proto,
 		      ipv4ip_table);
@@ -176,6 +179,7 @@ PANDA_MAKE_PROTO_TABLE(ether_table,
 	{ __cpu_to_be16(ETH_P_TIPC), &tipc_node },
 	{ __cpu_to_be16(ETH_P_BATMAN), &batman_node },
 	{ __cpu_to_be16(ETH_P_FCOE), &fcoe_node },
+	{ __cpu_to_be16(ETH_P_PPP_SES), &pppoe_node },
 );
 
 PANDA_MAKE_PROTO_TABLE(ipv4_check_table,
@@ -245,6 +249,11 @@ PANDA_MAKE_PROTO_TABLE(gre_v1_table,
 PANDA_MAKE_PROTO_TABLE(ppp_table,
 	{ PPP_IP, &ipv4_check_node },
 	{ PPP_IPV6, &ipv6_check_node },
+);
+
+PANDA_MAKE_PROTO_TABLE(pppoe_table,
+	{ __cpu_to_be16(PPP_IP), &ipv4_check_node },
+	{ __cpu_to_be16(PPP_IPV6), &ipv6_check_node },
 );
 
 PANDA_MAKE_TLV_TABLE(tcp_tlv_table,
