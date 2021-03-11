@@ -10,7 +10,7 @@ CONFIG=config.mk
 
 # Make a temp directory in build tree.
 TMPDIR=$(mktemp -d config.XXXXXX)
-trap 'status=$?; rm -rf $TMPDIR; exit $status' EXIT HUP INT QUIT TERM
+#trap 'status=$?; rm -rf $TMPDIR; exit $status' EXIT HUP INT QUIT TERM
 
 check_prog()
 {
@@ -65,6 +65,98 @@ EOF
 	rm -f $TMPDIR/pcaptest.c $TMPDIR/pcaptest
 }
 
+check_boostwave()
+{
+	cat >$TMPDIR/wavetest.cpp <<EOF
+#include <boost/wave.hpp>
+
+struct test : boost::wave::context_policies::default_preprocessing_hooks {
+};
+
+int main(int argc, char **argv)
+{
+	return (0);
+}
+EOF
+        $CXX -I$INCLUDE -o $TMPDIR/wavetest $TMPDIR/wavetest.cpp  -lboost_system -lboost_wave
+	case $? in
+		0)	;;
+		*)	echo Boost.Wave missing or broken\! 1>&2
+			exit 1
+			;;
+	esac
+	#rm -f $TMPDIR/wavetest.cpp $TMPDIR/wavetest
+}
+
+check_boostthread()
+{
+	cat >$TMPDIR/threadtest.cpp <<EOF
+#include <boost/thread.hpp>
+
+int main(int argc, char **argv)
+{
+	{
+		boost::mutex m;
+	}
+	return (0);
+}
+EOF
+	$CXX -I$INCLUDE -o $TMPDIR/threadtest $TMPDIR/threadtest.cpp -lboost_thread   -lboost_system >/dev/null 2>&1
+	case $? in
+		0)	;;
+		*)	echo Boost.Thread missing or broken\! 1>&2
+			exit 1
+			;;
+	esac
+	rm -f $TMPDIR/threadtest.cpp $TMPDIR/threadtest
+}
+
+check_boostsystem()
+{
+	cat >$TMPDIR/systemtest.cpp <<EOF
+#include <boost/system/error_code.hpp>
+
+int main(int argc, char **argv)
+{
+	{
+		boost::system::error_code ec;
+	}
+	return (0);
+}
+EOF
+	$CXX -I$INCLUDE -o $TMPDIR/systemtest $TMPDIR/systemtest.cpp -lboost_system >/dev/null 2>&1
+	case $? in
+		0)	;;
+		*)	echo Boost.System missing or broken\! 1>&2
+			exit 1
+			;;
+	esac
+	rm -f $TMPDIR/systemtest.cpp $TMPDIR/systemtest
+}
+
+check_boostfilesystem()
+{
+	cat >$TMPDIR/filesystemtest.cpp <<EOF
+#include <boost/filesystem/path.hpp>
+
+int main(int argc, char **argv)
+{
+	{
+		boost::filesystem::path p;
+	}
+	return (0);
+}
+EOF
+	$CXX -I$INCLUDE -o $TMPDIR/filesystemtest $TMPDIR/filesystemtest.cpp -lboost_system -lboost_filesystem >/dev/null 2>&1
+	case $? in
+		0)	;;
+		*)	echo Boost.Filesystem missing or broken\! 1>&2
+			exit 1
+			;;
+	esac
+	rm -f $TMPDIR/filesystemtest.cpp $TMPDIR/filesystemtest
+}
+
 quiet_config()
 {
 	cat <<EOF
@@ -96,6 +188,10 @@ quiet_config >> $CONFIG
 check_toolchain
 
 check_libpcap
+check_boostsystem
+check_boostwave
+check_boostthread
+check_boostfilesystem
 
 #echo
 #echo -n "docs:"
