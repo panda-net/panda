@@ -10,7 +10,7 @@ CONFIG=config.mk
 
 # Make a temp directory in build tree.
 TMPDIR=$(mktemp -d config.XXXXXX)
-#trap 'status=$?; rm -rf $TMPDIR; exit $status' EXIT HUP INT QUIT TERM
+trap 'status=$?; rm -rf $TMPDIR; exit $status' EXIT HUP INT QUIT TERM
 
 check_prog()
 {
