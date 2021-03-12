@@ -107,6 +107,7 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 	case PANDA_STOP_ENCAP_DEPTH:
 		return "PANDA: STOP_ENCAP_DEPTH";
 	}
+#if 0
 	if (p->md.panda_data.encaps)
 		printf("PANDA encaps %u\n",
 		       (unsigned int)p->md.panda_data.encaps);
@@ -116,6 +117,7 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 	if (p->md.panda_data.frame_size)
 		printf("PANDA frame_size %u\n",
 		       (unsigned int)p->md.panda_data.frame_size);
+#endif
 
 	switch (p->md.frame.addr_type) {
 	case 0:
@@ -137,14 +139,18 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 	/* The out struct has no represantation for fragments. We need
 	 * to add it. For now coment out the printing because it seems
 	 * to confuse AFL
-	 * if (p->md.frame.is_fragment)
-	 *	 printf("PANDA is_fragment %d\n", (int)p->md.frame.is_fragment);
-	 * if (p->md.frame.first_frag)
-	 *	 printf("PANDA first_frag %d\n", (int)p->md.frame.first_frag);
 	 */
+
+#if 0
+	if (p->md.frame.is_fragment)
+		printf("PANDA is_fragment %d\n", (int)p->md.frame.is_fragment);
+	if (p->md.frame.first_frag)
+		printf("PANDA first_frag %d\n", (int)p->md.frame.first_frag);
 
 	if (p->md.frame.vlan_count)
 		printf("PANDA vlan_count %d\n", (int)p->md.frame.vlan_count);
+#endif
+
 	if (ARRAY_SIZE(p->md.frame.eth_addrs) !=
 	    ARRAY_SIZE(out->k_eth_addrs.src) +
 	    ARRAY_SIZE(out->k_eth_addrs.dst)) {
@@ -210,12 +216,16 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 		out->k_vlan.vlan_tpid = p->md.frame.vlan[0].tpid;
 		break;
 	default:
+#if 0
 		printf("PANDA vlan_count %d\n", (int)p->md.frame.vlan_count);
+#endif
 		break;
 	}
 
+#if 0
 	if (p->md.frame.keyid)
-		printf("PANDA keyid %08lx\n", (unsigned long)p->md.frame.keyid);
+	printf("PANDA keyid %08lx\n", (unsigned long)p->md.frame.keyid);
+#endif
 
 	out->k_ports.src = p->md.frame.src_port;
 	out->k_ports.dst = p->md.frame.dst_port;
