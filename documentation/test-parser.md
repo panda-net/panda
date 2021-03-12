@@ -262,6 +262,10 @@ The above shows the flowdissector parser being exercised on 11 packets;
 the average time cost per packet (in nanoseconds) and in
 millions of packets/second.
 
+You can also run the script *perfscript.sh* which will run performance
+testing on all parsers against pcaps found on tunnel-pcaps. The results
+will be printed on stdout.
+
 ## Fuzz Testing
 
 You need to install the afl fuzzer package. The standard version available
