@@ -307,6 +307,7 @@ static void show_help(void)
 		"-h      Show this help\n"
 		"-N      Suppress the actual parser call.\n"
 		"-H      Compute/print metadata hashes.\n"
+		"-v      show computation cost\n"
 		"-n N    Repeat each input packet a total of N times "
 		"(default 1)\n"
 		"-i NAME[,ARGS]\n"
@@ -350,21 +351,22 @@ static void show_help(void)
 
 static void usage(char *progname)
 {
-	fprintf(stderr, "Usage: %s [-NH] [-n <number>] [-i <type>[,<arg>]] "
+	fprintf(stderr, "Usage: %s [-NHv] [-n <number>] [-i <type>[,<arg>]] "
 		"[-o <type>[,<arg>]] [-c <core>]\n", progname);
 
 	exit(-1);
 }
 
-#define ARGS "n:NHi:o:c:h"
+#define ARGS "n:NHi:o:c:hv"
 
 static struct option long_options[] = {
-	{ "number", no_argument, 0, 'n' },
+	{ "number", required_argument, 0, 'n' },
 	{ "nocore", no_argument, 0, 'N' },
 	{ "hash", no_argument, 0, 'H' },
 	{ "input", required_argument, 0, 'i' },
 	{ "output", required_argument, 0, 'o' },
 	{ "core", required_argument, 0, 'c' },
+	{ "verbose", no_argument, 0, 'v' },
 	{ NULL, 0, 0, 0 },
 };
 
@@ -384,6 +386,9 @@ static void handleargs(int argc, char **argv)
 			break;
 		case 'H':
 			coreflags |= CORE_F_HASH;
+			break;
+		case 'v':
+			coreflags |= CORE_F_VERBOSE;
 			break;
 		case 'i':
 			set_imethod(optarg);
@@ -422,14 +427,17 @@ int main(int argc, char **argv)
 
 		++j;
 		avg = (_time / repeat);
-		printf("Packet %d (repeated %d): avg %lld ns/p %lld Mpps\n",
-			j, repeat, avg, avg ? 1000 / avg : 0);
+		if (coreflags & CORE_F_VERBOSE)
+			printf("Packet %d (repeated %d): avg %lld ns/p "
+			       "%lld Mpps\n", j, repeat, avg,
+							avg ? 1000 / avg : 0);
 		_time += old_time;
 	}
 
 	avg = (_time / (j*repeat));
-	printf("Total avg %lld ns/packet %lld Mpps\n", avg,
-		avg ? 1000 / avg : 0);
+	if (coreflags & CORE_F_VERBOSE)
+		printf("Total avg %lld ns/packet %lld Mpps\n", avg,
+			avg ? 1000 / avg : 0);
 
 	return 0;
 }

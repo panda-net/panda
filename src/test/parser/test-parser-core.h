@@ -71,6 +71,7 @@ struct test_parser_core {
 			       long long*);
 #define CORE_F_NOCORE 0x1
 #define CORE_F_HASH   0x2
+#define CORE_F_VERBOSE   0x4
 	void (*done)(void *pv);
 };
 
