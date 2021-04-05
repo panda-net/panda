@@ -48,9 +48,9 @@ struct panda_priv {
 static void core_pandaopt_help(void)
 {
 	fprintf(stderr,
-		"For the `panda' core, arguments must be either not given or "
+		"For the `pandaopt' core, arguments must be either not given or "
 		"zero length.\n\n"
-		"This core uses the panda library which impelements the "
+		"This core uses the compiler tool to optimize panda \"Big parser\" "
 		"engine for the PANDA Parser.\n");
 }
 

@@ -145,6 +145,8 @@ $ ./test_parser -c list
 
 flowdis
 panda
+pandaopt
+pandaopt_notcpopts
 parselite
 null
 
@@ -157,7 +159,7 @@ For the `flowdis' core, arguments must be either not given or zero length.
 This core uses the flowdis library which is a port ot the Linux kernel
 flow-dissector code.
 
-B) PANDA Parser:
+B) The PANDA Parser:
 
 $ ./test_parser -c help,panda
 
@@ -166,13 +168,27 @@ For the `panda' core, arguments must be either not given or zero length.
 This core uses the panda library which impelements the engine for the PANDA
 Parser.
 
-C) The Parselite parser:
+C) The optimized PANDA Parser:
+
+$ ./test_parser -c help,pandaopt
+For the `pandaopt' core, arguments must be either not given or zero length.
+
+This core uses the compiler tool to optimize panda "Big parser" engine for the PANDA Parser.
+
+D) The optimized PANDA Parser without TCP options parsing:
+
+$ ./test_parser -c help,pandaopt_notcpopts
+For the `pandaopt_notcpopts' core, arguments must be either not given or zero length.
+
+This core uses the compiler tool to optimize a variant of the panda "Big parser" engine for the PANDA Parser.
+
+E) The Parselite parser:
 
 $ ./test_parser -c help,parselite
 
 This core uses the parselite library which impelements a lightweight parser.
 
-D) The null parser
+F) The null parser
 
 $ ./test_parser -c help,null
 
