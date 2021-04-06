@@ -186,9 +186,10 @@ static const char *core_flowdis_process(void *pv, void *data, size_t len,
 	out->k_basic.ip_proto = keys.f.basic.ip_proto;
 	out->k_ports.src = keys.f.ports.src;
 	out->k_ports.dst = keys.f.ports.dst;
-	out->k_icmp.type = keys.f.icmp.type;
-	out->k_icmp.code = keys.f.icmp.code;
-	out->k_icmp.id = keys.f.icmp.id;
+
+	out->k_icmp.type = keys.a.icmp.type;
+	out->k_icmp.code = keys.a.icmp.code;
+	out->k_icmp.id = keys.a.icmp.id;
 
 	FIELD_COPY(k_eth_addrs.src, &keys.a.eth_addrs.src);
 	FIELD_COPY(k_eth_addrs.dst, &keys.a.eth_addrs.dst);
