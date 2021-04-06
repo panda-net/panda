@@ -86,7 +86,7 @@ PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, ipv4_metadata,
 PANDA_MAKE_PARSE_NODE(ipv6_check_node, panda_parse_ip,
 		      panda_null_extract_metadata,
 		      panda_null_handle_proto, ipv6_check_table);
-PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6_stopflowlabel,
+PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6,
 		      ipv6_metadata, panda_null_handle_proto, ipv6_table);
 PANDA_MAKE_PARSE_NODE(ip_overlay_node, panda_parse_ip, ip_overlay_metadata,
 		      panda_null_handle_proto, ip_table);
