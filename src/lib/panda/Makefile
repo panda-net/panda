@@ -22,7 +22,7 @@ libpanda.a: $(ALLOBJS) $(ADDLIB)
 	$(QUIET_AR)$(AR) rcs $@ $^
 
 libpanda.so: $(ALLOBJS) $(ADDLIB)
-	$(CC) -shared $^ -o $@
+	$(CC) -shared $^ -o $@ -lpcap
 
 .PHONY: install
 install: $(TARGETS)
