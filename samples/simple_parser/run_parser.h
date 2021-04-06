@@ -74,7 +74,7 @@ void run_parser(struct panda_parser *parser, struct panda_pcap_file *pf)
 			inet_ntop(AF_INET6, &metadata->addrs.v6.daddr,
 				  dbuf, sizeof(dbuf));
 
-			printf("IPv4: %s:%u->%s:%u\n", sbuf,
+			printf("IPv6: %s:%u->%s:%u\n", sbuf,
 			       ntohs(metadata->port_pair.sport), dbuf,
 			       ntohs(metadata->port_pair.dport));
 
