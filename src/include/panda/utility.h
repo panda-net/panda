@@ -185,11 +185,20 @@ static inline TYPE *panda_section_base_##NAME(void)			\
 
 #define PANDA_WARN(...)
 #define PANDA_ERR(RET, ...)
+#define PANDA_WARN_ONCE(...)
 
 #else
 
 #define PANDA_WARN(...) warnx(__VA_ARGS__)
 #define PANDA_ERR(RET, ...) errx((RET), __VA_ARGS__)
+#define PANDA_WARN_ONCE(...) do {					\
+	static bool warned;						\
+									\
+	if (!warned) {							\
+		PANDA_WARN(__VA_ARGS__);				\
+		warned = true;						\
+	}								\
+} while (0)
 
 #endif
 
