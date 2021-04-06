@@ -61,25 +61,27 @@ PANDA_METADATA_TEMP_ports(ports_metadata, panda_parser_simple_hash_metadata)
  * below
  */
 
-PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether, ether_metadata, NULL,
-		      ether_table);
+PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether, ether_metadata,
+		      panda_null_handle_proto, ether_table);
 PANDA_MAKE_PARSE_NODE(ipv4_check_node, panda_parse_ip,
 		      panda_null_extract_metadata,
 		      panda_null_handle_proto, ipv4_check_table);
-PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, ipv4_metadata, NULL,
-		      ipv4_table);
+PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, ipv4_metadata,
+		      panda_null_handle_proto, ipv4_table);
 PANDA_MAKE_PARSE_NODE(ipv6_check_node, panda_parse_ip,
 		      panda_null_extract_metadata,
 		      panda_null_handle_proto, ipv6_check_table);
 PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6_stopflowlabel,
-		      ipv6_metadata, NULL, ipv6_table);
-PANDA_MAKE_PARSE_NODE(ipv6_eh_node, panda_parse_ipv6_eh, NULL, NULL,
+		      ipv6_metadata, panda_null_handle_proto, ipv6_table);
+PANDA_MAKE_PARSE_NODE(ipv6_eh_node, panda_parse_ipv6_eh,
+		      panda_null_extract_metadata, panda_null_handle_proto,
 		      ipv6_table);
-PANDA_MAKE_PARSE_NODE(ipv6_frag_node, panda_parse_ipv6_frag_eh, NULL, NULL,
+PANDA_MAKE_PARSE_NODE(ipv6_frag_node, panda_parse_ipv6_frag_eh,
+		      panda_null_extract_metadata, panda_null_handle_proto,
 		      ipv6_table);
 
 PANDA_MAKE_LEAF_PARSE_NODE(ports_node, panda_parse_ports, ports_metadata,
-			   NULL);
+			   panda_null_handle_proto);
 
 /* Define hash parser to begin parsing at an Ethernet header */
 PANDA_PARSER_ADD(panda_parser_simple_hash_ether,
