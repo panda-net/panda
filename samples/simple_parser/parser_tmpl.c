@@ -103,25 +103,46 @@ PANDA_PARSER(parser, "Simple parser example", &ether_node);
 /* Include common code that actually runs the parser test */
 #include "run_parser.h"
 
+/* The optimized parser is built via the panda-compilet tool (see Makefile)
+ * so that there are two parsers named parser and parser_opt. Provide a forward
+ * reference to parser_opt since panda-compiler will include this source file
+ * in the source file it generates and parser_opt is defined after this file
+ * is included
+ */
+PANDA_PARSER_DECL(parser_opt);
+
+#define ARGS "O"
+
 void *usage(char *prog)
 {
-	fprintf(stderr, "%s <pcap_file>\n", prog);
+	fprintf(stderr, "%s [-O] <pcap_file>\n", prog);
 	exit(-1);
 }
 
 int main(int argc, char *argv[])
 {
 	struct panda_pcap_file *pf;
+	bool opt_parser = false;
+	int c;
 
-	if (argc != 2)
+	while ((c = getopt(argc, argv, ARGS)) != -1) {
+		switch (c) {
+		case 'O':
+			opt_parser = true;
+			break;
+		default:
+			usage(argv[0]);
+		}
+	}
+	if (optind != argc - 1)
 		usage(argv[0]);
 
-	pf = panda_pcap_init(argv[1]);
+	pf = panda_pcap_init(argv[optind]);
 	if (!pf) {
 		fprintf(stderr, "PANDA pcap init failed\n");
 
 		exit(-1);
 	}
 
-	run_parser(parser, pf);
+	run_parser(opt_parser ? parser_opt : parser, pf);
 }

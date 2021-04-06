@@ -30,7 +30,7 @@
  * in the C file that includes this header file (the structure will be
  * different for different use cases
  */
-void run_parser(struct panda_parser *parser, struct panda_pcap_file *pf)
+void run_parser(const struct panda_parser *parser, struct panda_pcap_file *pf)
 {
 	struct {
 		struct panda_metadata panda_metadata; /* Must be first */
