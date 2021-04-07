@@ -221,23 +221,23 @@ struct panda_parser {
 
 /* Helper to create a parser */
 #define PANDA_PARSER(PARSER, NAME, ROOT_NODE)				\
-struct panda_parser __##PARSER = {					\
+static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_GENERIC,					\
 	.parser_entry_point = NULL					\
 };									\
-struct panda_parser *PARSER = &__##PARSER;
+static const struct panda_parser *PARSER __unused() = &__##PARSER;
 
 /* Helper to create an optimized parser vairant */
 #define PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)			\
-struct panda_parser __##PARSER = {					\
+static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_OPTIMIZED,					\
 	.parser_entry_point = &FUNC					\
 };									\
-struct panda_parser *PARSER = &__##PARSER;
+static const struct panda_parser *PARSER __unused() = &__##PARSER;
 
 /* Helper to create a protocol table */
 #define PANDA_MAKE_PROTO_TABLE(NAME, ...)				\
@@ -636,7 +636,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 
 #define PANDA_MAKE_TLV_PARSE_NODE(NODE_NAME, CHECK_LENGTH,		\
 				  METADATA_FUNC, HANDLER_FUNC)		\
-	const struct panda_parse_tlv_node NODE_NAME = {			\
+	static const struct panda_parse_tlv_node NODE_NAME = {		\
 		.tlv_ops.check_length = CHECK_LENGTH,			\
 		.tlv_ops.extract_metadata = METADATA_FUNC,		\
 		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
@@ -694,12 +694,16 @@ struct panda_parser_def {
 #define PANDA_PARSER_EXTERN(NAME)					\
 	extern struct panda_parser *NAME
 
+/* Helper to make forward declaration for a const parser */
+#define PANDA_PARSER_DECL(NAME)						\
+	static const struct panda_parser *NAME
+
 PANDA_DEFINE_SECTION(panda_parsers, struct panda_parser_def)
 
 /* Helper to add parser to list of parser at initialization */
 #define PANDA_PARSER_ADD(PARSER, NAME, ROOT_NODE)			\
 struct panda_parser *PARSER;						\
-static struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
+static const struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
 			PANDA_UNIQUE_NAME(__panda_parsers_,) = {	\
 	.parser = &PARSER,						\
 	.name = NAME,							\
@@ -710,7 +714,7 @@ static struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
 /* Helper to add parser to list of parser at initialization */
 #define PANDA_PARSER_OPT_ADD(PARSER, NAME, ROOT_NODE, FUNC)		\
 struct panda_parser *PARSER;						\
-static struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
+static const struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
 			PANDA_UNIQUE_NAME(__panda_parsers_,) = {	\
 	.parser = &PARSER,						\
 	.name = NAME,							\
