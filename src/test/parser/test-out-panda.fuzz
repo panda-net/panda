@@ -4,4 +4,4 @@ basic: n_proto=0800 ip_proto=6
 ipv4_addrs: src=10.0.2.15 dst=192.0.47.59
 ports: src=44188 dst=43
 eth_addrs: dst=52:54:00:12:35:02 src=08:00:27:3e:ac:31
-tcp_opt: mss=1026 ts=<3546349568,259>
+tcp_opt: mss=1460 ws=6 ts=<2943013729,0>
