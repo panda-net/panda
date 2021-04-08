@@ -63,6 +63,9 @@ struct panda_parser_simple_hash_metadata {
 /* Externs for simple hash parser */
 PANDA_PARSER_EXTERN(panda_parser_simple_hash_ether);
 
+/* Externs for optimized simple hash parser */
+PANDA_PARSER_EXTERN(panda_parser_simple_hash_ether_opt);
+
 /* Function to get hash from Ethernet packet */
 static inline __u32 panda_parser_hash_hash_ether(const void *p, size_t len)
 {

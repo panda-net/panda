@@ -60,6 +60,10 @@ struct panda_parser_big_metadata_one {
 PANDA_PARSER_EXTERN(panda_parser_big_ether);
 PANDA_PARSER_EXTERN(panda_parser_big_ip);
 
+/* Externs for optimized parsers defined by big parsers */
+PANDA_PARSER_EXTERN(panda_parser_big_ether_opt);
+PANDA_PARSER_EXTERN(panda_parser_big_ip_opt);
+
 void panda_parser_big_print_frame(struct panda_metadata_all *frame);
 void panda_parser_big_print_hash_input(struct panda_metadata_all *frame);
 
