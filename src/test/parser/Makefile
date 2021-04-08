@@ -1,5 +1,7 @@
 include ../../config.mk
 
+COMPDIR=../../tools/compiler
+
 IMETHODS != sed -f method.sed < imethods.list
 IMETHODS_OBJ := $(foreach m,$(IMETHODS),in-$(m).o)
 OMETHODS != sed -f method.sed < omethods.list
@@ -19,10 +21,16 @@ LIBS = -lpcap ../../../src/lib/flowdis/libflowdis.a		\
 
 CLEANFILES = $(OBJ)
 
+CLEANFILES += $(patsubst %.p,core-%.p.c,$(filter %.p,$(CORES)))
+CLEANFILES += $(patsubst %.p,core-%.p.h,$(filter %.p,$(CORES)))
+
 TARGETS = test_parser
 
 .PHONY: all
 all: $(TARGETS)
+
+%.p.c: %.c
+	$(COMPDIR)/panda-compiler $< $@
 
 test_parser: $(OBJ)
 	$(CC) $(LDFLAGS) -o test_parser $(OBJ) $(LIBS)
@@ -46,16 +54,16 @@ omethods.o: omethods.inc
 cores.o: cores.inc
 
 imethods.inc: imethods.list
-	< imethods.list sed -f method.sed | sed -e 's@.*@__CORE_IOP(&)@' > imethods.inc || rm -f imethods.inc
+	< imethods.list sed -f method_strip.sed | sed -e 's@.*@__CORE_IOP(&)@' > imethods.inc || rm -f imethods.inc
 CLEANFILES += imethods.inc
 PREDEPEND += imethods.inc
 
 omethods.inc: omethods.list
-	< omethods.list sed -f method.sed | sed -e 's@.*@__CORE_OOP(&)@' > omethods.inc || rm -f omethods.inc
+	< omethods.list sed -f method_strip.sed | sed -e 's@.*@__CORE_OOP(&)@' > omethods.inc || rm -f omethods.inc
 CLEANFILES += omethods.inc
 PREDEPEND += omethods.inc
 
 cores.inc: cores.list
-	< cores.list sed -f method.sed | sed -e 's@.*@__CORE_OP(&)@' > cores.inc || rm -f cores.inc
+	< cores.list sed -f method_strip.sed | sed -e 's@.*@__CORE_OP(&)@' > cores.inc || rm -f cores.inc
 CLEANFILES += cores.inc
 PREDEPEND += cores.inc
