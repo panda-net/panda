@@ -81,6 +81,15 @@ The subdirectories of **samples** are:
 
 # Building
 
+## Prerequisites
+
+The Boot development libraries are needed when building the panda-compiler.
+To install the libraries on Ubuntu do:
+
+**apt-get install libboost-all-dev**
+
+## Configure
+
 Building of the main libraries and code is performed by doing make in the
 **src** directory:
 
@@ -88,7 +97,13 @@ Building of the main libraries and code is performed by doing make in the
 
 **./configure**
 
+## Make
+
+In the src directory do:
+
 **make**
+
+## Install
 
 The compiled libraries, header files, and binaries may be installed in a
 specified directory:
@@ -104,12 +119,14 @@ builds the with verbose output from make, includes the uapi files, and
 install the target files in the given install directory (set in
 MYINSTALLDIR)
 
-*Note that the uapi files (i.e. build with **UAPI=1**) should preferably be
+## User API (uapi) files
+
+Note that the uapi files (i.e. build with **UAPI=1**) should preferably be
 included only if the build system does not have up to date header files (this
 can happen with an older version of glibc or older kernel version). It is
 recommended to try building without the uapi includes and if that fails then
 try including the uapi files (if the glibc or kernel includes are out of date
-then compilation will likely fail with a number of errors for undefined names).*
+then compilation will likely fail with a number of errors for undefined names).
 
 # Basic validation testing
 
