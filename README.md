@@ -14,8 +14,13 @@ parsing is a fundamental operation in network processing and is best programmed
 via a declarative representation instead of a traditional imperative
 representation via a sequence of instructions. In PANDA, a parser is defined
 by a set of data structures and embedded functions that instantiate a
-customizable parse graph for a particular use case. The PANDA Parser is
-described [here](documentation/parser.md).
+customizable parse graph for a particular use case. The PANDA Parser,
+including the **panda-compiler** that builds an optimized parser, is described
+[here](documentation/parser.md).
+
+# Release note
+
+See [release notes](documentation/release_notes.md) for information about versions of PANDA.
 
 # Description
 
