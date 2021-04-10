@@ -202,7 +202,7 @@ parse_file(G &g, std::vector<std::tuple<std::string,
 			" tlv tables size " << tlv_tables.size () <<
 			" tlv nodes " << tlv_nodes.size () << std::endl;
 
-		pandagen::connect_vertices (g, parser_tables);
+		pandagen::connect_vertices(g, parser_tables);
 		pandagen::fill_tlv_node_to_vertices (g, tlv_nodes, tlv_tables);
 	}
 

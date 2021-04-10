@@ -293,7 +293,9 @@ struct table {
 template <typename G> void
 connect_vertices(G &g, std::vector<pandagen::table> parser_tables)
 {
+	typedef typename boost::graph_traits<G>::edge_iterator iter;
 	auto vs = vertices(g);
+	iter ei, ei_end;
 
 	for (auto &&src : boost::make_iterator_range(vs.first, vs.second)) {
 		if (!g[src].table.empty()) {
@@ -309,10 +311,27 @@ connect_vertices(G &g, std::vector<pandagen::table> parser_tables)
 					     pandagen::search_vertex_by_name(
 							g, node_name)) {
 						auto dst = *pv;
-						auto edge = add_edge(src, dst,
-								     g);
-						g[edge.first] = { entry.left,
-								  entry.right };
+						bool found = false;
+
+						for (std::tie(ei, ei_end) =
+						     edges(g); ei != ei_end;
+						     ++ei) {
+							if (src == source(*ei,
+									g) &&
+							    dst == target(*ei,
+									g)) {
+								found = true;
+								break;
+							}
+						}
+
+						if (!found) {
+							auto edge = add_edge(
+								src, dst, g);
+							g[edge.first] = {
+								entry.left,
+								entry.right };
+						}
 					} else {
 						std::cerr <<
 							"Not found destination "
