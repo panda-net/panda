@@ -62,6 +62,8 @@ The currently define computation cores are:
 * **panda**
 * **flowdis**
 * **parselite**
+* **pandaopt**
+* **pandaopt_notcpopts**
 
 There are two other options:
 
