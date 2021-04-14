@@ -18,6 +18,11 @@ customizable parse graph for a particular use case. The PANDA Parser,
 including the **panda-compiler** that builds an optimized parser, is described
 [here](documentation/parser.md).
 
+# Contact information
+
+For more inforamation, inqueries, or comments about the PANDA project please
+direct email to panda@sipanda.io.
+
 # Release note
 
 See [release notes](documentation/release_notes.md) for information about versions of PANDA.
