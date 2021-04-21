@@ -109,10 +109,10 @@ PANDA_MAKE_PARSE_NODE(ipv6_frag_node, panda_parse_ipv6_frag_eh,
 PANDA_MAKE_PARSE_NODE(gre_base_node, panda_parse_gre_base,
 		      panda_null_extract_metadata, panda_null_handle_proto,
 		      gre_base_table);
-PANDA_MAKE_PARSE_NODE(gre_v0_node, panda_parse_gre_v0, gre_v0_metadata,
-		      panda_null_handle_proto, gre_v0_table);
-PANDA_MAKE_PARSE_NODE(gre_v1_node, panda_parse_gre_v1, gre_v1_metadata,
-		      panda_null_handle_proto, gre_v1_table);
+PANDA_MAKE_PARSE_NODE(gre_v0_node, panda_parse_gre_v0.proto_node,
+		      gre_v0_metadata, panda_null_handle_proto, gre_v0_table);
+PANDA_MAKE_PARSE_NODE(gre_v1_node, panda_parse_gre_v1.proto_node,
+		      gre_v1_metadata, panda_null_handle_proto, gre_v1_table);
 PANDA_MAKE_PARSE_NODE(e8021AD_node, panda_parse_vlan, e8021AD_metadata,
 		      panda_null_handle_proto, ether_table);
 PANDA_MAKE_PARSE_NODE(e8021Q_node, panda_parse_vlan, e8021Q_metadata,

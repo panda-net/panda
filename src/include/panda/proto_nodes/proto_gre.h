@@ -252,12 +252,17 @@ static inline size_t gre_fields_offset(const void *hdr)
  *
  * Next protocol operation returns a GRE protocol (e.g. ETH_P_IPV4).
  */
-static const struct panda_proto_node panda_parse_gre_v0 __unused() = {
-	.name = "GRE v0",
-	.encap = 1,
-	.min_len = sizeof(struct gre_hdr),
-	.ops.next_proto = gre_v0_proto,
-	.ops.len = gre_v0_len_check,
+static const struct panda_proto_flag_fields_node
+					panda_parse_gre_v0 __unused() = {
+	.proto_node.node_type = PANDA_NODE_TYPE_FLAG_FIELDS,
+	.proto_node.name = "GRE v0",
+	.proto_node.encap = 1,
+	.proto_node.min_len = sizeof(struct gre_hdr),
+	.proto_node.ops.next_proto = gre_v0_proto,
+	.proto_node.ops.len = gre_v0_len_check,
+	.ops.get_flags = gre_get_flags,
+	.ops.start_fields_offset = gre_fields_offset,
+	.flag_fields = &gre_flag_fields,
 };
 
 /* panda_parse_gre_v1 protocol node
@@ -266,12 +271,17 @@ static const struct panda_proto_node panda_parse_gre_v0 __unused() = {
  *
  * Next protocol operation returns GRE_PROTO_PPP.
  */
-static const struct panda_proto_node panda_parse_gre_v1 __unused() = {
-	.name = "GRE v1 - pptp",
-	.encap = 1,
-	.min_len = sizeof(struct gre_hdr),
-	.ops.next_proto = gre_v1_proto,
-	.ops.len = gre_v1_len_check,
+static const struct panda_proto_flag_fields_node
+					panda_parse_gre_v1 __unused() = {
+	.proto_node.node_type = PANDA_NODE_TYPE_FLAG_FIELDS,
+	.proto_node.name = "GRE v1 - pptp",
+	.proto_node.encap = 1,
+	.proto_node.min_len = sizeof(struct gre_hdr),
+	.proto_node.ops.next_proto = gre_v1_proto,
+	.proto_node.ops.len = gre_v1_len_check,
+	.ops.get_flags = gre_get_flags,
+	.ops.start_fields_offset = gre_fields_offset,
+	.flag_fields = &pptp_gre_flag_fields,
 };
 
 #endif /* PANDA_DEFINE_PARSE_NODE */
