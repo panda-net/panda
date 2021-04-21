@@ -255,15 +255,23 @@ int __panda_parse(const struct panda_parser *parser,
 		if (parse_node->ops.extract_metadata)
 			parse_node->ops.extract_metadata(hdr, frame);
 
-		/* Process TLV nodes */
-		if (parse_node->tlvs_node &&
-		    parse_node->proto_node->tlvs_node) {
-			/* Need error in case parse_node TLVs are set but
-			 * proto_node TLVs are not
-			 */
-			ret = panda_parse_tlvs(parse_node, hdr, frame, hlen);
-			if (ret != PANDA_OKAY)
-				return ret;
+		switch (parse_node->node_type) {
+		case PANDA_NODE_TYPE_PLAIN:
+		default:
+			break;
+		case PANDA_NODE_TYPE_TLVS:
+			/* Process TLV nodes */
+			if (parse_node->proto_node->node_type ==
+			    PANDA_NODE_TYPE_TLVS) {
+				/* Need error in case parse_node is TLVs type
+				 * but proto_node is not TLVs type
+				 */
+				ret = panda_parse_tlvs(parse_node, hdr, frame,
+						       hlen);
+				if (ret != PANDA_OKAY)
+					return ret;
+			}
+			break;
 		}
 
 		/* Process protocol */

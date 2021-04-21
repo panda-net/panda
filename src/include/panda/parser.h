@@ -63,6 +63,14 @@ enum panda_parser_type {
 	PANDA_OPTIMIZED = 1,
 };
 
+/* Parse and protocol node types */
+enum panda_parser_node_type {
+	/* Plain node, no super structure */
+	PANDA_NODE_TYPE_PLAIN,
+	/* TLVs node with super structure for TLVs */
+	PANDA_NODE_TYPE_TLVS,
+};
+
 /* Protocol parsing operations:
  *
  * len: Return length of protocol header. If value is NULL then the length of
@@ -87,7 +95,7 @@ struct panda_parse_ops {
  * This structure contains the definitions to describe parsing of one type
  * of protocol header. Fields are:
  *
- * tlvs_node: The node includes parsing related TLVs for the protocol layer
+ * node_type: The type of the node (plain, TLVs)
  * encap: Indicates an encapsulation protocol (e.g. IPIP, GRE)
  * overlay: Indicates an overlay protocol. This is used, for example, to
  *	switch on version number of a protocol header (e.g. IP version number
@@ -97,7 +105,7 @@ struct panda_parse_ops {
  * ops: Operations to parse protocol header
  */
 struct panda_proto_node {
-	__u8 tlvs_node;
+	enum panda_parser_node_type node_type;
 	__u8 encap;
 	__u8 overlay;
 	char *name;
@@ -181,15 +189,14 @@ struct panda_proto_table {
 /* Parse node definition. Defines parsing and processing for one node in
  * the parse graph of a parser. Contains:
  *
- * tlvs_node: The node includes parsing and processing related TLVs for the
- *	protocol layer
+ * node_type: The type of the node (plain, TLVs)
  * proto_node: Protocol node
  * ops: Parse node operations
  * proto_table: Protocol table for next protocol. This must be non-null if
  * next_proto is not NULL
  */
 struct panda_parse_node {
-	__u8 tlvs_node: 1;
+	enum panda_parser_node_type node_type;
 	const struct panda_proto_node *proto_node;
 	const struct panda_parse_node_ops ops;
 	const struct panda_proto_table *proto_table;
@@ -520,9 +527,10 @@ struct panda_parse_tlvs_ops {
 /* Parse node for parsing a protocol header that contains TLVs to be
  * parser:
  *
- * parse_node: Node for main protocol header (e.g. IPv6 node in case
- *	of HBH options) Note that tlvs_node is set in parse_node and
- *	that the parse node can then be cast to a parse_tlv_node
+ * parse_node: Node for main protocol header (e.g. IPv6 node in case of HBH
+ *	options) Note that node_type is set in parse_node to
+ *	PANDA_NODE_TYPE_TLVS and that the parse node can then be cast to a
+ *	parse_tlv_node
  * tlv_proto_table: Lookup table for TLV type
  * max_tlvs: Maximum number of TLVs that are to be parseed in one list
  * max_tlv_len: Maximum length allowed for any TLV in a list
@@ -598,7 +606,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 				     POST_TLV_HANDLER,			\
 				     PROTO_TABLE, TLV_TABLE)		\
 	static const struct panda_parse_tlvs_node PARSE_TLV_NODE = {	\
-		.parse_node.tlvs_node = 1,				\
+		.parse_node.node_type = PANDA_NODE_TYPE_TLVS,		\
 		.parse_node.proto_node = &PROTO_TLV_NODE.proto_node,	\
 		.parse_node.ops.extract_metadata = EXTRACT_METADATA,	\
 		.parse_node.ops.handle_proto = HANDLER,			\
