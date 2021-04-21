@@ -52,6 +52,7 @@ enum {
 	PANDA_STOP_ENCAP_DEPTH = -5,
 	PANDA_STOP_UNKNOWN_TLV = -6,
 	PANDA_STOP_TLV_LENGTH = -7,
+	PANDA_STOP_BAD_FLAG = -8,
 };
 
 /* Panda parser type codes */
@@ -347,7 +348,7 @@ static inline ssize_t __panda_flag_fields_offset(__u32 targ_idx, __u32 flags,
 	__u32 mask;
 	int i;
 
-	for (i = 0; i < targ_idx - 1; i++) {
+	for (i = 0; i < targ_idx; i++) {
 		mask = flag_fields->fields[i].mask ? :
 						flag_fields->fields[i].flag;
 
@@ -373,6 +374,12 @@ static inline ssize_t panda_flag_fields_offset(__u32 targ_idx, __u32 flags,
 	}
 
 	return __panda_flag_fields_offset(targ_idx, flags, flag_fields);
+}
+
+/* Check flags are legal */
+static inline bool panda_flag_fields_check_invalid(__u32 flags, __u32 mask)
+{
+	return !!(flags & ~mask);
 }
 
 /* Retrieve a byte value from a flag field */
