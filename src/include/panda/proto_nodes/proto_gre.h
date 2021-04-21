@@ -100,6 +100,8 @@ static const struct panda_flag_fields gre_flag_fields = {
 	.num_idx = GRE_FLAGS_NUM_IDX
 };
 
+#define GRE_FLAGS_V0_MASK	(GRE_CSUM | GRE_KEY | GRE_SEQ | GRE_ROUTING)
+
 static const struct panda_flag_fields pptp_gre_flag_fields = {
 	.fields = {
 		{
@@ -127,6 +129,9 @@ static const struct panda_flag_fields pptp_gre_flag_fields = {
 	.num_idx = GRE_PPTP_FLAGS_NUM_IDX
 };
 
+#define GRE_FLAGS_V1_MASK	(GRE_CSUM | GRE_KEY | GRE_SEQ |		\
+				 GRE_ROUTING | GRE_ACK)
+
 #define GRE_PPTP_KEY_MASK	__cpu_to_be32(0xffff)
 
 struct gre_hdr {
@@ -135,25 +140,43 @@ struct gre_hdr {
 	__u8 fields[0];
 };
 
-static inline ssize_t gre_len_check(const void *vgre)
-{
-	/* Only look inside GRE without routing */
-	if (((struct gre_hdr *)vgre)->flags & GRE_ROUTING)
-		return PANDA_STOP_OKAY;
-
-	return sizeof(struct gre_hdr);
-}
+struct panda_pptp_id {
+	union {
+		struct {
+			__u16 payload_len;
+			__u16 call_id;
+		};
+		__u32 val32;
+	};
+};
 
 static inline int gre_proto_version(const void *vgre)
 {
 	return ntohs(((struct gre_hdr *)vgre)->flags & GRE_VERSION);
 }
 
-static inline ssize_t gre_v0_len(const void *vgre)
+static inline size_t gre_v0_len_from_flags(unsigned int flags)
 {
 	return sizeof(struct gre_hdr) +
-		panda_flag_fields_length(((struct gre_hdr *)vgre)->flags,
-					 &gre_flag_fields);
+		panda_flag_fields_length(flags, &gre_flag_fields);
+}
+
+static inline ssize_t gre_v0_len_check(const void *vgre)
+{
+	const struct gre_hdr *gre = vgre;
+
+	/* Check for valid set of flags */
+	if (panda_flag_fields_check_invalid(gre->flags, GRE_FLAGS_V0_MASK |
+								GRE_VERSION))
+		return PANDA_STOP_BAD_FLAG;
+	if (panda_flag_fields_check_invalid(gre->flags, GRE_FLAGS_V1_MASK))
+		return PANDA_STOP_BAD_FLAG;
+
+	/* Only look inside GRE without routing */
+	if (((struct gre_hdr *)vgre)->flags & GRE_ROUTING)
+		return PANDA_STOP_OKAY;
+
+	return gre_v0_len_from_flags(gre->flags);
 }
 
 static inline int gre_v0_proto(const void *vgre)
@@ -161,23 +184,39 @@ static inline int gre_v0_proto(const void *vgre)
 	return ((struct gre_hdr *)vgre)->protocol;
 }
 
+static inline size_t gre_v1_len_from_flags(unsigned int flags)
+{
+	return sizeof(struct gre_hdr) +
+		panda_flag_fields_length(flags, &pptp_gre_flag_fields);
+}
+
 static inline ssize_t gre_v1_len_check(const void *vgre)
 {
 	const struct gre_hdr *gre = vgre;
+
+	/* Check for valid set of flags */
+	if (panda_flag_fields_check_invalid(gre->flags, GRE_FLAGS_V1_MASK |
+								GRE_VERSION))
+		return PANDA_STOP_BAD_FLAG;
+
+	/* Only look inside GRE without routing */
+	if (((struct gre_hdr *)vgre)->flags & GRE_ROUTING)
+		return PANDA_STOP_OKAY;
 
 	/* Version1 must be PPTP, and check that keyid id set */
 	if (!(gre->protocol == GRE_PROTO_PPP && (gre->flags & GRE_KEY)))
 		return PANDA_STOP_OKAY;
 
-	return sizeof(struct gre_hdr) +
-		panda_flag_fields_length(gre->flags, &pptp_gre_flag_fields);
+	return gre_v1_len_from_flags(gre->flags);
 }
 
 static inline int gre_v1_proto(const void *vgre)
 {
-	/* Protocol already checked in gre_v1_len_check */
+	/* Protocol already checked in gre_v1_len_check. Returning zero
+	 * means PPP
+	 */
 
-	return GRE_PROTO_PPP;
+	return 0;
 }
 
 #endif /* __PANDA_PROTO_GRE_H__ */
@@ -194,9 +233,18 @@ static const struct panda_proto_node panda_parse_gre_base __unused() = {
 	.name = "GRE base",
 	.overlay = 1,
 	.min_len = sizeof(struct gre_hdr),
-	.ops.len = gre_len_check,
 	.ops.next_proto = gre_proto_version,
 };
+
+static inline __u32 gre_get_flags(const void *hdr)
+{
+	return ((struct gre_hdr *)hdr)->flags;
+}
+
+static inline size_t gre_fields_offset(const void *hdr)
+{
+	return sizeof(struct gre_hdr);
+}
 
 /* panda_parse_gre_v0 protocol node
  *
@@ -209,7 +257,7 @@ static const struct panda_proto_node panda_parse_gre_v0 __unused() = {
 	.encap = 1,
 	.min_len = sizeof(struct gre_hdr),
 	.ops.next_proto = gre_v0_proto,
-	.ops.len = gre_v0_len,
+	.ops.len = gre_v0_len_check,
 };
 
 /* panda_parse_gre_v1 protocol node

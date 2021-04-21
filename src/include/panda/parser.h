@@ -879,4 +879,7 @@ static inline int panda_null_tlv_check_length(const void *hdr, void *frame)
 	return PANDA_OKAY;
 }
 
+/* Null flag-field node for filling out flag-fields table */
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(PANDA_FLAG_NODE_NULL, NULL, NULL);
+
 #endif /* __PANDA_PARSER_H__ */
