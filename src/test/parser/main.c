@@ -357,7 +357,7 @@ static void usage(char *progname)
 	exit(-1);
 }
 
-#define ARGS "n:NHi:o:c:hv"
+#define ARGS "n:NHi:o:c:hvd"
 
 static struct option long_options[] = {
 	{ "number", required_argument, 0, 'n' },
@@ -367,6 +367,7 @@ static struct option long_options[] = {
 	{ "output", required_argument, 0, 'o' },
 	{ "core", required_argument, 0, 'c' },
 	{ "verbose", no_argument, 0, 'v' },
+	{ "debug", no_argument, 0, 'd' },
 	{ NULL, 0, 0, 0 },
 };
 
@@ -390,6 +391,9 @@ static void handleargs(int argc, char **argv)
 		case 'v':
 			coreflags |= CORE_F_VERBOSE;
 			break;
+		case 'd':
+			coreflags |= CORE_F_DEBUG;
+			break;
 		case 'i':
 			set_imethod(optarg);
 			break;
@@ -412,9 +416,10 @@ static void handleargs(int argc, char **argv)
 int main(int argc, char **argv)
 {
 	long long old_time = _time;
-	handleargs(argc, argv);
 	long long avg = 0;
 	int j = 0;
+
+	handleargs(argc, argv);
 
 	while (readpkt()) {
 		int i;

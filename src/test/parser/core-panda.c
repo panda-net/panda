@@ -80,11 +80,15 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 
 	if (!(flags & CORE_F_NOCORE)) {
 		struct timespec begin_tp, now_tp;
+		unsigned int pflags = 0;
+
+		if (flags & CORE_F_DEBUG)
+			pflags |= PANDA_F_DEBUG;
 
 		clock_gettime(CLOCK_MONOTONIC_RAW, &begin_tp);
 
 		err = panda_parse(panda_parser_big_ether, data, len,
-				  &p->md.panda_data, 0,
+				  &p->md.panda_data, pflags,
 				  PANDA_PARSER_BIG_ENCAP_DEPTH);
 		clock_gettime(CLOCK_MONOTONIC_RAW, &now_tp);
 		*time += (now_tp.tv_sec - begin_tp.tv_sec) * 1000000000 +
