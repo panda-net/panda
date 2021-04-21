@@ -74,6 +74,19 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 	return lookup_tlv_node(type, node->tlv_proto_table);
 }
 
+/* Lookup a flag-fields index in a protocol node flag-fields table */
+static const struct panda_parse_flag_field_node *lookup_flag_field_node(int idx,
+				const struct panda_proto_flag_fields_table
+								*table)
+{
+	int i;
+
+	for (i = 0; i < table->num_ents; i++)
+		if (idx == table->entries[i].index)
+			return table->entries[i].node;
+
+	return NULL;
+}
 
 static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 			    const void *hdr, void *frame, size_t hlen)
@@ -189,6 +202,55 @@ next_tlv:
 	return PANDA_OKAY;
 }
 
+static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
+				   const void *hdr, void *frame, size_t hlen)
+{
+	const struct panda_parse_flag_fields_node *parse_flag_fields_node;
+	const struct panda_proto_flag_fields_node *proto_flag_fields_node;
+	const struct panda_parse_flag_field_node *parse_flag_field_node;
+	const struct panda_flag_fields *flag_fields;
+	__u32 flags;
+	ssize_t off;
+	int i;
+
+	parse_flag_fields_node =
+			(struct panda_parse_flag_fields_node *)parse_node;
+	proto_flag_fields_node =
+			(struct panda_proto_flag_fields_node *)
+						parse_node->proto_node;
+	flag_fields = proto_flag_fields_node->flag_fields;
+
+	flags = proto_flag_fields_node->ops.get_flags(hdr);
+
+	/* Position at start of field data */
+	hdr += proto_flag_fields_node->ops.start_fields_offset(hdr);
+
+	for (i = 0; i < flag_fields->num_idx; i++) {
+		off = panda_flag_fields_offset(i, flags, flag_fields);
+		if (off < 0)
+			continue;
+
+		/* Flag field is present, try to find in the parse node
+		 * table based on index in proto flag-fields
+		 */
+		parse_flag_field_node = lookup_flag_field_node(i,
+			parse_flag_fields_node->flag_fields_proto_table);
+		if (parse_flag_field_node) {
+			const struct panda_parse_flag_field_node_ops
+				*ops = &parse_flag_field_node->ops;
+			const __u8 *cp = hdr + off;
+
+			if (ops->extract_metadata)
+				ops->extract_metadata(cp, frame);
+
+			if (ops->handle_flag_field)
+				ops->handle_flag_field(cp, frame);
+		}
+	}
+
+	return PANDA_OKAY;
+}
+
 /* Parse a packet
  *
  * Arguments:
@@ -268,6 +330,19 @@ int __panda_parse(const struct panda_parser *parser,
 				 */
 				ret = panda_parse_tlvs(parse_node, hdr, frame,
 						       hlen);
+				if (ret != PANDA_OKAY)
+					return ret;
+			}
+			break;
+		case PANDA_NODE_TYPE_FLAG_FIELDS:
+			/* Process flag-fields */
+			if (parse_node->proto_node->node_type ==
+						PANDA_NODE_TYPE_FLAG_FIELDS) {
+				/* Need error in case parse_node is flag-fields
+				 * type but proto_node is not flag-fields type
+				 */
+				ret = panda_parse_flag_fields(parse_node, hdr,
+							      frame, hlen);
 				if (ret != PANDA_OKAY)
 					return ret;
 			}
