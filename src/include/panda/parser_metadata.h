@@ -185,6 +185,24 @@ enum panda_addr_types {
 		__u8	tha[ETH_ALEN];					\
 	} arp
 
+#define PANDA_METADATA_gre						\
+	struct {							\
+		__u32 flags;						\
+		__be16 csum;						\
+		__be32 keyid;						\
+		__be32 seq;						\
+		__be32 routing;						\
+	} gre
+
+#define PANDA_METADATA_gre_pptp						\
+	struct {							\
+		__u32 flags;						\
+		__be16 length;						\
+		__be16 callid;						\
+		__be32 seq;						\
+		__be32 ack;						\
+	} gre_pptp
+
 /* Meta data structure containing all common metadata in canonical field
  * order. eth_proto is declared as the hash start field for the common
  * metadata structure. addrs is last field for canonical hashing.
@@ -198,6 +216,8 @@ struct panda_metadata_all {
 	PANDA_METADATA_tcp_options;
 	PANDA_METADATA_mpls;
 	PANDA_METADATA_arp;
+	PANDA_METADATA_gre;
+	PANDA_METADATA_gre_pptp;
 
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
@@ -501,37 +521,6 @@ static void NAME(const void *vfrag, void *iframe)			\
 			((struct ipv6_frag_hdr *)vfrag)->nexthdr;	\
 }
 
-/* Meta data helper for GRE version 0.
- * Uses common metadata fields: keyid
- */
-#define PANDA_METADATA_TEMP_gre_v0(NAME, STRUCT)			\
-static void NAME(const void *vgre, void *iframe)			\
-{									\
-	struct STRUCT *frame = iframe;					\
-	const struct gre_hdr *gre = vgre;				\
-									\
-	frame->keyid = panda_get_flag_field32(gre->fields,		\
-					      GRE_FLAGS_KEY_IDX,	\
-					      gre->flags,		\
-					      &gre_flag_fields);	\
-}
-
-/* Meta data helper for GRE version 1.
- * Uses common metadata fields: keyid
- */
-#define PANDA_METADATA_TEMP_gre_v1(NAME, STRUCT)			\
-static void NAME(const void *vgre, void *iframe)			\
-{									\
-	struct STRUCT *frame = iframe;					\
-	const struct gre_hdr *gre = vgre;				\
-									\
-	frame->keyid = panda_get_flag_field32(gre->fields,		\
-					      GRE_PPTP_FLAGS_KEY_IDX,	\
-					      gre->flags,		\
-					      &pptp_gre_flag_fields) &	\
-				GRE_PPTP_KEY_MASK;			\
-}
-
 #define PANDA_METADATA_TEMP_arp_rarp(NAME, STRUCT)			\
 static void NAME(const void *vearp, void *iframe)			\
 {									\
@@ -636,6 +625,111 @@ static void NAME(const void *vtipc, void *iframe)			\
 					TIPC_KEEPALIVE_MSG_MASK;	\
 	frame->addrs.tipckey = keepalive_msg ? rand() : tipc->w[3];	\
 	frame->addr_type = PANDA_ADDR_TYPE_TIPC;			\
+}
+
+/* Meta data helper for GRE (v0)
+ * Uses common metadata field: gre.flags
+ */
+#define PANDA_METADATA_TEMP_gre(NAME, STRUCT)				\
+static void NAME(const void *vhdr, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre.flags = gre_get_flags(vhdr);				\
+}
+
+/* Meta data helper for GRE-PPTP (GRE v1)
+ * Uses common metadata field: gre_pptp.flags
+ */
+#define PANDA_METADATA_TEMP_gre_pptp(NAME, STRUCT)			\
+static void NAME(const void *vhdr, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre_pptp.flags = gre_get_flags(vhdr);			\
+}
+
+/* Meta data helper for GRE checksum
+ * Uses common metadata field: gre.checksum
+ */
+#define PANDA_METADATA_TEMP_gre_checksum(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre.csum = *(__u16 *)vdata;				\
+}
+
+/* Meta data helper for GRE keyid
+ * Uses common metadata field: gre.keyid and keyid
+ */
+#define PANDA_METADATA_TEMP_gre_keyid(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	__u32 v = *(__u32 *)vdata;					\
+									\
+	frame->gre.keyid = v;						\
+	frame->keyid = v;						\
+}
+
+/* Meta data helper for GRE sequence number
+ * Uses common metadata field: gre.seq
+ */
+#define PANDA_METADATA_TEMP_gre_seq(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre.seq = *(__u32 *)vdata;				\
+}
+
+/* Meta data helper for GRE routing
+ * Uses common metadata field: gre.routing
+ */
+#define PANDA_METADATA_TEMP_gre_routing(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre.routing = *(__u32 *)vdata;				\
+}
+
+
+/* Meta data helper for GRE keyid
+ * Uses common metadata field: pptp.length, pptp.call_id, and keyid
+ */
+#define PANDA_METADATA_TEMP_gre_pptp_key(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+	struct panda_pptp_id *key = (struct panda_pptp_id *)vdata;	\
+									\
+	frame->keyid = key->val32;					\
+	frame->gre_pptp.length = key->payload_len;			\
+	frame->gre_pptp.callid = key->call_id;				\
+}
+
+/* Meta data helper for GRE-pptp sequence number
+ * Uses common metadata field: pptp.seq
+ */
+#define PANDA_METADATA_TEMP_gre_pptp_seq(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre_pptp.seq = *(__u32 *)vdata;				\
+}
+
+/* Meta data helper for GRE-pptp ACK
+ * Uses common metadata field: pptp.ack
+ */
+#define PANDA_METADATA_TEMP_gre_pptp_ack(NAME, STRUCT)			\
+static void NAME(const void *vdata, void *iframe)			\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->gre_pptp.ack = *(__u32 *)vdata;				\
 }
 
 #endif /* __PANDA_PARSER_METADATA_H__ */
