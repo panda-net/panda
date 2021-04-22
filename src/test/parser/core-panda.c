@@ -177,6 +177,18 @@ static const char *core_panda_process(void *pv, void *data, size_t len,
 	out->k_arp.t_ip = p->md.frame.arp.tip;
 	out->k_arp.op = p->md.frame.arp.op;
 
+	out->k_gre.flags = p->md.frame.gre.flags;
+	out->k_gre.csum = p->md.frame.gre.csum;
+	out->k_gre.keyid = p->md.frame.gre.keyid;
+	out->k_gre.seq = p->md.frame.gre.seq;
+	out->k_gre.routing = p->md.frame.gre.routing;
+
+	out->k_gre_pptp.flags = p->md.frame.gre_pptp.flags;
+	out->k_gre_pptp.length = p->md.frame.gre_pptp.length;
+	out->k_gre_pptp.callid = p->md.frame.gre_pptp.callid;
+	out->k_gre_pptp.seq = p->md.frame.gre_pptp.seq;
+	out->k_gre_pptp.ack = p->md.frame.gre_pptp.ack;
+
 	memcpy(out->k_arp.s_hw, p->md.frame.arp.sha,
 	       panda_min(ARRAY_SIZE(p->md.frame.arp.sha),
 			 ARRAY_SIZE(out->k_arp.s_hw)));

@@ -33,6 +33,7 @@
 #include <strings.h>
 
 #include "omethod.h"
+#include "panda/proto_nodes.h"
 #include "panda/utility.h"
 
 extern const char *__progname;
@@ -238,6 +239,69 @@ static void dump_k_arp(struct out_text_priv *p, const char *tag,
 			printf("%s%02x", i ? ":" : "", k->s_hw[i]);
 		printf("\n");
 	}
+}
+
+static void dump_k_gre(struct out_text_priv *p, const char *tag,
+		       const struct test_parser_out_gre *k)
+{
+	bool prev = false;
+
+	if (!(k->flags))
+		return;
+
+	printf("%s: ", tag);
+
+	if (k->flags & GRE_KEY) {
+		printf("%skeyid: %08x", prev ? ", " : "",
+		       ntohl(k->keyid));
+		prev = true;
+	}
+	if (k->flags & GRE_CSUM) {
+		printf("%scsum: %04x", prev ? ", " : "", ntohs(k->csum));
+		prev = true;
+	}
+	if (k->flags & GRE_SEQ) {
+		printf("%sseq: %u", prev ? ", " : "", ntohl(k->seq));
+		prev = true;
+	}
+	if (k->flags & GRE_ROUTING) {
+		printf("%srouting: %08x", prev ? ", " : "", ntohl(k->routing));
+		prev = true;
+	}
+
+	printf("\n");
+}
+
+static void dump_k_gre_pptp(struct out_text_priv *p, const char *tag,
+		       const struct test_parser_out_gre_pptp *k)
+{
+	bool prev = false;
+
+	if (!(k->flags))
+		return;
+
+	printf("%s: ", tag);
+
+	if (k->flags & GRE_KEY) {
+		unsigned int base_len = gre_v1_len_from_flags(k->flags);
+
+		/* Add the GRE header length for reporting the length since
+		 * that is what tcpdump does
+		 */
+		printf("%scallid: %u, length %u", prev ? ", " : "",
+		       ntohs(k->callid), ntohs(k->length) + base_len);
+		prev = true;
+	}
+	if (k->flags & GRE_SEQ) {
+		printf("%sseq: %u", prev ? ", " : "", ntohl(k->seq));
+		prev = true;
+	}
+	if (k->flags & GRE_ACK) {
+		printf("%sack: %u", prev ? ", " : "", ntohl(k->ack));
+		prev = true;
+	}
+
+	printf("\n");
 }
 
 static void dump_k_vlan(struct out_text_priv *p, const char *tag,
@@ -531,6 +595,8 @@ static void out_text_post(void *pv, const char *status,
 	dump_k_basic(p, "basic", &out->k_basic);
 	dump_k_ipv4_addrs(p, "ipv4_addrs", &out->k_ipv4_addrs);
 	dump_k_ipv6_addrs(p, "ipv6_addrs", &out->k_ipv6_addrs);
+	dump_k_gre(p, "gre", &out->k_gre);
+	dump_k_gre_pptp(p, "gre_pptp", &out->k_gre_pptp);
 	dump_k_ports(p, "ports", &out->k_ports);
 	dump_k_ports(p, "ports_range", &out->k_ports_range);
 	dump_k_icmp(p, "icmp", &out->k_icmp);

@@ -27,6 +27,8 @@
 #ifndef _TEST_PARSER_OUT_H_0881a558_
 #define _TEST_PARSER_OUT_H_0881a558_
 
+#include <linux/types.h>
+
 /*
  * Output structure. This is the glue between the core and the output
  * method. An OUT is where the core puts the things it picks out of
@@ -151,6 +153,22 @@ struct test_parser_out_hash {
 	unsigned long long hash;
 };
 
+struct test_parser_out_gre {
+	__u32 flags;
+	__be16 csum;
+	__be32 keyid;
+	__be32 seq;
+	__be32 routing;
+};
+
+struct test_parser_out_gre_pptp {
+	__u32 flags;
+	__be16 length;
+	__be16 callid;
+	__be32 seq;
+	__be32 ack;
+};
+
 struct test_parser_out {
 	struct test_parser_out_control k_control;
 	struct test_parser_out_basic k_basic;
@@ -181,6 +199,8 @@ struct test_parser_out {
 	struct test_parser_out_ct k_ct;
 	struct test_parser_out_tcp_opt k_tcp_opt;
 	struct test_parser_out_hash k_hash;
+	struct test_parser_out_gre k_gre;
+	struct test_parser_out_gre_pptp k_gre_pptp;
 };
 
 #endif
