@@ -216,6 +216,8 @@ PANDA_MAKE_PROTO_TABLE(ipv6_table,
 	{ IPPROTO_ICMPV6, &icmpv6_node },
 	{ IPPROTO_IGMP, &igmp_node },
 	{ IPPROTO_MPLS, &mpls_node },
+	{ IPPROTO_IPIP, &ipv4ip_node },
+	{ IPPROTO_IPV6, &ipv6ip_node },
 );
 
 PANDA_MAKE_PROTO_TABLE(ip_table,
