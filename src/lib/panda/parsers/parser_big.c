@@ -55,8 +55,6 @@ PANDA_METADATA_TEMP_ip_overlay(ip_overlay_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ipv6_eh(ipv6_eh_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ipv6_frag(ipv6_frag_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ports(ports_metadata, panda_metadata_all)
-PANDA_METADATA_TEMP_gre(gre_v0_metadata, panda_metadata_all)
-PANDA_METADATA_TEMP_gre_pptp(gre_v1_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_icmp(icmp_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_vlan_8021AD(e8021AD_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_vlan_8021Q(e8021Q_metadata, panda_metadata_all)
@@ -70,6 +68,17 @@ PANDA_METADATA_TEMP_tcp_option_window_scaling(tcp_opt_window_scaling_metadata,
 PANDA_METADATA_TEMP_tcp_option_timestamp(tcp_opt_timestamp_metadata,
 					 panda_metadata_all)
 PANDA_METADATA_TEMP_tcp_option_sack(tcp_opt_sack_metadata, panda_metadata_all)
+
+PANDA_METADATA_TEMP_gre(gre_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_gre_pptp(gre_pptp_metadata, panda_metadata_all)
+
+PANDA_METADATA_TEMP_gre_checksum(gre_checksum_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_gre_keyid(gre_keyid_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_gre_seq(gre_seq_metadata, panda_metadata_all)
+
+PANDA_METADATA_TEMP_gre_pptp_key(gre_pptp_key_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_gre_pptp_seq(gre_pptp_seq_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_gre_pptp_ack(gre_pptp_ack_metadata, panda_metadata_all)
 
 /* Parse nodes. Parse nodes are composed of the common PANDA Parser protocol
  * nodes, metadata functions defined above, and protocol tables defined
@@ -97,10 +106,14 @@ PANDA_MAKE_PARSE_NODE(ipv6_frag_node, panda_parse_ipv6_frag_eh,
 PANDA_MAKE_PARSE_NODE(gre_base_node, panda_parse_gre_base,
 		      panda_null_extract_metadata, panda_null_handle_proto,
 		      gre_base_table);
-PANDA_MAKE_PARSE_NODE(gre_v0_node, panda_parse_gre_v0.proto_node,
-		      gre_v0_metadata, panda_null_handle_proto, gre_v0_table);
-PANDA_MAKE_PARSE_NODE(gre_v1_node, panda_parse_gre_v1.proto_node,
-		      gre_v1_metadata, panda_null_handle_proto, gre_v1_table);
+
+PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v0_node, panda_parse_gre_v0,
+				  gre_metadata, panda_null_handle_proto,
+				  gre_v0_table, gre_v0_flag_fields_table);
+PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v1_node, panda_parse_gre_v1,
+				  gre_pptp_metadata, panda_null_handle_proto,
+				  gre_v1_table, gre_v1_flag_fields_table);
+
 PANDA_MAKE_PARSE_NODE(e8021AD_node, panda_parse_vlan, e8021AD_metadata,
 		      panda_null_handle_proto, ether_table);
 PANDA_MAKE_PARSE_NODE(e8021Q_node, panda_parse_vlan, e8021Q_metadata,
@@ -156,6 +169,20 @@ PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_opt_timestamp_metadata, panda_null_handle_tlv);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_node, tcp_option_sack_check_length,
 			  tcp_opt_sack_metadata, panda_null_handle_tlv);
+
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_csum_node, gre_checksum_metadata,
+				 panda_null_handle_flag_field);
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_key_node, gre_keyid_metadata,
+				 panda_null_handle_flag_field);
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_seq_node, gre_seq_metadata,
+				 panda_null_handle_flag_field);
+
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_pptp_flag_ack_node, gre_pptp_ack_metadata,
+				 panda_null_handle_flag_field);
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_pptp_flag_key_node, gre_pptp_key_metadata,
+				 panda_null_handle_flag_field);
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_pptp_flag_seq_node, gre_pptp_seq_metadata,
+				 panda_null_handle_flag_field);
 
 /* Define parsers. Two of them: one for packets starting with an
  * Ethernet header, and one for packets starting with an IP header.
@@ -234,8 +261,8 @@ PANDA_MAKE_PROTO_TABLE(ipv6ip_table,
 );
 
 PANDA_MAKE_PROTO_TABLE(gre_base_table,
-	{ 0, &gre_v0_node },
-	{ 1, &gre_v1_node },
+	{ 0, &gre_v0_node.parse_node },
+	{ 1, &gre_v1_node.parse_node },
 );
 
 PANDA_MAKE_PROTO_TABLE(gre_v0_table,
@@ -263,6 +290,19 @@ PANDA_MAKE_TLV_TABLE(tcp_tlv_table,
 	{ TCPOPT_WINDOW, &tcp_opt_window_scaling_node },
 	{ TCPOPT_TIMESTAMP, &tcp_opt_timestamp_node },
 	{ TCPOPT_SACK, &tcp_opt_sack_node }
+);
+
+PANDA_MAKE_FLAG_FIELDS_TABLE(gre_v0_flag_fields_table,
+	{ GRE_FLAGS_CSUM_IDX, &gre_flag_csum_node },
+	{ GRE_FLAGS_KEY_IDX, &gre_flag_key_node },
+	{ GRE_FLAGS_SEQ_IDX, &gre_flag_seq_node }
+);
+
+PANDA_MAKE_FLAG_FIELDS_TABLE(gre_v1_flag_fields_table,
+	{ GRE_PPTP_FLAGS_CSUM_IDX, &PANDA_FLAG_NODE_NULL },
+	{ GRE_PPTP_FLAGS_KEY_IDX, &gre_pptp_flag_key_node },
+	{ GRE_PPTP_FLAGS_SEQ_IDX, &gre_pptp_flag_seq_node },
+	{ GRE_PPTP_FLAGS_ACK_IDX, &gre_pptp_flag_ack_node }
 );
 
 /* Ancilary functions */
