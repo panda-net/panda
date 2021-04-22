@@ -247,8 +247,8 @@ PANDA_MAKE_PROTO_TABLE(gre_v1_table,
 );
 
 PANDA_MAKE_PROTO_TABLE(ppp_table,
-	{ PPP_IP, &ipv4_check_node },
-	{ PPP_IPV6, &ipv6_check_node },
+	{ __cpu_to_be16(PPP_IP), &ipv4_check_node },
+	{ __cpu_to_be16(PPP_IPV6), &ipv6_check_node },
 );
 
 PANDA_MAKE_PROTO_TABLE(pppoe_table,
