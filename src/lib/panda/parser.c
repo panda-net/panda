@@ -199,7 +199,10 @@ next_tlv:
 		len -= tlv_len;
 	}
 
-	return PANDA_OKAY;
+	if (parse_tlvs_node->ops.post_tlv_handle_proto)
+		return parse_tlvs_node->ops.post_tlv_handle_proto(hdr, frame);
+	else
+		return PANDA_OKAY;
 }
 
 static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
