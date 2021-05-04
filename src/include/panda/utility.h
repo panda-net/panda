@@ -61,6 +61,11 @@
 #define __unused() __attribute__((unused))
 #endif
 
+/* Define the __always_inline macro if it's not already defined */
+#ifndef __always_inline
+#define __always_inline __attribute__((always_inline)) inline
+#endif
+
 /* Define the common container_of macro if it's not already defined */
 #ifndef container_of
 #define container_of(ptr, type, member) ({			\
