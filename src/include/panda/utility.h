@@ -164,7 +164,11 @@ static inline TYPE *panda_section_base_##NAME(void)			\
 	return __start_##NAME;						\
 }
 
+#ifndef __bpf__
 #define PANDA_SECTION_ATTR(NAME) __attribute__((__used__, __section__(#NAME)))
+#else
+#define PANDA_SECTION_ATTR(NAME)
+#endif
 
 /* Assume cache line size of 64 for purposes of section alignment */
 #ifndef PANDA_ALIGN_SECTION
