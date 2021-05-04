@@ -622,7 +622,7 @@ static void NAME(const void *vtipc, void *iframe, size_t len)		\
 									\
 	keepalive_msg = (w0 & TIPC_KEEPALIVE_MSG_MASK) ==		\
 					TIPC_KEEPALIVE_MSG_MASK;	\
-	frame->addrs.tipckey = keepalive_msg ? rand() : tipc->w[3];	\
+	frame->addrs.tipckey = keepalive_msg ? 0 : tipc->w[3];		\
 	frame->addr_type = PANDA_ADDR_TYPE_TIPC;			\
 }
 
