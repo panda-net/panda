@@ -454,13 +454,13 @@ static void NAME(const void *vopt, void *iframe, size_t len)		\
 #define PANDA_METADATA_TEMP_tcp_option_sack(NAME, STRUCT)		\
 static void NAME(const void *vopt, void *iframe, size_t len)		\
 {									\
+	ssize_t s_len = len - sizeof(struct tcp_opt);			\
 	const struct tcp_opt_union *opt = vopt;				\
-	size_t dlen = opt->opt.len - sizeof(struct tcp_opt);		\
-	unsigned int num_sacks = dlen / 8;				\
 	struct STRUCT *frame = iframe;					\
 	int i;								\
 									\
-	for (i = 0; i < num_sacks; i++) {				\
+	for (i = 0; s_len > 0;						\
+	     i++, s_len -= sizeof(struct tcp_sack_option_data)) {	\
 		frame->tcp_options.sack[i].left_edge =			\
 				ntohl(opt->sack[i].left_edge);		\
 		frame->tcp_options.sack[i].right_edge =			\
@@ -471,7 +471,6 @@ static void NAME(const void *vopt, void *iframe, size_t len)		\
 /* Meta data helper for IP overlay (differentiate based on version number).
  * Uses common metadata fields: eth_proto
  */
-
 #define PANDA_METADATA_TEMP_ip_overlay(NAME, STRUCT)			\
 static void NAME(const void *viph, void *iframe, size_t len)		\
 {									\
