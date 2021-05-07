@@ -51,7 +51,8 @@ struct metadata_generator : karma::primitive_generator<metadata_generator> {
 
 		return spirit::compile<karma::domain>(tab <<
 			"if (parse_node->ops.extract_metadata)\n" << 1_ident <<
-			"parse_node->ops.extract_metadata (hdr, frame);\n")
+			"parse_node->ops.extract_metadata (hdr, frame, "
+			"hlen);\n")
 				.generate(sink, ctx, karma::unused,
 					  karma::unused);
 	}

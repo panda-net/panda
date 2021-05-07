@@ -233,11 +233,12 @@ generate_protocol_tlvs_parse_function(OutputIterator out, Graph const &graph,
 						] << tab <<
 				"}\n" << tab <<
 				"if (ops->extract_metadata)\n" << 1_ident <<
-					"ops->extract_metadata(cp, frame);\n"
+					"ops->extract_metadata(cp, frame, "
+					"tlv_len);\n"
 						<< tab <<
 					"if (ops->handle_tlv)\n" << 1_ident <<
 						"ops->handle_tlv(cp, "
-						"frame);\n" << tab <<
+						"frame, tlv_len);\n" << tab <<
 						"break;}\n"]) << tab <<
 				"default:{\n" << 1_ident[tab <<
 					"int ret;\n" << tab <<
