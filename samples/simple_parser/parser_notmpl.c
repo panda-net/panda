@@ -79,7 +79,7 @@ struct metadata {
 };
 
 /* Extract IP protocol number and address from IPv4 header */
-static void extract_ipv4(const void *viph, void *_meta)
+static void extract_ipv4(const void *viph, void *_meta, size_t len)
 {
 	struct metadata *metadata = _meta;
 	const struct iphdr *iph = viph;
@@ -91,7 +91,7 @@ static void extract_ipv4(const void *viph, void *_meta)
 }
 
 /* Extract IP next header and address from IPv4 header */
-static void extract_ipv6(const void *viph, void *_meta)
+static void extract_ipv6(const void *viph, void *_meta, size_t len)
 {
 	struct metadata *metadata = _meta;
 	const struct ipv6hdr *iph = viph;
@@ -107,7 +107,7 @@ static void extract_ipv6(const void *viph, void *_meta)
  * first four bytes of a transport header that has ports (e.g. TCP, UDP,
  * etc.
  */
-static void extract_ports(const void *hdr, void *_meta)
+static void extract_ports(const void *hdr, void *_meta, size_t len)
 {
 	struct metadata *metadata = _meta;
 	const __be16 *ports = hdr;
@@ -117,7 +117,7 @@ static void extract_ports(const void *hdr, void *_meta)
 }
 
 /* Extract TCP timestamp option */
-static void extract_tcp_timestamp(const void *vopt, void *_meta)
+static void extract_tcp_timestamp(const void *vopt, void *_meta, size_t len)
 {
 	const struct tcp_opt_union *opt = vopt;
 	struct metadata *metadata = _meta;

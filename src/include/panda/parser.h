@@ -152,8 +152,8 @@ struct panda_metadata {
  *	values indicate to stop parsing
  */
 struct panda_parse_node_ops {
-	void (*extract_metadata)(const void *hdr, void *frame);
-	int (*handle_proto)(const void *hdr, void *frame);
+	void (*extract_metadata)(const void *hdr, void *frame, size_t len);
+	int (*handle_proto)(const void *hdr, void *frame, size_t len);
 	int (*unknown_next_proto)(const void *hdr, void *frame, int type,
 				  int err);
 };
@@ -484,8 +484,8 @@ struct panda_proto_flag_fields_ops {
  *	values indicate to stop parsing
  */
 struct panda_parse_flag_field_node_ops {
-	void (*extract_metadata)(const void *hdr, void *frame);
-	int (*handle_flag_field)(const void *hdr, void *frame);
+	void (*extract_metadata)(const void *hdr, void *frame, size_t len);
+	int (*handle_flag_field)(const void *hdr, void *frame, size_t len);
 };
 
 /* A parse node for a single flag field */
@@ -515,7 +515,8 @@ struct panda_proto_flag_fields_table {
 
 /* Flag-fields specific operations for flag-fields parse node */
 struct panda_parse_flag_fields_ops {
-	int (*post_flag_fields_handle_proto)(const void *hdr, void *frame);
+	int (*post_flag_fields_handle_proto)(const void *hdr, void *frame,
+					     size_t len);
 };
 
 /* A flag-fields parse node. Note this is a super structure for a PANDA parse
@@ -657,8 +658,8 @@ struct panda_proto_tlvs_opts {
  */
 struct panda_parse_tlv_node_ops {
 	int (*check_length)(const void *hdr, void *frame);
-	void (*extract_metadata)(const void *hdr, void *frame);
-	int (*handle_tlv)(const void *hdr, void *frame);
+	void (*extract_metadata)(const void *hdr, void *frame, size_t len);
+	int (*handle_tlv)(const void *hdr, void *frame, size_t len);
 };
 
 /* Parse node for a single TLV. Use common parse node operations
@@ -688,7 +689,7 @@ struct panda_proto_tlvs_table {
 
 /* TLV specific operations for TLVs parse node */
 struct panda_parse_tlvs_ops {
-	int (*post_tlv_handle_proto)(const void *hdr, void *frame);
+	int (*post_tlv_handle_proto)(const void *hdr, void *frame, size_t len);
 	int (*unknown_type)(const void *hdr, void *frame, int type,
 			    int err);
 };

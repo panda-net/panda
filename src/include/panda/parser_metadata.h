@@ -308,7 +308,7 @@ struct panda_metadata_all {
  * Uses common metadata fields: eth_proto, eth_addrs
  */
 #define PANDA_METADATA_TEMP_ether(NAME, STRUCT)				\
-static void NAME(const void *veth, void *iframe)			\
+static void NAME(const void *veth, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -321,7 +321,7 @@ static void NAME(const void *veth, void *iframe)			\
  * Uses common metadata fields: eth_proto
  */
 #define PANDA_METADATA_TEMP_ether_noaddrs(NAME, STRUCT)			\
-static void NAME(const void *veth, void *iframe)			\
+static void NAME(const void *veth, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -333,7 +333,7 @@ static void NAME(const void *veth, void *iframe)			\
  * addr_type, addrs.v4_addrs
  */
 #define PANDA_METADATA_TEMP_ipv4(NAME, STRUCT)				\
-static void NAME(const void *viph, void *iframe)			\
+static void NAME(const void *viph, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct iphdr *iph = viph;					\
@@ -354,7 +354,7 @@ static void NAME(const void *viph, void *iframe)			\
  * Uses common meta * data fields: ip_proto, addr_type, addrs.v4_addrs
  */
 #define PANDA_METADATA_TEMP_ipv4_addrs(NAME, STRUCT)			\
-static void NAME(const void *viph, void *iframe)			\
+static void NAME(const void *viph, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct iphdr *iph = viph;					\
@@ -369,7 +369,7 @@ static void NAME(const void *viph, void *iframe)			\
  * Uses common metadata fields: ip_proto, addr_type, flow_label, addrs.v6_addrs
  */
 #define PANDA_METADATA_TEMP_ipv6(NAME, STRUCT)				\
-static void NAME(const void *viph, void *iframe)			\
+static void NAME(const void *viph, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct ipv6hdr *iph = viph;				\
@@ -385,7 +385,7 @@ static void NAME(const void *viph, void *iframe)			\
  * Uses common metadata fields: ip_proto, addr_type, addrs.v6_addrs
  */
 #define PANDA_METADATA_TEMP_ipv6_addrs(NAME, STRUCT)			\
-static void NAME(const void *viph, void *iframe)			\
+static void NAME(const void *viph, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct ipv6hdr *iph = viph;				\
@@ -400,7 +400,7 @@ static void NAME(const void *viph, void *iframe)			\
  * Uses common metadata fields: ports
  */
 #define PANDA_METADATA_TEMP_ports(NAME, STRUCT)				\
-static void NAME(const void *vphdr, void *iframe)			\
+static void NAME(const void *vphdr, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -413,7 +413,7 @@ static void NAME(const void *vphdr, void *iframe)			\
  * Uses common metadata field: tcp_options
  */
 #define PANDA_METADATA_TEMP_tcp_option_mss(NAME, STRUCT)		\
-static void NAME(const void *vopt, void *iframe)			\
+static void NAME(const void *vopt, void *iframe, size_t len)		\
 {									\
 	const struct tcp_opt_union *opt = vopt;				\
 	struct STRUCT *frame = iframe;					\
@@ -425,7 +425,7 @@ static void NAME(const void *vopt, void *iframe)			\
  * Uses common metadata field: tcp_options
  */
 #define PANDA_METADATA_TEMP_tcp_option_window_scaling(NAME, STRUCT)	\
-static void NAME(const void *vopt, void *iframe)			\
+static void NAME(const void *vopt, void *iframe, size_t len)		\
 {									\
 	const struct tcp_opt_union *opt = vopt;				\
 	struct STRUCT *frame = iframe;					\
@@ -437,7 +437,7 @@ static void NAME(const void *vopt, void *iframe)			\
  * Uses common metadata field: tcp_options
  */
 #define PANDA_METADATA_TEMP_tcp_option_timestamp(NAME, STRUCT)		\
-static void NAME(const void *vopt, void *iframe)			\
+static void NAME(const void *vopt, void *iframe, size_t len)		\
 {									\
 	const struct tcp_opt_union *opt = vopt;				\
 	struct STRUCT *frame = iframe;					\
@@ -452,7 +452,7 @@ static void NAME(const void *vopt, void *iframe)			\
  * Uses common metadata field: tcp_options
  */
 #define PANDA_METADATA_TEMP_tcp_option_sack(NAME, STRUCT)		\
-static void NAME(const void *vopt, void *iframe)			\
+static void NAME(const void *vopt, void *iframe, size_t len)		\
 {									\
 	const struct tcp_opt_union *opt = vopt;				\
 	size_t dlen = opt->opt.len - sizeof(struct tcp_opt);		\
@@ -473,7 +473,7 @@ static void NAME(const void *vopt, void *iframe)			\
  */
 
 #define PANDA_METADATA_TEMP_ip_overlay(NAME, STRUCT)			\
-static void NAME(const void *viph, void *iframe)			\
+static void NAME(const void *viph, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -491,7 +491,7 @@ static void NAME(const void *viph, void *iframe)			\
  * Uses common metadata fields: ip_proto
  */
 #define PANDA_METADATA_TEMP_ipv6_eh(NAME, STRUCT)			\
-static void NAME(const void *vopt, void *iframe)			\
+static void NAME(const void *vopt, void *iframe, size_t len)		\
 {									\
 	((struct STRUCT *)iframe)->ip_proto =				\
 			((struct ipv6_opt_hdr *)vopt)->nexthdr;		\
@@ -501,7 +501,7 @@ static void NAME(const void *vopt, void *iframe)			\
  * Uses common metadata fields: ip_proto, is_fragment, first_frag
  */
 #define PANDA_METADATA_TEMP_ipv6_frag(NAME, STRUCT)			\
-static void NAME(const void *vfrag, void *iframe)			\
+static void NAME(const void *vfrag, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct ipv6_frag_hdr *frag = vfrag;			\
@@ -515,14 +515,14 @@ static void NAME(const void *vfrag, void *iframe)			\
  * Uses common metadata fields: ip_proto
  */
 #define PANDA_METADATA_TEMP_ipv6_frag_noinfo(NAME, STRUCT)		\
-static void NAME(const void *vfrag, void *iframe)			\
+static void NAME(const void *vfrag, void *iframe, size_t len)		\
 {									\
 	((struct STRUCT *)iframe)->ip_proto =				\
 			((struct ipv6_frag_hdr *)vfrag)->nexthdr;	\
 }
 
 #define PANDA_METADATA_TEMP_arp_rarp(NAME, STRUCT)			\
-static void NAME(const void *vearp, void *iframe)			\
+static void NAME(const void *vearp, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct earphdr *earp = vearp;				\
@@ -544,7 +544,7 @@ static void NAME(const void *vearp, void *iframe)			\
  * vlan[1].tpid
  */
 #define PANDA_METADATA_TEMP_vlan_set_tpid(NAME, STRUCT, TPID)		\
-static void NAME(const void *vvlan, void *iframe)			\
+static void NAME(const void *vvlan, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct vlan_hdr *vlan = vvlan;				\
@@ -568,7 +568,7 @@ static void NAME(const void *vvlan, void *iframe)			\
  * Uses common metadata fields: icmp.type, icmp.code, icmp.id
  */
 #define PANDA_METADATA_TEMP_icmp(NAME, STRUCT)				\
-static void NAME(const void *vicmp, void *iframe)			\
+static void NAME(const void *vicmp, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct icmphdr *icmp = vicmp;				\
@@ -585,7 +585,7 @@ static void NAME(const void *vicmp, void *iframe)			\
  * Uses common metadata fields: mpls.label, mpls.ttl, mpls.tc, mpls.bos, keyid
  */
 #define PANDA_METADATA_TEMP_mpls(NAME, STRUCT)				\
-static void NAME(const void *vmpls, void *iframe)			\
+static void NAME(const void *vmpls, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct mpls_label *mpls = vmpls;				\
@@ -613,7 +613,7 @@ static void NAME(const void *vmpls, void *iframe)			\
  * spread PROBE/PROBE_REPLY messages across cores.
  */
 #define PANDA_METADATA_TEMP_tipc(NAME, STRUCT)				\
-static void NAME(const void *vtipc, void *iframe)			\
+static void NAME(const void *vtipc, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	const struct tipc_basic_hdr *tipc = vtipc;			\
@@ -631,7 +631,7 @@ static void NAME(const void *vtipc, void *iframe)			\
  * Uses common metadata field: gre.flags
  */
 #define PANDA_METADATA_TEMP_gre(NAME, STRUCT)				\
-static void NAME(const void *vhdr, void *iframe)			\
+static void NAME(const void *vhdr, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -642,7 +642,7 @@ static void NAME(const void *vhdr, void *iframe)			\
  * Uses common metadata field: gre_pptp.flags
  */
 #define PANDA_METADATA_TEMP_gre_pptp(NAME, STRUCT)			\
-static void NAME(const void *vhdr, void *iframe)			\
+static void NAME(const void *vhdr, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -653,7 +653,7 @@ static void NAME(const void *vhdr, void *iframe)			\
  * Uses common metadata field: gre.checksum
  */
 #define PANDA_METADATA_TEMP_gre_checksum(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -664,7 +664,7 @@ static void NAME(const void *vdata, void *iframe)			\
  * Uses common metadata field: gre.keyid and keyid
  */
 #define PANDA_METADATA_TEMP_gre_keyid(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	__u32 v = *(__u32 *)vdata;					\
@@ -677,7 +677,7 @@ static void NAME(const void *vdata, void *iframe)			\
  * Uses common metadata field: gre.seq
  */
 #define PANDA_METADATA_TEMP_gre_seq(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -688,7 +688,7 @@ static void NAME(const void *vdata, void *iframe)			\
  * Uses common metadata field: gre.routing
  */
 #define PANDA_METADATA_TEMP_gre_routing(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -700,7 +700,7 @@ static void NAME(const void *vdata, void *iframe)			\
  * Uses common metadata field: pptp.length, pptp.call_id, and keyid
  */
 #define PANDA_METADATA_TEMP_gre_pptp_key(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 	struct panda_pptp_id *key = (struct panda_pptp_id *)vdata;	\
@@ -714,7 +714,7 @@ static void NAME(const void *vdata, void *iframe)			\
  * Uses common metadata field: pptp.seq
  */
 #define PANDA_METADATA_TEMP_gre_pptp_seq(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\
@@ -725,7 +725,7 @@ static void NAME(const void *vdata, void *iframe)			\
  * Uses common metadata field: pptp.ack
  */
 #define PANDA_METADATA_TEMP_gre_pptp_ack(NAME, STRUCT)			\
-static void NAME(const void *vdata, void *iframe)			\
+static void NAME(const void *vdata, void *iframe, size_t len)		\
 {									\
 	struct STRUCT *frame = iframe;					\
 									\

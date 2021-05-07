@@ -175,10 +175,10 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 			}
 
 			if (ops->extract_metadata)
-				ops->extract_metadata(cp, frame);
+				ops->extract_metadata(cp, frame, tlv_len);
 
 			if (ops->handle_tlv)
-				ops->handle_tlv(cp, frame);
+				ops->handle_tlv(cp, frame, tlv_len);
 		} else {
 			int ret;
 
@@ -200,7 +200,8 @@ next_tlv:
 	}
 
 	if (parse_tlvs_node->ops.post_tlv_handle_proto)
-		return parse_tlvs_node->ops.post_tlv_handle_proto(hdr, frame);
+		return parse_tlvs_node->ops.post_tlv_handle_proto(hdr, frame,
+								  hlen);
 	else
 		return PANDA_OKAY;
 }
@@ -242,12 +243,13 @@ static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 			const struct panda_parse_flag_field_node_ops
 				*ops = &parse_flag_field_node->ops;
 			const __u8 *cp = hdr + off;
+			size_t size = flag_fields->fields[i].size;
 
 			if (ops->extract_metadata)
-				ops->extract_metadata(cp, frame);
+				ops->extract_metadata(cp, frame, size);
 
 			if (ops->handle_flag_field)
-				ops->handle_flag_field(cp, frame);
+				ops->handle_flag_field(cp, frame, size);
 		}
 	}
 
@@ -318,7 +320,7 @@ int __panda_parse(const struct panda_parser *parser,
 		/* Extract metadata, per node processing */
 
 		if (parse_node->ops.extract_metadata)
-			parse_node->ops.extract_metadata(hdr, frame);
+			parse_node->ops.extract_metadata(hdr, frame, hlen);
 
 		switch (parse_node->node_type) {
 		case PANDA_NODE_TYPE_PLAIN:
@@ -354,7 +356,7 @@ int __panda_parse(const struct panda_parser *parser,
 
 		/* Process protocol */
 		if (parse_node->ops.handle_proto)
-			parse_node->ops.handle_proto(hdr, frame);
+			parse_node->ops.handle_proto(hdr, frame, hlen);
 
 		/* Proceed to next protocol layer */
 
