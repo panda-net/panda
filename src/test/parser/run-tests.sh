@@ -16,3 +16,12 @@ echo "running panda parser basic validation tests"
 	diff -u test-out-panda.tcpdump -
 ./test_parser -i fuzz -c panda -o text < test-in.fuzz | diff -u \
 	test-out-panda.fuzz -
+
+echo "running panda optimized parser basic validation tests"
+#panda optimized tests
+./test_parser -i raw,test-in.raw -c pandaopt -o text | diff -u test-out-panda.raw -
+./test_parser -i pcap,test-in.pcap -c pandaopt -o text | diff -u test-out-panda.pcap -
+./test_parser -i tcpdump,test-in.tcpdump -c pandaopt -o text | \
+	diff -u test-out-panda.tcpdump -
+./test_parser -i fuzz -c pandaopt -o text < test-in.fuzz | diff -u \
+	test-out-panda.fuzz -
