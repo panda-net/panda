@@ -313,7 +313,11 @@ void xdp_generate_protocol_tlvs_parse_function(
 									   << tab
 									   << "}\n"
 									   // } if check_length
-	] << tab << "}\n" << tab << "if (ops->handle_tlv)\n"
+	] << tab << "}\n" << tab << "if (panda_bpf_extract_" << karma::lower[karma::string]
+								  << "(ops, hdr, hdr_end, frame, tlv_len) != PANDA_OKAY)\n"
+								  << 1_ident
+								  << "return PANDA_STOP_FAIL;\n"
+								  << tab << "if (ops->handle_tlv)\n"
 								  << 1_ident
 								  << "ops->handle_tlv(cp, frame, tlv_len);\n"
 								  << tab
