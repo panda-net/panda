@@ -62,6 +62,29 @@ struct length_generator : karma::primitive_generator<length_generator> {
 
 } const length_check = {};
 
+struct xdp_length_generator : karma::primitive_generator<xdp_length_generator> {
+	template <typename C, typename I> struct attribute {
+		typedef karma::unused_type type;
+	};
+
+	template <typename OutputIterator, typename Context, typename D>
+	bool generate(OutputIterator sink, Context const &ctx, D const &d,
+		      karma::unused_type) const
+	{
+		namespace spirit = boost::spirit;
+
+		return spirit::compile<karma::domain>(
+			       tab << "ssize_t hlen;\n"
+				   << tab
+				   << "if ((ret = check_pkt_len(*hdr, hdr_end, "
+				      "parse_node->proto_node, &hlen)) "
+				      "!= PANDA_OKAY)\n"
+				   << 1_ident << "return ret;\n")
+			.generate(sink, ctx, d, karma::unused);
+	}
+
+} const xdp_length_check = {};
+
 } // namespace pandagen
 
 #endif

@@ -58,6 +58,28 @@ struct metadata_generator : karma::primitive_generator<metadata_generator> {
 	}
 } const metadata = {};
 
+struct xdp_metadata_generator
+	: karma::primitive_generator<xdp_metadata_generator> {
+	template <typename C, typename I> struct attribute {
+		typedef karma::unused_type type;
+	};
+
+	template <typename OutputIterator, typename Context>
+	bool generate(OutputIterator sink, Context const &ctx,
+		      karma::unused_type, karma::unused_type) const
+	{
+		namespace spirit = boost::spirit;
+
+		return spirit::compile<karma::domain>(
+			       tab
+			       << "if (parse_node->ops.extract_metadata)\n"
+			       << 1_ident
+			       << "parse_node->ops.extract_metadata"
+				  "(*hdr, frame, hlen);\n")
+			.generate(sink, ctx, karma::unused, karma::unused);
+	}
+} const xdp_metadata = {};
+
 } // namespace pandagen
 
 #endif

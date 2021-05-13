@@ -144,6 +144,110 @@ struct next_protocol_terminal {
 	}
 } const next_protocol = {};
 
+template <typename G, typename V, typename C>
+struct xdp_next_protocol_generator
+	: karma::primitive_generator<xdp_next_protocol_generator<G, V, C> > {
+	C const *specifics;
+	V const *vertex;
+	G const *graph;
+
+	xdp_next_protocol_generator(G const *g, V const *v, C const *c)
+		: graph(g), vertex(v), specifics(c)
+	{
+	}
+
+	template <typename A0, typename A1> struct attribute {
+		typedef karma::unused_type type;
+	};
+
+	template <typename OutputIterator, typename Context>
+	bool generate(OutputIterator sink, Context &ctx, karma::unused_type,
+		      karma::unused_type) const
+	{
+		namespace spirit = boost::spirit;
+		namespace fusion = boost::fusion;
+		auto oedges = out_edges(*vertex, *graph);
+
+		if (oedges.first != oedges.second) {
+			std::vector<fusion::vector<std::string, std::string> >
+				generic_vs;
+			std::vector<fusion::vector<std::string, std::string> >
+				specific_vs;
+			for (auto &&e : boost::make_iterator_range(oedges)) {
+				auto &&t = target(e, *graph);
+				if (std::find(specifics->begin(),
+					      specifics->end(),
+					      t) == specifics->end())
+					generic_vs.push_back(
+						fusion::make_vector(
+							(*graph)[e].macro_name,
+							(*graph)[t].name));
+				else
+					specific_vs.push_back(
+						fusion::make_vector(
+							(*graph)[e].macro_name,
+							(*graph)[t].name));
+			}
+			spirit::compile<karma::domain>(
+				tab << "type = proto_node->ops.next_proto "
+				       "(*hdr);\n"
+				    << tab << "if (type < 0)\n"
+				    << 1_ident << "return type;\n"
+				    << tab << "if (!proto_node->overlay) {\n"
+				    << 1_ident [tab << "*hdr += hlen;\n"
+						    << tab << "}\n"]
+				    << tab <<
+
+				"switch (type) {\n")
+				.generate(sink, ctx, karma::unused,
+					  karma::unused);
+			spirit::compile<karma::domain>(
+				(*(tab
+				   << "case " << karma::string << ":\n"
+				   << 1_ident [tab << "ctx->next = CODE_"
+						   << karma::string << ";\n"
+						   << tab
+						   << "return PANDA_OKAY;\n"])))
+				.generate(sink, ctx, karma::unused,
+					  specific_vs);
+			spirit::compile<karma::domain>(
+				tab
+				<< "};\n"
+				<< tab << "/* Unknown protocol */\n"
+				<< tab
+				<< "if (parse_node->ops.unknown_next_proto)\n"
+				<< 1_ident
+				<< "return parse_node->ops."
+				   "unknown_next_proto(\n"
+				<< 2_ident
+				<< "*hdr, frame, type, "
+				   "PANDA_STOP_UNKNOWN_PROTO);\n"
+				<< tab << "else\n"
+				<< 1_ident
+				<< "return PANDA_STOP_UNKNOWN_PROTO;\n")
+				.generate(sink, ctx, karma::unused,
+					  karma::unused);
+		} else {
+			return spirit::compile<karma::domain>(
+				       tab << "ctx->next = CODE_IGNORE;\n"
+					   << tab
+					   << "return PANDA_STOP_OKAY;\n")
+				.generate(sink, ctx, karma::unused,
+					  karma::unused);
+		}
+		return true;
+	}
+};
+
+struct xdp_next_protocol_terminal {
+	template <typename G, typename V, typename C>
+	constexpr xdp_next_protocol_generator<G, V, C>
+	operator()(G const &g, V const &v, C const &c) const
+	{
+		return { &g, &v, &c };
+	}
+} const xdp_next_protocol = {};
+
 } // namespace pandagen
 
 #endif

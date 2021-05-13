@@ -36,6 +36,7 @@
 #include <boost/wave/cpplexer/cpp_lex_iterator.hpp>
 
 #include "pandagen/code.h"
+#include "pandagen/xdp_code.h"
 #include "pandagen/graph.h"
 #include "pandagen/macro_defs.h"
 
@@ -231,13 +232,15 @@ parse_file(G &g, std::vector<std::tuple<std::string,
 int main (int argc, char *argv[])
 {
 	if (argc != 2 && argc != 3) {
-		std::cout << "Usage: " << argv[0] << " <source> [OUTPUT]\n" <<
-			"\n"
-			"Where if OUTPUT is provided:\n"
-			"  - If OUTPUT extension is .c, "
-			"generates C code\n"
-			"  - If OUTPUT extension is .dot, "
-			"generates graphviz dot file\n";
+		std::cout << "Usage: " << argv[0] << " <source> [OUTPUT]\n"
+			  << "\n"
+			     "Where if OUTPUT is provided:\n"
+			     "  - If OUTPUT extension is .c, "
+			     "generates C code\n"
+			     "  - If OUTPUT extension is .xdp, "
+			     "generates XDP BPF-C code\n"
+			     "  - If OUTPUT extension is .dot, "
+			     "generates graphviz dot file\n";
 		return 1;
 	}
 
@@ -286,7 +289,7 @@ int main (int argc, char *argv[])
 				auto header = std::ofstream { header_name };
 				auto out = std::ostream_iterator<char>(file);
 				auto hout = std::ostream_iterator<char>(header);
-				generate_parsers(out, graph, argv[1],
+                                pandagen::generate_parsers(out, graph, argv[1],
 						 header_name);
 				std::cout << "header name " << header_name <<
 								std::endl;
@@ -296,6 +299,17 @@ int main (int argc, char *argv[])
 					     graph, get<1>(root), get<0>(root),
 					     argv[1], hout, get<2>(root));
 				}
+                        } else if (output.substr(std::max(output.size() - 6,
+						 0ul)) == ".xdp.h") {
+				auto file = std::ofstream { output };
+				auto out = std::ostream_iterator<char>(file);
+                                if (roots.size() > 1) {
+                                   std::cout << "XDP only supports one root";
+                                   return 1;
+                                }
+                                pandagen::xdp_generate_parsers(out, graph, argv[1]);
+                                pandagen::xdp_generate_root_parser(out, graph, get<1>(roots[0]),
+                                      get<0>(roots[0]));
 			} else {
 				std::cout << "Unknown file extension in "
 					     "filename " << output << ".\n";
