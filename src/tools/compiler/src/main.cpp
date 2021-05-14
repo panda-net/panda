@@ -53,16 +53,21 @@ template <typename G> struct MacroOnly :
 	std::vector<std::tuple<std::string, vertex_descriptor, bool>> *roots;
 	std::vector<table> *parser_tables;
 	std::vector<tlv_node> *tlv_nodes;
+	std::vector<flag_fields_node> *flag_fields_nodes;
 	std::vector<table> *tlv_tables;
+	std::vector<table> *flag_fields_tables;
 	G *graph;
 
 	MacroOnly(G &g, std::vector<table> &parser_tables,
 		  std::vector<table> &tlv_tables,
+		  std::vector<table> &flag_fields_tables,
                   std::vector<tlv_node> &tlv_nodes,
+                  std::vector<flag_fields_node> &flag_fields_nodes,
 		  std::vector<std::tuple<std::string, vertex_descriptor, bool>> &roots)
 		: boost::wave::context_policies::default_preprocessing_hooks{},
 		  graph{ &g }, parser_tables (&parser_tables),
-		  tlv_tables (&tlv_tables), tlv_nodes{ &tlv_nodes },
+		  tlv_tables (&tlv_tables), flag_fields_tables (&flag_fields_tables),
+		  tlv_nodes{ &tlv_nodes }, flag_fields_nodes{ &flag_fields_nodes },
 		  roots (&roots)
 	{
 	}
@@ -98,12 +103,19 @@ template <typename G> struct MacroOnly :
 		} else if (macro == "PANDA_MAKE_TLV_TABLE") {
 			pandagen::handle_make_table(*graph, *tlv_tables,
 						    arguments);
+		} else if (macro == "PANDA_MAKE_FLAG_FIELDS_TABLE") {
+			pandagen::handle_make_table(*graph, *flag_fields_tables,
+						    arguments);
 		} else if (macro == "PANDA_MAKE_TLV_PARSE_NODE") {
 			pandagen::handle_make_tlv_node(*tlv_nodes, arguments);
+		} else if (macro == "PANDA_MAKE_FLAG_FIELD_PARSE_NODE") {
+			pandagen::handle_make_flag_field_node(*flag_fields_nodes, arguments);
 		} else if (macro == "PANDA_MAKE_LEAF_PARSE_NODE") {
 			pandagen::handle_make_leaf_node(*graph, arguments);
 		} else if (macro == "PANDA_MAKE_LEAF_TLVS_PARSE_NODE") {
 			pandagen::handle_make_leaf_tlv_node(*graph, arguments);
+		} else if (macro == "PANDA_MAKE_FLAG_FIELDS_PARSE_NODE") {
+			pandagen::handle_make_flag_fields_node(*graph, arguments);
 		} else if (macro_name.get_value() == "PANDA_MAKE_PARSE_NODE") {
 			pandagen::handle_make_node(*graph, arguments);
 		} else if (macro_name.get_value() == "PANDA_PARSER_ADD") {
@@ -146,10 +158,13 @@ add_panda_macros (Context &context)
 		"PANDA_DECL_TLVS_PARSE_NODE(node)",
 		"PANDA_MAKE_PROTO_TABLE(table_name, ...)",
 		"PANDA_MAKE_TLV_TABLE(table_name, ...)",
+		"PANDA_MAKE_FLAG_FIELDS_TABLE(table_name, ...)",
 		"PANDA_MAKE_TLV_PARSE_NODE(node, name, metadata, pointer)",
+		"PANDA_MAKE_FLAG_FIELD_PARSE_NODE(node, name, metadata)",
 		"PANDA_MAKE_PARSE_NODE(node, name, metadata, pointer, table)",
 		"PANDA_MAKE_TLVS_PARSE_NODE(node, name, metadata, pointer, "
 		"table)",
+		"PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(node, name, metadata, pointer, table, flag_fields_table, post_flag_handle)",
 		"PANDA_MAKE_LEAF_PARSE_NODE(node, name, metadata, pointer)",
 		"PANDA_MAKE_LEAF_TLVS_PARSE_NODE(node, name, metadata, "
 		"pointer, another_pointer, table)",
@@ -189,11 +204,13 @@ parse_file(G &g, std::vector<std::tuple<std::string,
 
 		std::vector<table> parser_tables;
 		std::vector<tlv_node> tlv_nodes;
+		std::vector<flag_fields_node> flag_fields_nodes;
 		std::vector<table> tlv_tables;
+		std::vector<table> flag_fields_tables;
 		context_type context(input.begin(), input.end(),
 				     filename.c_str (),
-				     MacroOnly<G>{g, parser_tables, tlv_tables,
-						  tlv_nodes, roots});
+				     MacroOnly<G>{g, parser_tables, tlv_tables, flag_fields_tables,
+					     tlv_nodes, flag_fields_nodes, roots});
 
 		add_panda_macros(context);
 		for (const auto &it : context)
@@ -201,10 +218,13 @@ parse_file(G &g, std::vector<std::tuple<std::string,
 
 		std::cout << "proto tables size: " << parser_tables.size () <<
 			" tlv tables size " << tlv_tables.size () <<
-			" tlv nodes " << tlv_nodes.size () << std::endl;
+			" tlv nodes " << tlv_nodes.size () <<
+			" flag fields tables size " << flag_fields_tables.size () <<
+			" flag fields nodes " << flag_fields_nodes.size () << std::endl;
 
 		pandagen::connect_vertices (g, parser_tables);
 		pandagen::fill_tlv_node_to_vertices (g, tlv_nodes, tlv_tables);
+		pandagen::fill_flag_fields_node_to_vertices (g, flag_fields_nodes, flag_fields_tables);
 	}
 
 	// preprocessing error

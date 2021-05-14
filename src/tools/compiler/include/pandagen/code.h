@@ -44,6 +44,7 @@
 
 // workaround for a bug with GCC 6 changesign function
 #include <boost/spirit/home/support/detail/sign.hpp>
+#include <boost/fusion/view/repetitive_view.hpp>
 #include <boost/version.hpp>
 
 #if BOOST_VERSION / 100 % 1000 <= 62
@@ -263,6 +264,52 @@ generate_protocol_tlvs_parse_function(OutputIterator out, Graph const &graph,
 }
 
 template <typename OutputIterator, typename Graph> void
+generate_protocol_fields_parse_function(OutputIterator out, Graph const &graph,
+		typename boost::graph_traits<Graph>::vertex_descriptor v)
+{
+	namespace fusion = boost::fusion;
+	typedef fusion::vector<std::string, std::string, std::string, std::string/*, std::string*/> ve;
+	typedef fusion::vector<std::string/*, std::string*/, ve> vs;
+	std::vector<vs> fields;
+
+	for (auto &&t : graph[v].flag_fields_nodes)
+		fields.push_back(vs{t.index/*, t.index*/, ve{t.name, t.name, t.name, t.name/*, t.index*/}});
+
+	karma::generate(out,
+		karma::buffer[tab <<
+	"static inline __attribute__((always_inline)) int __" << graph[v].name <<
+		"_panda_parse_flag_fields(const struct panda_parse_node *parse_node,\n" << 2_ident <<
+			"const void *hdr, void *frame, size_t hlen)\n" << tab <<
+			"{\n" << 1_ident[tab << "__u32 flags, mask;\n" << tab <<
+			"const struct panda_proto_flag_fields_node *proto_flag_fields_node;\n" << tab <<
+			"const struct panda_flag_field *flag_fields;\n" << tab <<
+			"const struct panda_flag_field *flag_field;\n" << tab <<
+			"const __u8 *cp;\n" << tab <<
+			"proto_flag_fields_node = (struct panda_proto_flag_fields_node *)parse_node->proto_node;\n" << tab <<
+			"cp = (__u8 const*)hdr + proto_flag_fields_node->ops.start_fields_offset(hdr);\n" << tab <<
+			"flag_fields = proto_flag_fields_node->flag_fields->fields;\n" << tab <<
+			"flags = proto_flag_fields_node->ops.get_flags(hdr);\n" << tab <<
+			"if (flags) {\n" << 1_ident[
+			+(
+			   (tab <<
+			    "flag_field = &flag_fields[" << karma::string << "];\n" << tab <<
+			    "mask = flag_field->mask ? flag_field->mask : flag_field->flag;\n" << tab <<
+			    "if ((flags & mask) == flag_field->flag) {\n" <<
+			    1_ident[ tab <<
+			       "if(" << karma::string << ".ops.extract_metadata)\n" << 1_ident <<
+			       karma::string << ".ops.extract_metadata(cp, frame, flag_field->size);\n" << tab <<
+			       "if(" << karma::string << ".ops.handle_flag_field)\n" << 1_ident <<
+			       karma::string << ".ops.handle_flag_field(cp, frame, flag_field->size);\n" << tab <<
+			       "cp += flag_fields->size;\n"] << tab <<
+			    "}\n"
+			    ))] <<
+			   "}\n" << tab <<
+			   "\n" << tab <<
+			"return PANDA_OKAY;\n"] << tab <<
+			"}\n\n"], fields);
+}
+
+template <typename OutputIterator, typename Graph> void
 generate_protocol_parse_function_decl(OutputIterator out, Graph const &graph,
 				      typename boost::graph_traits<Graph>::
 							vertex_descriptor v)
@@ -292,6 +339,8 @@ generate_protocol_parse_function(OutputIterator out, Graph const &graph,
 
 	if (!graph[v].tlv_nodes.empty())
 		generate_protocol_tlvs_parse_function(out, graph, v);
+	if (!graph[v].flag_fields_nodes.empty())
+		generate_protocol_fields_parse_function(out, graph, v);
 
 	karma::generate (out, karma::buffer[tab <<
 	"static inline /*__attribute__((always_inline))*/ int __" <<
@@ -313,7 +362,8 @@ generate_protocol_parse_function(OutputIterator out, Graph const &graph,
 		";\n" << tab <<
 		"const struct panda_proto_node* proto_node = "
 		"parse_node->proto_node;\n" << tab <<
-		"(void)ret;\n" << tab << "(void)proto_node;\n" <<
+	     // "(void)ret;\n" << tab << "(void)proto_node;\n" << tab <<
+	     // "if (flags & PANDA_F_DEBUG)\n" << 1_ident << "printf(\"PANDA parsing %s\\n\", proto_node->name);\n" <<
 		pandagen::length_check << pandagen::metadata]]);
 
 	if (!graph[v].tlv_nodes.empty()) {
@@ -326,13 +376,22 @@ generate_protocol_parse_function(OutputIterator out, Graph const &graph,
 			"!= PANDA_OKAY)\n" << 1_ident <<
 			"return ret;\n"]]);
 	}
+	if (!graph[v].flag_fields_nodes.empty()) {
+		karma::generate (out, karma::buffer[1_ident[tab <<
+		"/* Should generate flag fields nodes\n" << tab <<
+		" */\n" << tab <<
+		"if ((ret = __" << graph[v].name <<
+			"_panda_parse_flag_fields(parse_node, hdr, frame, hlen)) "
+			"!= PANDA_OKAY)\n" << 1_ident <<
+							    "return ret;\n"]]);
+	}
 	karma::generate (out, karma::buffer[1_ident[tab <<
 		"if (proto_node->encap && (ret = "
 		"panda_encap_layer (metadata, max_encaps, &frame, "
 		"&frame_num)) != 0)\n" << 1_ident <<
 			"return ret;\n\n"]]);
 
-	karma::generate (out, karma::buffer[1_ident [
+	karma::generate (out, karma::buffer[1_ident[
 		pandagen::next_protocol(graph, v, specific_protocols)] <<
 	"}\n"]);
 }

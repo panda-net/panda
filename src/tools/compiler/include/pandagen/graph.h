@@ -57,12 +57,17 @@ struct tlv_node {
 	std::string name, string_name, metadata, handler, type;
 };
 
+struct flag_fields_node {
+	std::string name, string_name, metadata, handler, index;
+};
+
 struct vertex_property {
 	// TODO enable node instead of its name
 	// ParseNode& node;
-	std::string name, parser_node, metadata, handler, table, tlv_table;
+	std::string name, parser_node, metadata, handler, table, tlv_table, flag_fields_table, post_handle_flags;
 
 	std::vector<tlv_node> tlv_nodes;
+	std::vector<flag_fields_node> flag_fields_nodes;
 };
 
 struct edge_property {
@@ -363,6 +368,51 @@ fill_tlv_node_to_vertices(G &g, std::vector<tlv_node> tlv_nodes,
 			} else {
 				std::cerr << "Not found TLV table " <<
 						g[v].tlv_table << std::endl;
+			}
+		}
+	}
+}
+
+template <typename G> void
+fill_flag_fields_node_to_vertices(G &g, std::vector<flag_fields_node> nodes,
+			  std::vector<table> tables)
+{
+	auto vs = vertices(g);
+
+	for (auto &&v : boost::make_iterator_range(vs.first, vs.second)) {
+		if (!g[v].flag_fields_table.empty()) {
+			auto table_it = std::find_if(tables.begin(),
+						     tables.end(),
+						     [&] (auto &&tt) {
+							return g[v].flag_fields_table ==
+								tt.name; });
+			if (table_it != tables.end()) {
+				for (auto &&entry : table_it->entries) {
+					auto node_name = entry.right;
+					auto node_it = std::find_if(
+							nodes.begin(),
+							nodes.end(),
+							[&] (auto &&n) {
+						return n.name == node_name; });
+					if (node_it != nodes.end()) {
+						g[v].flag_fields_nodes.push_back(
+								*node_it);
+						g[v].flag_fields_nodes.back().index =
+								entry.left;
+					} else if (node_name != "PANDA_FLAG_NODE_NULL") {
+						g[v].flag_fields_nodes.push_back
+							({"PANDA_FLAG_NODE_NULL", ""});
+						g[v].flag_fields_nodes.back().index =
+								entry.left;
+					} else {
+						std::cerr << "node flag fields not "
+							     "found" <<
+							std::endl;
+					}
+				}
+			} else {
+				std::cerr << "Not found flag fields table " <<
+						g[v].flag_fields_table << std::endl;
 			}
 		}
 	}
