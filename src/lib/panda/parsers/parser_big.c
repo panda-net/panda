@@ -109,10 +109,12 @@ PANDA_MAKE_PARSE_NODE(gre_base_node, panda_parse_gre_base,
 
 PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v0_node, panda_parse_gre_v0,
 				  gre_metadata, panda_null_handle_proto,
-				  gre_v0_table, gre_v0_flag_fields_table);
+				  gre_v0_table, gre_v0_flag_fields_table,
+				  panda_null_post_flag_field_handle);
 PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v1_node, panda_parse_gre_v1,
 				  gre_pptp_metadata, panda_null_handle_proto,
-				  gre_v1_table, gre_v1_flag_fields_table);
+				  gre_v1_table, gre_v1_flag_fields_table,
+				  panda_null_post_flag_field_handle);
 
 PANDA_MAKE_PARSE_NODE(e8021AD_node, panda_parse_vlan, e8021AD_metadata,
 		      panda_null_handle_proto, ether_table);
