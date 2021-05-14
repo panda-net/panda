@@ -88,10 +88,21 @@ The subdirectories of **samples** are:
 
 ## Prerequisites
 
-The Boot development libraries are needed when building the panda-compiler.
-To install the libraries on Ubuntu do:
+To install the basic development prerequisites on Ubuntu 20.10 or up we need to install the following packages:
 
-**apt-get install libboost-all-dev**
+**# apt-get install -y build-essential gcc-multilib pkg-config bison flex libboost-all-dev libpcap-dev**
+
+If you want to generate graph visualizations from the panda compiler you must install the graphviz package:
+
+**# apt-get install -y graphviz**
+
+And if you intent to use the eBPF compilation or the **flow_tracker** sample, you must install the dependencies to compile and load BPF programs as described below:
+
+**# apt-get install -y libelf-dev clang llvm libbpf-dev linux-tools-$(uname -r)**
+
+Because the linux tools is dependent on the kernel version, you should use the **uname -r** command to get the current kernel version as shown above.
+
+For XDP, we recommend a minimum Linux kernel version of 5.8, which is available on Ubuntu 20.10 and up.
 
 ## Configure
 
