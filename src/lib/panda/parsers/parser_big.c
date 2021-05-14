@@ -86,105 +86,87 @@ PANDA_METADATA_TEMP_gre_pptp_ack(gre_pptp_ack_metadata, panda_metadata_all)
  */
 
 PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether, ether_metadata,
-		      panda_null_handle_proto, ether_table);
-PANDA_MAKE_PARSE_NODE(ipv4_check_node, panda_parse_ip,
-		      panda_null_extract_metadata,
-		      panda_null_handle_proto, ipv4_check_table);
-PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, ipv4_metadata,
-		      panda_null_handle_proto, ipv4_table);
-PANDA_MAKE_PARSE_NODE(ipv6_check_node, panda_parse_ip,
-		      panda_null_extract_metadata,
-		      panda_null_handle_proto, ipv6_check_table);
-PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6,
-		      ipv6_metadata, panda_null_handle_proto, ipv6_table);
+		      NULL, ether_table);
+PANDA_MAKE_PARSE_NODE(ipv4_check_node, panda_parse_ip, NULL, NULL,
+		      ipv4_check_table);
+PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, ipv4_metadata, NULL,
+		      ipv4_table);
+PANDA_MAKE_PARSE_NODE(ipv6_check_node, panda_parse_ip, NULL, NULL,
+		      ipv6_check_table);
+PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6, ipv6_metadata, NULL,
+		      ipv6_table);
 PANDA_MAKE_PARSE_NODE(ip_overlay_node, panda_parse_ip, ip_overlay_metadata,
-		      panda_null_handle_proto, ip_table);
+		      NULL, ip_table);
 PANDA_MAKE_PARSE_NODE(ipv6_eh_node, panda_parse_ipv6_eh, ipv6_eh_metadata,
-		      panda_null_handle_proto, ipv6_table);
+		      NULL, ipv6_table);
 PANDA_MAKE_PARSE_NODE(ipv6_frag_node, panda_parse_ipv6_frag_eh,
-		      ipv6_frag_metadata, panda_null_handle_proto, ipv6_table);
-PANDA_MAKE_PARSE_NODE(gre_base_node, panda_parse_gre_base,
-		      panda_null_extract_metadata, panda_null_handle_proto,
+		      ipv6_frag_metadata, NULL, ipv6_table);
+PANDA_MAKE_PARSE_NODE(gre_base_node, panda_parse_gre_base, NULL, NULL,
 		      gre_base_table);
 
 PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v0_node, panda_parse_gre_v0,
-				  gre_metadata, panda_null_handle_proto,
-				  gre_v0_table, gre_v0_flag_fields_table,
-				  panda_null_post_flag_field_handle);
+				  gre_metadata, NULL, gre_v0_table,
+				  gre_v0_flag_fields_table, NULL);
 PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v1_node, panda_parse_gre_v1,
-				  gre_pptp_metadata, panda_null_handle_proto,
-				  gre_v1_table, gre_v1_flag_fields_table,
-				  panda_null_post_flag_field_handle);
+				  gre_pptp_metadata, NULL, gre_v1_table,
+				  gre_v1_flag_fields_table, NULL);
 
 PANDA_MAKE_PARSE_NODE(e8021AD_node, panda_parse_vlan, e8021AD_metadata,
-		      panda_null_handle_proto, ether_table);
-PANDA_MAKE_PARSE_NODE(e8021Q_node, panda_parse_vlan, e8021Q_metadata,
-		      panda_null_handle_proto, ether_table);
-PANDA_MAKE_PARSE_NODE(ppp_node, panda_parse_ppp, panda_null_extract_metadata,
-		      panda_null_handle_proto, ppp_table);
-PANDA_MAKE_PARSE_NODE(pppoe_node, panda_parse_pppoe,
-		      panda_null_extract_metadata,
-		      panda_null_handle_proto, pppoe_table);
-PANDA_MAKE_PARSE_NODE(ipv4ip_node, panda_parse_ipv4ip,
-		      panda_null_extract_metadata, panda_null_handle_proto,
+		      NULL, ether_table);
+PANDA_MAKE_PARSE_NODE(e8021Q_node, panda_parse_vlan, e8021Q_metadata, NULL,
+		      ether_table);
+PANDA_MAKE_PARSE_NODE(ppp_node, panda_parse_ppp, NULL, NULL, ppp_table);
+PANDA_MAKE_PARSE_NODE(pppoe_node, panda_parse_pppoe, NULL, NULL,
+		      pppoe_table);
+PANDA_MAKE_PARSE_NODE(ipv4ip_node, panda_parse_ipv4ip, NULL, NULL,
 		      ipv4ip_table);
-PANDA_MAKE_PARSE_NODE(ipv6ip_node, panda_parse_ipv6ip,
-		      panda_null_extract_metadata, panda_null_handle_proto,
+PANDA_MAKE_PARSE_NODE(ipv6ip_node, panda_parse_ipv6ip, NULL, NULL,
 		      ipv6ip_table);
-PANDA_MAKE_PARSE_NODE(batman_node, panda_parse_batman,
-		      panda_null_extract_metadata, panda_null_handle_proto,
+PANDA_MAKE_PARSE_NODE(batman_node, panda_parse_batman, NULL, NULL,
 		      ether_table);
 
 PANDA_MAKE_LEAF_PARSE_NODE(ports_node, panda_parse_ports, ports_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(icmpv4_node, panda_parse_icmpv4, icmp_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(icmpv6_node, panda_parse_icmpv6, icmp_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(mpls_node, panda_parse_mpls, mpls_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(arp_node, panda_parse_arp, arp_rarp_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(rarp_node, panda_parse_rarp, arp_rarp_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(tipc_node, panda_parse_tipc, tipc_metadata,
-			   panda_null_handle_proto);
-PANDA_MAKE_LEAF_PARSE_NODE(fcoe_node, panda_parse_fcoe,
-			   panda_null_extract_metadata,
-			   panda_null_handle_proto);
-PANDA_MAKE_LEAF_PARSE_NODE(igmp_node, panda_parse_igmp,
-			   panda_null_extract_metadata,
-			   panda_null_handle_proto);
+			   NULL);
+PANDA_MAKE_LEAF_PARSE_NODE(fcoe_node, panda_parse_fcoe, NULL, NULL);
+PANDA_MAKE_LEAF_PARSE_NODE(igmp_node, panda_parse_igmp, NULL, NULL);
 
 PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs,	ports_metadata,
-				panda_null_handle_proto,
-				panda_null_post_tlv_handle, tcp_tlv_table);
+				NULL, NULL, tcp_tlv_table);
 
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_mss_node, tcp_option_mss_check_length,
-			  tcp_opt_mss_metadata, panda_null_handle_tlv);
+			  tcp_opt_mss_metadata, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_window_scaling_node,
 			  tcp_option_window_scaling_check_length,
-			  tcp_opt_window_scaling_metadata,
-			  panda_null_handle_tlv);
+			  tcp_opt_window_scaling_metadata, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_option_timestamp_check_length,
-			  tcp_opt_timestamp_metadata, panda_null_handle_tlv);
+			  tcp_opt_timestamp_metadata, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_node, tcp_option_sack_check_length,
-			  tcp_opt_sack_metadata, panda_null_handle_tlv);
+			  tcp_opt_sack_metadata, NULL);
 
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_csum_node, gre_checksum_metadata,
-				 panda_null_handle_flag_field);
-PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_key_node, gre_keyid_metadata,
-				 panda_null_handle_flag_field);
-PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_seq_node, gre_seq_metadata,
-				 panda_null_handle_flag_field);
+				 NULL);
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_key_node, gre_keyid_metadata, NULL);
+PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_seq_node, gre_seq_metadata, NULL);
 
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_pptp_flag_ack_node, gre_pptp_ack_metadata,
-				 panda_null_handle_flag_field);
+				 NULL);
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_pptp_flag_key_node, gre_pptp_key_metadata,
-				 panda_null_handle_flag_field);
+				 NULL);
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_pptp_flag_seq_node, gre_pptp_seq_metadata,
-				 panda_null_handle_flag_field);
+				 NULL);
 
 /* Define parsers. Two of them: one for packets starting with an
  * Ethernet header, and one for packets starting with an IP header.

@@ -1004,15 +1004,6 @@ void panda_print_hash_input(const void *start, size_t len);
 
 /* Default functions that can be set for various call backs */
 
-static inline void panda_null_extract_metadata(const void *hdr, void *frame)
-{
-}
-
-static inline int panda_null_handle_proto(const void *hdr, void *frame)
-{
-	return PANDA_OKAY;
-}
-
 static inline int panda_unknown_next_proto_fail(const void *hdr, void *frame,
 						int type, int err)
 {
@@ -1025,11 +1016,6 @@ static inline int panda_unknown_next_proto_ignore(const void *hdr, void *frame,
 	return PANDA_STOP_OKAY;
 }
 
-static inline int panda_null_post_tlv_handle(const void *hdr, void *frame)
-{
-	return PANDA_OKAY;
-}
-
 static inline int panda_unknown_tlv_fail(const void *hdr, void *frame,
 					 int type, int err)
 {
@@ -1038,36 +1024,6 @@ static inline int panda_unknown_tlv_fail(const void *hdr, void *frame,
 
 static inline int panda_unknown_tlv_ignore(const void *hdr, void *frame,
 					   int type, int err)
-{
-	return PANDA_OKAY;
-}
-
-static inline void panda_null_tlv_extract_metadata(const void *hdr, void *frame)
-{
-}
-
-static inline int panda_null_handle_tlv(const void *hdr, void *frame)
-{
-	return PANDA_OKAY;
-}
-
-static inline int panda_null_tlv_check_length(const void *hdr, void *frame)
-{
-	return PANDA_OKAY;
-}
-
-static inline void panda_null_flag_field_extract_metadata(const void *hdr,
-							  void *frame)
-{
-}
-
-static inline int panda_null_handle_flag_field(const void *hdr, void *frame)
-{
-	return PANDA_OKAY;
-}
-
-static inline int panda_null_post_flag_field_handle(const void *hdr,
-						    void *frame)
 {
 	return PANDA_OKAY;
 }

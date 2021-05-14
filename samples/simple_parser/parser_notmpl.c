@@ -132,23 +132,19 @@ static void extract_tcp_timestamp(const void *vopt, void *_meta)
 }
 
 /* Parse nodes */
-PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether,
-		      panda_null_extract_metadata,
-		      panda_null_handle_proto, ether_table);
-PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, extract_ipv4,
-		      panda_null_handle_proto, ip_table);
-PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6, extract_ipv6,
-		      panda_null_handle_proto, ip_table);
-PANDA_MAKE_LEAF_PARSE_NODE(ports_node, panda_parse_ports, extract_ports,
-			   panda_null_handle_proto);
+PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether, NULL, NULL, ether_table);
+PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, extract_ipv4, NULL,
+		      ip_table);
+PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6, extract_ipv6, NULL,
+		      ip_table);
+PANDA_MAKE_LEAF_PARSE_NODE(ports_node, panda_parse_ports, extract_ports, NULL);
 PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs, extract_ports,
-				panda_null_handle_proto,
-				panda_null_post_tlv_handle, tcp_tlv_table);
+				NULL, NULL, tcp_tlv_table);
 
 /* TCP TLV nodes */
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_option_timestamp_check_length,
-			  extract_tcp_timestamp, panda_null_handle_tlv);
+			  extract_tcp_timestamp, NULL);
 
 /* Protocol tables */
 

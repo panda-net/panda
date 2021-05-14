@@ -63,23 +63,21 @@ PANDA_METADATA_TEMP_ports(ports_metadata, metadata)
 PANDA_METADATA_TEMP_tcp_option_timestamp(tcp_opt_timestamp_metadata, metadata)
 
 /* Parse nodes */
-PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether,
-		      panda_null_extract_metadata,
-		      panda_null_handle_proto, ether_table);
+PANDA_MAKE_PARSE_NODE(ether_node, panda_parse_ether, NULL, NULL,
+		      ether_table);
 PANDA_MAKE_PARSE_NODE(ipv4_node, panda_parse_ipv4, ipv4_metadata,
-		      panda_null_handle_proto, ip_table);
+		      NULL, ip_table);
 PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6, ipv6_metadata,
-		      panda_null_handle_proto, ip_table);
+		      NULL, ip_table);
 PANDA_MAKE_LEAF_PARSE_NODE(ports_node, panda_parse_ports, ports_metadata,
-			   panda_null_handle_proto);
+			   NULL);
 PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs, ports_metadata,
-				panda_null_handle_tlv,
-				panda_null_post_tlv_handle, tcp_tlv_table);
+				NULL, NULL, tcp_tlv_table);
 
 /* TCP TLV nodes */
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_option_timestamp_check_length,
-			  tcp_opt_timestamp_metadata, panda_null_handle_proto);
+			  tcp_opt_timestamp_metadata, NULL);
 
 /* Protocol tables */
 
