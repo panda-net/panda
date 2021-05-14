@@ -69,6 +69,8 @@ enum panda_parser_node_type {
 	PANDA_NODE_TYPE_PLAIN,
 	/* TLVs node with super structure for TLVs */
 	PANDA_NODE_TYPE_TLVS,
+	/* Flag-fields with super structure for flag-fields */
+	PANDA_NODE_TYPE_FLAG_FIELDS,
 };
 
 /* Protocol parsing operations:
@@ -95,7 +97,7 @@ struct panda_parse_ops {
  * This structure contains the definitions to describe parsing of one type
  * of protocol header. Fields are:
  *
- * node_type: The type of the node (plain, TLVs)
+ * node_type: The type of the node (plain, TLVs, flag-fields)
  * encap: Indicates an encapsulation protocol (e.g. IPIP, GRE)
  * overlay: Indicates an overlay protocol. This is used, for example, to
  *	switch on version number of a protocol header (e.g. IP version number
@@ -189,7 +191,7 @@ struct panda_proto_table {
 /* Parse node definition. Defines parsing and processing for one node in
  * the parse graph of a parser. Contains:
  *
- * node_type: The type of the node (plain, TLVs)
+ * node_type: The type of the node (plain, TLVs, flag-fields)
  * proto_node: Protocol node
  * ops: Parse node operations
  * proto_table: Protocol table for next protocol. This must be non-null if
@@ -263,7 +265,7 @@ static const struct panda_parser *PARSER __unused() = &__##PARSER;
 
 /* Forward declarations for protocol tables */
 #define PANDA_DECL_PROTO_TABLE(PROTO_TABLE)				\
-	static const struct panda_proto_table PROTO_TABLE;
+	static const struct panda_proto_table PROTO_TABLE
 
 /* Helper to create a parse node with a next protocol table */
 #define __PANDA_MAKE_PARSE_NODE(PARSE_NODE, PROTO_NODE,			\
@@ -295,11 +297,21 @@ static const struct panda_parser *PARSER __unused() = &__##PARSER;
 				EXTRACT_METADATA, HANDLER,		\
 				panda_unknown_next_proto_fail, NULL)
 
-/* Definitions for parsing flag fields
+/* Definitions for parsing flag-fields
  *
- * Flag fields are a common protocol header structure consisting of
- * a set of flags and optional fields for which flags indicate their
- * presence (e.g. for handling GRE or GUE flag fields)
+ * Flag-fields is a common networking protocol construct that encodes optional
+ * data in a set of flags and data fields. The flags indicate whether or not a
+ * corresponding data field is present. The data fields are fixed length per
+ * each flag-field definition and ordered by the ordering of the flags
+ * indicating the presence of the fields (e.g. GRE and GUE employ flag-fields)
+ */
+
+/* Flag-fields descriptors and tables
+ *
+ * A set of flag-fields is defined in a table of type struct panda_flag_fields.
+ * Each entry in the table is a descriptor for one flag-field in a protocol and
+ * includes a flag value, mask (for the case of a multi-bit flag), and size of
+ * the cooresponding field. A flag is matched if "(flags & mask) == flag"
  */
 
 /* One descriptor for a flag
@@ -445,6 +457,152 @@ static inline __u64 panda_get_flag_field64(const __u8 *fields, __u32 targ_idx,
 
 	return *(__u64 *)&fields[offset];
 }
+
+
+/* Structure or parsing operations for flag-fields
+ *
+ * flags_offset: Offset of flags in the protocol header
+ * start_fields_offset: Return the offset in the header of the start of the
+ *	flag fields data
+ */
+struct panda_proto_flag_fields_ops {
+	__u32 (*get_flags)(const void *hdr);
+	size_t (*start_fields_offset)(const void *hdr);
+};
+
+/* Flag-field parse node operations
+ *
+ * Operations to process a single flag-field
+ *
+ * extract_metadata: Extract metadata for the node. Input is the meta
+ *	data frame which points to a parser defined metadata structure.
+ *	If the value is NULL then no metadata is extracted
+ * handle_flag_field: Per flag-field handler which allows arbitrary processing
+ *	of a flag-field. Input is the flag-field data and a parser defined
+ *	metadata structure for the current frame. Return value is a parser
+ *	return code: PANDA_OKAY indicates no errors, PANDA_STOP* return
+ *	values indicate to stop parsing
+ */
+struct panda_parse_flag_field_node_ops {
+	void (*extract_metadata)(const void *hdr, void *frame);
+	int (*handle_flag_field)(const void *hdr, void *frame);
+};
+
+/* A parse node for a single flag field */
+struct panda_parse_flag_field_node {
+	const struct panda_parse_flag_field_node_ops ops;
+};
+
+/* One entry in a flag-fields protocol table:
+ *	index: flag-field index (index in a flag-fields table)
+ *	node: associated TLV parse structure for the type
+ */
+struct panda_proto_flag_fields_table_entry {
+	int index;
+	const struct panda_parse_flag_field_node *node;
+};
+
+/* Flag-fields table
+ *
+ * Contains a table that maps a flag-field index to a flag-field parse node.
+ * Note that the index correlates to an entry in a flag-fields table that
+ * describes the flag-fields of a protocol
+ */
+struct panda_proto_flag_fields_table {
+	int num_ents;
+	const struct panda_proto_flag_fields_table_entry *entries;
+};
+
+/* A flag-fields parse node. Note this is a super structure for a PANDA parse
+ * node and tyoe is PANDA_NODE_TYPE_FLAG_FIELDS
+ */
+struct panda_parse_flag_fields_node {
+	const struct panda_parse_node parse_node;
+	const struct panda_proto_flag_fields_ops ops;
+	const struct panda_proto_flag_fields_table *flag_fields_proto_table;
+};
+
+/* A flag-fields protocol node. Note this is a super structure for a PANDA
+ * protocol node and tyoe is PANDA_NODE_TYPE_FLAG_FIELDS
+ */
+struct panda_proto_flag_fields_node {
+	struct panda_proto_node proto_node;
+	struct panda_proto_flag_fields_ops ops;
+	const struct panda_flag_fields *flag_fields;
+};
+
+/* Helper to create a flag-fields protocol table */
+#define PANDA_MAKE_FLAG_FIELDS_TABLE(NAME, ...)				\
+	static const struct panda_proto_flag_fields_table_entry		\
+					__##NAME[] =  { __VA_ARGS__ };	\
+	static const struct panda_proto_flag_fields_table NAME = {	\
+		.num_ents = sizeof(__##NAME) /				\
+			sizeof(struct					\
+				panda_proto_flag_fields_table_entry),	\
+		.entries = __##NAME,					\
+	}
+
+/* Forward declarations for flag-fields parse nodes */
+#define PANDA_DECL_FLAG_FIELDS_PARSE_NODE(FLAG_FIELDS_PARSE_NODE)	\
+	static const struct panda_parse_flag_fields_node		\
+						FLAG_FIELDS_PARSE_NODE
+
+/* Forward declarations for flag-field proto tables */
+#define PANDA_DECL_FLAG_FIELDS_TABLE(FLAG_FIELDS_TABLE)			\
+	static const struct panda_proto_flag_fields_table		\
+						FLAG_FIELDS_TABLE
+
+
+/* Helper to create a parse node with a next protocol table */
+#define __PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
+					    PROTO_FLAG_FIELDS_NODE,	\
+					    EXTRACT_METADATA, HANDLER,	\
+					    PROTO_TABLE,		\
+					    FLAG_FIELDS_TABLE)		\
+	static const struct panda_parse_flag_fields_node		\
+					PARSE_FLAG_FIELDS_NODE = {	\
+		.flag_fields_proto_table = FLAG_FIELDS_TABLE,		\
+		.parse_node.node_type = PANDA_NODE_TYPE_FLAG_FIELDS,	\
+		.parse_node.proto_node =				\
+				&PROTO_FLAG_FIELDS_NODE.proto_node,	\
+		.parse_node.ops.extract_metadata = EXTRACT_METADATA,	\
+		.parse_node.ops.handle_proto = HANDLER,			\
+		.parse_node.proto_table = PROTO_TABLE,			\
+	}
+
+/* Helper to create a flag-fields parse node */
+#define PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
+					  PROTO_FLAG_FIELDS_NODE,	\
+					  EXTRACT_METADATA, HANDLER,	\
+					  PROTO_TABLE,			\
+					  FLAG_FIELDS_TABLE)		\
+	PANDA_DECL_FLAG_FIELDS_TABLE(FLAG_FIELDS_TABLE);		\
+	PANDA_DECL_PROTO_TABLE(PROTO_TABLE);				\
+	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
+					    PROTO_FLAG_FIELDS_NODE,	\
+					    EXTRACT_METADATA, HANDLER,	\
+					    &PROTO_TABLE,		\
+					    &FLAG_FIELDS_TABLE)
+
+/* Helper to create a leaf flag-fields parse node */
+#define PANDA_MAKE_LEAF_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
+					       PROTO_FLAG_FIELDS_NODE,	\
+					       EXTRACT_METADATA,	\
+					       HANDLER,			\
+					       FLAG_FIELDS_TABLE)	\
+	PANDA_DECL_FLAG_FIELDS_TABLE(FLAG_FIELDS_TABLE);		\
+	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
+					    PROTO_FLAG_FIELDS_NODE,	\
+					    EXTRACT_METADATA, HANDLER,	\
+					    NULL, &FLAG_FIELDS_TABLE)
+
+/* Helper to create a parse node for a single flag-field */
+#define PANDA_MAKE_FLAG_FIELD_PARSE_NODE(NODE_NAME, METADATA_FUNC,	\
+					 HANDLER_FUNC)			\
+	static const struct panda_parse_flag_field_node NODE_NAME = {	\
+		.ops.extract_metadata = METADATA_FUNC,			\
+		.ops.handle_flag_field = HANDLER_FUNC,			\
+	}
 
 /* Definitions for parsing TLVs
  *
@@ -596,7 +754,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 
 /* Forward declarations for TLV type tables */
 #define PANDA_DECL_TLVS_TABLE(TLVS_TABLE)				\
-	static const struct panda_proto_tlvs_table TLVS_TABLE;
+	static const struct panda_proto_tlvs_table TLVS_TABLE
 
 /* Helper to create a parse node with a next protocol table */
 #define __PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
@@ -883,6 +1041,16 @@ static inline int panda_null_handle_tlv(const void *hdr, void *frame)
 }
 
 static inline int panda_null_tlv_check_length(const void *hdr, void *frame)
+{
+	return PANDA_OKAY;
+}
+
+static inline void panda_null_flag_field_extract_metadata(const void *hdr,
+							  void *frame)
+{
+}
+
+static inline int panda_null_handle_flag_field(const void *hdr, void *frame)
 {
 	return PANDA_OKAY;
 }
