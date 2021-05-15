@@ -1,13 +1,13 @@
 # Makefile for building parser samples
 #
-# Set ROOTDIR to the install directory for PANDA
+# Set PANDADIR to the install directory for PANDA
 #
 
-ROOTDIR ?= /usr
+PANDADIR ?= /usr
 
-INCDIR= $(ROOTDIR)/include
-LIBDIR= $(ROOTDIR)/lib
-BINDIR= $(ROOTDIR)/bin
+INCDIR= $(PANDADIR)/include
+LIBDIR= $(PANDADIR)/lib
+BINDIR= $(PANDADIR)/bin
 CC= gcc
 CFLAGS= -I$(INCDIR)
 CFLAGS+= -g
