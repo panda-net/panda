@@ -96,21 +96,6 @@ void xdp_generate_parser_enum(OutputIterator out, Graph const &graph)
 		codes);
 }
 
-template <typename OutputIterator, typename Graph>
-void xdp_generate_boilerplate(OutputIterator out, Graph const &graph)
-{
-	const char xdp_boilerplate[] =
-		"struct panda_ctx {\n"
-		"	__u32 frame_num;\n"
-		"	__u32 next;\n"
-		"	__u32 offset;\n"
-		"	struct panda_metadata metadata;\n"
-		"	struct panda_metadata_all frame[1];\n"
-		"};\n";
-
-	karma::generate(out, karma::buffer[tab << xdp_boilerplate]);
-}
-
 template <typename OutputIterator>
 void xdp_generate_check_functions(OutputIterator out)
 {
@@ -447,7 +432,8 @@ void xdp_generate_entry_parse_function(
 			 << "{\n"
 			 << 1_ident[tab
 				     << "int rc = PANDA_OKAY;\n"
-				     << tab << "void *frame = &ctx->frame;\n"
+				     << tab << "void *frame = "
+					       "ctx->metadata.frame_data;\n"
 				     << tab << "if (!tailcall)\n"
 				     << tab << "	rc = __" << graph[root].name
 				     << "_panda_parse(ctx, hdr, hdr_end, frame);\n"
@@ -509,7 +495,6 @@ void xdp_generate_parsers(OutputIterator out, Graph const &graph,
 
 	xdp_generate_includes(out, graph, filename);
 	xdp_generate_parser_enum(out, graph);
-	xdp_generate_boilerplate(out, graph);
 	xdp_generate_check_functions(out);
 	xdp_generate_check_encapsulation_layer(out);
 

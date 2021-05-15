@@ -138,6 +138,13 @@ struct panda_metadata {
 	__u8 frame_data[0] __aligned(8);
 };
 
+struct panda_ctx {
+	__u32 frame_num;
+	__u32 next;
+	__u32 offset;
+	struct panda_metadata metadata;
+};
+
 /* Parse node operations
  *
  * Operations to process a parsing node
