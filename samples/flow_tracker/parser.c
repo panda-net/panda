@@ -73,6 +73,5 @@ PANDA_MAKE_PROTO_TABLE(ipv4_table,
 	{ IPPROTO_UDP, &ports_node },
 );
 
-PANDA_PARSER_ADD(panda_parser_simple_tuple, "PANDA parser for 5 tuple TCP/UDP",
-		 &ether_node);
-
+PANDA_PARSER(panda_parser_simple_tuple, "PANDA parser for 5 tuple TCP/UDP",
+	     &ether_node);

@@ -61,6 +61,8 @@ enum panda_parser_type {
 	PANDA_GENERIC = 0,
 	/* Use optimized, generated, parser algorithm  */
 	PANDA_OPTIMIZED = 1,
+	/* XDP parser */
+	PANDA_XDP = 2,
 };
 
 /* Parse and protocol node types */
@@ -223,6 +225,12 @@ typedef int (*panda_parser_opt_entry_point)(const struct panda_parser *parser,
 					    unsigned int flags,
 					    unsigned int max_encaps);
 
+/* Panda entry-point for XDP parsers */
+typedef int (*panda_parser_xdp_entry_point)(struct panda_ctx *ctx,
+					    const void **hdr,
+					    const void *hdr_end,
+					    bool tailcall);
+
 /* Definition of a PANDA parser. Fields are:
  *
  * name: Text name for the parser
@@ -234,6 +242,7 @@ struct panda_parser {
 	const struct panda_parse_node *root_node;
 	enum panda_parser_type parser_type;
 	panda_parser_opt_entry_point parser_entry_point;
+	panda_parser_xdp_entry_point parser_xdp_entry_point;
 };
 
 /* Helper to create a parser */
@@ -253,6 +262,16 @@ static const struct panda_parser __##PARSER = {				\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_OPTIMIZED,					\
 	.parser_entry_point = &FUNC					\
+};									\
+static const struct panda_parser *PARSER __unused() = &__##PARSER;
+
+/* Helper to create an XDP parser vairant */
+#define PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)			\
+static const struct panda_parser __##PARSER = {				\
+	.name = NAME,							\
+	.root_node = ROOT_NODE,						\
+	.parser_type = PANDA_XDP,					\
+	.parser_xdp_entry_point = &FUNC					\
 };									\
 static const struct panda_parser *PARSER __unused() = &__##PARSER;
 
@@ -873,6 +892,19 @@ static inline int panda_parse(const struct panda_parser *parser,
 		return PANDA_STOP_FAIL;
 	}
 }
+
+static inline int panda_parse_xdp(const struct panda_parser *parser,
+				  struct panda_ctx *ctx, const void **hdr,
+				  const void *hdr_end, bool tailcall)
+{
+	if (parser->parser_type != PANDA_XDP)
+		return PANDA_STOP_FAIL;
+
+	return (parser->parser_xdp_entry_point)(ctx, hdr, hdr_end, tailcall);
+}
+
+#define PANDA_PARSE_XDP(PARSER, CTX, HDR, HDR_END, TAILCALL)		\
+	panda_xdp_parser_##PARSER(CTX, HDR, HDR_END, TAILCALL)
 
 struct panda_parser_def {
 	struct panda_parser **parser;

@@ -122,6 +122,8 @@ template <typename G> struct MacroOnly :
 			pandagen::handle_parser_add(*graph, *roots, arguments);
 		} else if (macro_name.get_value() == "PANDA_PARSER") {
 			pandagen::handle_parser(*graph, *roots, arguments);
+		} else if (macro_name.get_value() == "PANDA_PARSER_XDP") {
+			pandagen::handle_parser_xdp(*graph, *roots, arguments);
                 }
 		return true;
 	}
@@ -170,6 +172,7 @@ add_panda_macros (Context &context)
 		"pointer, another_pointer, table)",
 		"PANDA_PARSER_ADD(name, description, node_addr)",
 		"PANDA_PARSER(parser, description, node_addr)",
+		"PANDA_PARSER_XDP(parser, description, node_addr)",
 	};
 
 	for (const auto &macro : macros)
@@ -340,7 +343,7 @@ int main (int argc, char *argv[])
 			std::cout << "Nothing to generate\n";
 		}
 	} else {
-		std::cout << "No roots in this parser, use PANDA_PARSER_ADD" <<
-			     "or PANDA_PARSER" << std::endl;
+		std::cout << "No roots in this parser, use PANDA_PARSER_ADD," <<
+			     "PANDA_PARSER, or PANDA_PARSER_XDP" << std::endl;
 	}
 }

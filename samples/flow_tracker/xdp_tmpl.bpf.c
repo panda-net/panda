@@ -28,6 +28,7 @@
 #include <bpf/bpf_helpers.h>
 
 #include "flow_tracker.h"
+#include "panda/parser.h"
 #include "parser.xdp.h"
 
 #define PROG_MAP_ID 0xcafe
@@ -76,8 +77,8 @@ int parser_prog(struct xdp_md *ctx)
 		return XDP_ABORTED;
 
 	/* >>> Invoke the specific panda parser */
-	rc = panda_parser_simple_tuple_panda_parse_ether_node(&parser_ctx->ctx,
-					(const void **)&data, data_end, true);
+	rc = PANDA_PARSE_XDP(panda_parser_simple_tuple, &parser_ctx->ctx,
+			     (const void **)&data, data_end, false);
 
 	if (rc != PANDA_OKAY && rc != PANDA_STOP_OKAY) {
 		bpf_xdp_adjust_head(ctx, -parser_ctx->ctx.offset);
@@ -114,8 +115,8 @@ int xdp_prog(struct xdp_md *ctx)
 	parser_ctx->ctx.next = CODE_IGNORE;
 
 	/* >>> Invoke the specific panda parser */
-	rc = panda_parser_simple_tuple_panda_parse_ether_node(&parser_ctx->ctx,
-					(const void **)&data, data_end, false);
+	rc = PANDA_PARSE_XDP(panda_parser_simple_tuple, &parser_ctx->ctx,
+			     (const void **)&data, data_end, false);
 
 	if (rc != PANDA_OKAY && rc != PANDA_STOP_OKAY)
 		return XDP_PASS;

@@ -485,6 +485,23 @@ void xdp_generate_entry_parse_function(
 			      << tab << "	}\n"
 			      << tab << "	return rc;\n"
 			      << tab << "}\n"]);
+
+	karma::generate(
+		out,
+		karma::buffer
+			[tab <<
+			 "static __always_inline int panda_xdp_parser_" <<
+			 parser_name <<
+			 "(struct panda_ctx *ictx, const void **hdr, "
+			    "const void *hdr_end, bool tailcall)\n"]);
+	karma::generate(
+		out,
+		karma::buffer
+			[tab << "{\n" <<
+			 1_ident[tab << "return " << parser_name <<
+				 "_panda_parse_" << graph[root].name <<
+				 "(ictx, hdr, hdr_end, tailcall);\n"] <<
+				 tab << "}\n"]);
 }
 
 template <typename OutputIterator, typename Graph>
