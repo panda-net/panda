@@ -37,6 +37,10 @@ possible to parse up to 8 nodes in 'xdp entry'.
 In this section we build a simple flow tracker and explain how to integrate
 PANDA in your XDP application.
 
+The flowtracker application described here can be built using the sources
+[here](../samples/flow_tracker).
+
+
 ## PANDA Parser
 
 Lets define a 5-tuple parser in `parser.c`.
