@@ -50,7 +50,7 @@ template <typename G> struct MacroOnly :
 	typedef typename boost::graph_traits<G>::edge_descriptor
 							edge_descriptor;
 
-	std::vector<std::tuple<std::string, vertex_descriptor, bool>> *roots;
+	std::vector<std::tuple<std::string, vertex_descriptor, bool, bool>> *roots;
 	std::vector<table> *parser_tables;
 	std::vector<tlv_node> *tlv_nodes;
 	std::vector<flag_fields_node> *flag_fields_nodes;
@@ -63,7 +63,7 @@ template <typename G> struct MacroOnly :
 		  std::vector<table> &flag_fields_tables,
                   std::vector<tlv_node> &tlv_nodes,
                   std::vector<flag_fields_node> &flag_fields_nodes,
-		  std::vector<std::tuple<std::string, vertex_descriptor, bool>> &roots)
+		  std::vector<std::tuple<std::string, vertex_descriptor, bool, bool>> &roots)
 		: boost::wave::context_policies::default_preprocessing_hooks{},
 		  graph{ &g }, parser_tables (&parser_tables),
 		  tlv_tables (&tlv_tables), flag_fields_tables (&flag_fields_tables),
@@ -120,6 +120,8 @@ template <typename G> struct MacroOnly :
 			pandagen::handle_make_node(*graph, arguments);
 		} else if (macro_name.get_value() == "PANDA_PARSER_ADD") {
 			pandagen::handle_parser_add(*graph, *roots, arguments);
+		} else if (macro_name.get_value() == "PANDA_PARSER_EXT") {
+			pandagen::handle_parser_ext(*graph, *roots, arguments);
 		} else if (macro_name.get_value() == "PANDA_PARSER") {
 			pandagen::handle_parser(*graph, *roots, arguments);
 		} else if (macro_name.get_value() == "PANDA_PARSER_XDP") {
@@ -171,6 +173,7 @@ add_panda_macros (Context &context)
 		"PANDA_MAKE_LEAF_TLVS_PARSE_NODE(node, name, metadata, "
 		"pointer, another_pointer, table)",
 		"PANDA_PARSER_ADD(name, description, node_addr)",
+		"PANDA_PARSER_EXT(parser, description, node_addr)",
 		"PANDA_PARSER(parser, description, node_addr)",
 		"PANDA_PARSER_XDP(parser, description, node_addr)",
 	};
@@ -181,7 +184,7 @@ add_panda_macros (Context &context)
 
 template <typename G> void
 parse_file(G &g, std::vector<std::tuple<std::string,
-	   typename boost::graph_traits<G>::vertex_descriptor, bool>> &roots,
+	   typename boost::graph_traits<G>::vertex_descriptor, bool, bool>> &roots,
 	   std::string filename)
 {
 	// save current file position for exception handling
@@ -273,7 +276,7 @@ int main (int argc, char *argv[])
 	graph_t graph;
 
 	std::vector<std::tuple<std::string,
-		    boost::graph_traits<graph_t>::vertex_descriptor, bool>> roots;
+		    boost::graph_traits<graph_t>::vertex_descriptor, bool, bool>> roots;
 	pandagen::parse_file(graph, roots, argv[1]);
 
 	{
@@ -320,7 +323,8 @@ int main (int argc, char *argv[])
 					pandagen::generate_root_parser(
 					     std::ostream_iterator<char>(file),
 					     graph, get<1>(root), get<0>(root),
-					     argv[1], hout, get<2>(root));
+					     argv[1], hout, get<2>(root),
+					     get<3>(root));
 				}
                         } else if (output.substr(std::max(output.size() - 6,
 						 0ul)) == ".xdp.h") {
@@ -331,8 +335,7 @@ int main (int argc, char *argv[])
                                    return 1;
                                 }
                                 pandagen::xdp_generate_parsers(out, graph, argv[1]);
-                                pandagen::xdp_generate_root_parser(out, graph, get<1>(roots[0]),
-                                      get<0>(roots[0]));
+                                pandagen::xdp_generate_root_parser(out, graph, get<1>(roots[0]), get<0>(roots[0]));
 			} else {
 				std::cout << "Unknown file extension in "
 					     "filename " << output << ".\n";
@@ -343,7 +346,8 @@ int main (int argc, char *argv[])
 			std::cout << "Nothing to generate\n";
 		}
 	} else {
-		std::cout << "No roots in this parser, use PANDA_PARSER_ADD," <<
-			     "PANDA_PARSER, or PANDA_PARSER_XDP" << std::endl;
+		std::cout << "No roots in this parser, use PANDA_PARSER_ADD, "
+			     "PANDA_PARSER[_EXT], or PANDA_PARSER_XDP" <<
+			     std::endl;
 	}
 }

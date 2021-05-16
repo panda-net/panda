@@ -416,7 +416,7 @@ generate_entry_parse_function(OutputIterator out, G const &graph,
 			      std::string parser_name,
 			      typename boost::graph_traits<G>::
 					vertex_descriptor root,
-			      bool parser_add)
+			      bool parser_add, bool parser_ext)
 {
 	namespace karma = boost::spirit::karma;
 
@@ -438,17 +438,31 @@ generate_entry_parse_function(OutputIterator out, G const &graph,
 		"flags, max_encaps, frame, frame_num);\n" << tab <<
 	"}\n"]);
 	if (parser_add)
-		karma::generate(out, karma::buffer[tab <<
-			"PANDA_PARSER_OPT_ADD(" << parser_name <<
-			"_opt,\"\", &" << graph[root].name << "," <<
-			parser_name << "_panda_parse_" << graph[root].name <<
-			");\n"]);
+		if (parser_ext)
+			karma::generate(out, karma::buffer[tab <<
+				"PANDA_PARSER_OPT_ADD_EXT(" << parser_name <<
+				"_opt,\"\", &" << graph[root].name << "," <<
+				parser_name << "_panda_parse_" <<
+				graph[root].name << ");\n"]);
+		else
+			karma::generate(out, karma::buffer[tab <<
+				"PANDA_PARSER_OPT_ADD(" << parser_name <<
+				"_opt,\"\", &" << graph[root].name << "," <<
+				parser_name << "_panda_parse_" <<
+				graph[root].name << ");\n"]);
 	else
-		karma::generate(out, karma::buffer[tab <<
-			"PANDA_PARSER_OPT(" << parser_name <<
-			"_opt,\"\", &" <<graph[root].name << "," <<
-			parser_name << "_panda_parse_" << graph[root].name <<
-			");\n"]);
+		if (parser_ext)
+			karma::generate(out, karma::buffer[tab <<
+				"PANDA_PARSER_OPT_EXT(" << parser_name <<
+				"_opt,\"\", &" <<graph[root].name << "," <<
+				parser_name << "_panda_parse_" <<
+				graph[root].name << ");\n"]);
+		else
+			karma::generate(out, karma::buffer[tab <<
+				"PANDA_PARSER_OPT(" << parser_name <<
+				"_opt,\"\", &" <<graph[root].name << "," <<
+				parser_name << "_panda_parse_" <<
+				graph[root].name << ");\n"]);
 }
 
 template <typename OutputIterator, typename Graph> void
@@ -475,9 +489,10 @@ generate_root_parser(OutputIterator out, Graph const &graph,
 		     typename boost::graph_traits<Graph>::vertex_descriptor
 						root, std::string parser_name,
 		     std::string filename, HeaderOutputIterator hout,
-		     bool doing_add)
+		     bool doing_add, bool doing_ext)
 {
-	generate_entry_parse_function(out, graph, parser_name, root, doing_add);
+	generate_entry_parse_function(out, graph, parser_name, root, doing_add,
+				      doing_ext);
 }
 
 } // namespace pandagen

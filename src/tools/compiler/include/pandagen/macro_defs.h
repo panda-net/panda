@@ -73,7 +73,7 @@ handle_parser_add(G &graph, CV &cv, std::vector<ContainerT> const &arguments)
 		auto pv = search_vertex_by_name(graph, name);
 
 		if (pv)
-			cv.push_back({parser_name, *pv, true});
+			cv.push_back({parser_name, *pv, true, false});
 		else
 			std::cout << "Could not find root "
 				"vertex of name " << name << std::endl;
@@ -93,7 +93,27 @@ handle_parser(G &graph, CV &cv, std::vector<ContainerT> const &arguments)
 		auto pv = search_vertex_by_name(graph, name);
 
 		if (pv)
-			cv.push_back({parser_name, *pv, false});
+			cv.push_back({parser_name, *pv, false, false});
+		else
+			std::cout << "Could not find root "
+				"vertex of name " << name << std::endl;
+	} else {
+		// should error'out
+		std::cerr << "PANDA_PARSER should have 3 parameter" <<
+								std::endl;
+	}
+}
+
+template <typename G, typename CV, typename ContainerT> void
+handle_parser_ext(G &graph, CV &cv, std::vector<ContainerT> const &arguments)
+{
+	if (arguments.size() == 3) {
+		auto parser_name = get_identifier_from_tokens(arguments[0]);
+		auto name = get_identifier_from_tokens(arguments[2]);
+		auto pv = search_vertex_by_name(graph, name);
+
+		if (pv)
+			cv.push_back({parser_name, *pv, false, true});
 		else
 			std::cout << "Could not find root "
 				"vertex of name " << name << std::endl;
@@ -113,7 +133,7 @@ handle_parser_xdp(G &graph, CV &cv, std::vector<ContainerT> const &arguments)
 		auto pv = search_vertex_by_name(graph, name);
 
 		if (pv)
-			cv.push_back({parser_name, *pv, false});
+			cv.push_back({parser_name, *pv, false, false});
 		else
 			std::cout << "Could not find root "
 				"vertex of name " << name << std::endl;
