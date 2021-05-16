@@ -39,12 +39,3 @@ The output prints the IP address and port numbers for each packet, the
 TCP timestamps if found in the options of a TCP packet, and the computed
 tuple hash. For the same pcap file, **parser_tmpl** and **parser_notmpl**
 should produce identical output.
-<<<<<<< HEAD
-=======
-
-*If the build fails the uapi includes files may be used by doing
-**make UAPI=1**. The uapi include files are not installed as part of
-building PANDA, so a relative path to the uapi source include files is
-set up by the Makefile (../../src/include/uapi). Note that is assumes that the
-make is being done from that simple_parser directory.*
->>>>>>> aae6ea1... Documentation: Pull out README from top layer
