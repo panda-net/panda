@@ -8,20 +8,20 @@ PANDADIR ?= /usr
 INCDIR= $(PANDADIR)/include
 LIBDIR= $(PANDADIR)/lib
 BINDIR= $(PANDADIR)/bin
-CC= clang
-CFLAGS= -I$(INCDIR)
-CFLAGS+= -g -O2
-LDFLAGS=
+XCC= clang
+XCFLAGS= -I$(INCDIR)
+XCFLAGS+= -g -O2
+XLDFLAGS=
 
 # uapi files are not installed. If UAPI is set assume that we are in
 # the simple_parser subdirectory of samples and derive a relative
 # path to find src/include/uapi
 
 ifeq ($(UAPI), 1)
-CFLAGS += -I../../src/include/uapi
+XCFLAGS += -I../../src/include/uapi
 endif
 
-TARGETS= flow_tracker.o
+TARGETS= flow_tracker.xdp.o
 TMPFILES= parser.xdp.h
 
 .PHONY: all
@@ -30,8 +30,8 @@ all: $(TARGETS)
 parser.xdp.h: parser.c
 	$(BINDIR)/panda-compiler $< $@
 
-flow_tracker.o: xdp_tmpl.bpf.c parser.xdp.h flow_tracker.h
-	$(CC) -x c -target bpf $(CFLAGS) $(LDFLAGS) -c -o $@ $<
+flow_tracker.xdp.o: flow_tracker.xdp.c parser.xdp.h flow_tracker.h
+	$(XCC) -x c -target bpf $(XCFLAGS) $(XLDFLAGS) -c -o $@ $<
 
 .PHONY: clean
 clean:

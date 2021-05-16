@@ -4,22 +4,22 @@ flow_tracker sample application
 This directory contains an example of code for a very simple
 flow tracker that extracts IP addresses and port numbers from
 TCP packets in XDP and stores them in a hash table.
-Note: flow_tracker is described [here](../../documentation/xdp.md).
+Note: flow_tracker is described [here](../../../documentation/xdp.md).
 
 To build the flow_tracker example:
 
-cd to this directory (**samples/flow_tracker**) and invoke make:
+cd to this directory (**samples/xdp/flow_tracker_simple**) and invoke make:
 
 **make PANDADIR=$(MYINSTALLDIR)**
 
 where MYINSTALLDIR is to the path for the directory in which the target files
 were installed when building PANDA.
 
-An object file **flow_tracker.o** will be created.
+An object file **flow_tracker.xdp.o** will be created.
 
 Load the object file into XDP:
 
-**sudo ip link set dev \<device\> xdp obj flow_tracker.o verbose**
+**sudo ip link set dev \<device\> xdp obj flow_tracker.xdp.o verbose**
 
 where `<device>` is your network device (example `eno1`, `lo` etc).
 

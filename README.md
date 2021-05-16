@@ -83,6 +83,7 @@ directory has subdirectories
 The subdirectories of **samples** are:
 
 * **parser**: Standalone example programs for the PANDA parser.
+* **xdp**: Example PANDA in XDP programs
 
 # Building
 
@@ -166,8 +167,11 @@ simple parser that extracts IP addresses and port numbers from UDP and TCP
 packets and prints the information as well as a tuple hash.
 See [simple_parser](samples/parser/simple_parser/README.md) for details.
 
-# flow_tracker
+# xdp
 
-**samples/flow_tracker** contains a sample PANDA Parser in XDP application. See
-[flow_tracker](samples/flow_tracker/README.md) for details and
+**sample/xdp** contains sample PANDA in xdp programs. See
 [xdp](documentation/xdp.md) for background information on PANDA in XDP.
+
+**samples/xdp/flow_tracker_simple** contains a sample PANDA Parser in XDP
+application. See [flow_tracker](samples/xdp/flow_tracker_simple/README.md)
+for details.

@@ -38,7 +38,7 @@ In this section we build a simple flow tracker and explain how to integrate
 PANDA in your XDP application.
 
 The flowtracker application described here can be built using the sources
-[here](../samples/flow_tracker).
+[here](../samples/xdp/flow_tracker_simple).
 
 
 ## PANDA Parser
