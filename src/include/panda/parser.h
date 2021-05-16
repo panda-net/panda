@@ -246,34 +246,58 @@ struct panda_parser {
 };
 
 /* Helper to create a parser */
-#define PANDA_PARSER(PARSER, NAME, ROOT_NODE)				\
+#define __PANDA_PARSER(PARSER, NAME, ROOT_NODE)				\
 static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_GENERIC,					\
 	.parser_entry_point = NULL					\
 };									\
-static const struct panda_parser *PARSER __unused() = &__##PARSER;
+
+#define PANDA_PARSER(PARSER, NAME, ROOT_NODE)				\
+	__PANDA_PARSER(PARSER, NAME, ROOT_NODE)				\
+	static const struct panda_parser *PARSER __unused() =		\
+							&__##PARSER;
+
+#define PANDA_PARSER_EXT(PARSER, NAME, ROOT_NODE)			\
+	__PANDA_PARSER(PARSER, NAME, ROOT_NODE)				\
+	const struct panda_parser *PARSER __unused() = &__##PARSER;
 
 /* Helper to create an optimized parser vairant */
-#define PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)			\
+#define __PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)		\
 static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_OPTIMIZED,					\
 	.parser_entry_point = &FUNC					\
-};									\
-static const struct panda_parser *PARSER __unused() = &__##PARSER;
+};
+
+#define PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)			\
+	__PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)		\
+	static const struct panda_parser *PARSER __unused() =		\
+							&__##PARSER;
+
+#define PANDA_PARSER_OPT_EXT(PARSER, NAME, ROOT_NODE, FUNC)		\
+	__PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)		\
+	const struct panda_parser *PARSER __unused() = &__##PARSER;
 
 /* Helper to create an XDP parser vairant */
-#define PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)			\
+#define __PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)		\
 static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_XDP,					\
 	.parser_xdp_entry_point = &FUNC					\
-};									\
-static const struct panda_parser *PARSER __unused() = &__##PARSER;
+};
+
+#define PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)			\
+	__PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)		\
+	static const struct panda_parser *__##PARSER##_ext =		\
+							&__##PARSER;
+
+#define PANDA_PARSER_XDP_EXT(PARSER, NAME, ROOT_NODE, FUNC)		\
+	__PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)		\
+	const struct panda_parser *__##PARSER##_ext = &__##PARSER;
 
 /* Helper to create a protocol table */
 #define PANDA_MAKE_PROTO_TABLE(NAME, ...)				\
@@ -921,6 +945,9 @@ struct panda_parser_def {
 /* Helper to make forward declaration for a const parser */
 #define PANDA_PARSER_DECL(NAME)						\
 	static const struct panda_parser *NAME
+
+#define PANDA_PARSER_EXT_DECL(NAME)					\
+	extern const struct panda_parser *NAME
 
 PANDA_DEFINE_SECTION(panda_parsers, struct panda_parser_def)
 
