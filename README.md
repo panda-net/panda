@@ -173,5 +173,9 @@ See [simple_parser](samples/parser/simple_parser/README.md) for details.
 [xdp](documentation/xdp.md) for background information on PANDA in XDP.
 
 **samples/xdp/flow_tracker_simple** contains a sample PANDA Parser in XDP
-application. See [flow_tracker](samples/xdp/flow_tracker_simple/README.md)
+application. See [flow_tracker_simple](samples/xdp/flow_tracker_simple/README.md)
 for details.
+
+**samples/xdp/flow_tracker_tmpl** contains a sample PANDA Parser in XDP
+application that uses the XDP program template in include/panda/xdp_tmpl.h.
+See [flow_tracker_tmpl](samples/xdp/flow_tracker_tmpl/README.md) for details.

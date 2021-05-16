@@ -1,14 +1,18 @@
-flow_tracker sample application
-================================
+flow_tracker sample application using XDP template
+==================================================
 
 This directory contains an example of code for a very simple
 flow tracker that extracts IP addresses and port numbers from
 TCP packets in XDP and stores them in a hash table.
 Note: flow_tracker is described [here](../../../documentation/xdp.md).
 
+This example program uses the XDP program template in
+include/panda/xdp_tmpl.h. The XDP program templates is invode by
+PANDA_XDP_MAKE_PARSER_PROGRAM (see use in flow_tracker.xdp.c).
+
 To build the flow_tracker example:
 
-cd to this directory (**samples/flow_tracker**) and invoke make:
+cd to this directory (**samples/xdp/flow_tracker_tmpl**) and invoke make:
 
 **make PANDADIR=$(MYINSTALLDIR)**
 
