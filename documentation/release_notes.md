@@ -5,6 +5,7 @@ Major features
 --------------
 
     * PANDA Parser in XDP
+
 	* Add support in PANDA compiler for XDP. If output file argument
 	  has an XDP suffix the panda-compiler with build XDP code
 	* Add document xdp.md to document PANDA in XDP
@@ -23,6 +24,7 @@ Major features
 	  code, in parser.c, as the XDP flow_tracker_program
 
     * flag-fields: Full support for flag-fields
+
 	* Create the flag-fields parse nodes, protocol nodes, helper macros,
 	  and protocol tables for parsing and processing flag-fields
 	* Add metadata for parsing GRE flag-fields
