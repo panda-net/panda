@@ -23,7 +23,6 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
-
 #ifndef __PANDA_BPF_H__
 #define __PANDA_BPF_H__
 
@@ -62,25 +61,26 @@ struct bpf_elf_map {
 
 __always_inline ssize_t panda_bpf_extract_tcpopt_sack(
 	const struct panda_parse_tlv_node_ops *ops, const void *hdr,
-	const void *hdr_end, void *frame, size_t tlv_len)
+	const void *hdr_end, void *frame, size_t tlv_len,
+	struct panda_ctrl_data tlv_ctrl)
 {
 	if (ops->extract_metadata) {
-		if (tlv_len == 34) {
+		if (tlv_ctrl.hdr_len == 34) {
 			if (panda_bpf_check_pkt(hdr, 34, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 34);
-		} else if (tlv_len == 26) {
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
+		} else if (tlv_ctrl.hdr_len == 26) {
 			if (panda_bpf_check_pkt(hdr, 26, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 26);
-		} else if (tlv_len == 18) {
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
+		} else if (tlv_ctrl.hdr_len == 18) {
 			if (panda_bpf_check_pkt(hdr, 18, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 18);
-		} else if (tlv_len == 10) {
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
+		} else if (tlv_ctrl.hdr_len == 10) {
 			if (panda_bpf_check_pkt(hdr, 10, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 10);
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
 		}
 	}
 
@@ -89,13 +89,13 @@ __always_inline ssize_t panda_bpf_extract_tcpopt_sack(
 
 __always_inline ssize_t panda_bpf_extract_tcpopt_timestamp(
 	const struct panda_parse_tlv_node_ops *ops, const void *hdr,
-	const void *hdr_end, void *frame, size_t tlv_len)
+	const void *hdr_end, void *frame, struct panda_ctrl_data tlv_ctrl)
 {
 	if (ops->extract_metadata) {
-		if (tlv_len == 10) {
+		if (tlv_ctrl.hdr_len == 10) {
 			if (panda_bpf_check_pkt(hdr, 10, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 10);
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
 		}
 	}
 
@@ -104,13 +104,13 @@ __always_inline ssize_t panda_bpf_extract_tcpopt_timestamp(
 
 __always_inline ssize_t panda_bpf_extract_tcpopt_window(
 	const struct panda_parse_tlv_node_ops *ops, const void *hdr,
-	const void *hdr_end, void *frame, size_t tlv_len)
+	const void *hdr_end, void *frame, struct panda_ctrl_data tlv_ctrl)
 {
 	if (ops->extract_metadata) {
-		if (tlv_len == 4) {
+		if (tlv_ctrl.hdr_len == 4) {
 			if (panda_bpf_check_pkt(hdr, 4, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 4);
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
 		}
 	}
 
@@ -119,13 +119,13 @@ __always_inline ssize_t panda_bpf_extract_tcpopt_window(
 
 __always_inline ssize_t panda_bpf_extract_tcpopt_mss(
 	const struct panda_parse_tlv_node_ops *ops, const void *hdr,
-	const void *hdr_end, void *frame, size_t tlv_len)
+	const void *hdr_end, void *frame, struct panda_ctrl_data tlv_ctrl)
 {
 	if (ops->extract_metadata) {
-		if (tlv_len == 3) {
+		if (tlv_ctrl.hdr_len == 3) {
 			if (panda_bpf_check_pkt(hdr, 3, hdr_end))
 				return PANDA_STOP_TLV_LENGTH;
-			ops->extract_metadata(hdr, frame, 3);
+			ops->extract_metadata(hdr, frame, tlv_ctrl);
 		}
 	}
 

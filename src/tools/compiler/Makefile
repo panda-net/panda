@@ -1,13 +1,23 @@
 include ../../config.mk
 
-OBJS = src/main.o
+TEMPLATES_PATH = ../../templates/panda
+TEMPLATES_LIST = $(shell sed -f $(TEMPLATES_PATH)/templates.sed $(TEMPLATES_PATH)/templates.list)
+TEMPLATES_SRC = $(patsubst %,%.template.c,$(TEMPLATES_LIST))
+
+%.cpp: %.template.c
+	@echo "const char* $(<F:.template.c=)_template_str = R\"(" > $@
+	$(QUIET_EMBED)$(CAT) $< >> $@
+	@echo ")\";" >> $@
+
+OBJS := src/main.o src/template.o
+OBJS += $(patsubst %,$(TEMPLATES_PATH)/%.o,$(TEMPLATES_LIST))
 TARGETS = panda-compiler
 
-CXXFLAGS += -Iinclude -std=c++17
+CXXFLAGS += -Iinclude -std=c++17 $(CFLAGS_PYTHON)
 BOOST_LIBS ?= -lboost_wave -lboost_thread -lboost_filesystem -lboost_system
 
 panda-compiler: $(OBJS)
-	$(CXX) $^ -o $@ $(BOOST_LIBS)
+	$(CXX) $^ -o $@ $(BOOST_LIBS) $(LDFLAGS_PYTHON)
 
 all: $(TARGETS)
 

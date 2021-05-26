@@ -159,6 +159,26 @@ EOF
 	rm -f $TMPDIR/filesystemtest.cpp $TMPDIR/filesystemtest
 }
 
+check_python()
+{
+	cat >$TMPDIR/check_python.cpp <<EOF
+#include <Python.h>
+
+int main(int argc, char **argv)
+{
+	return (0);
+}
+EOF
+        $CXX -I$INCLUDE -o $TMPDIR/check_python $TMPDIR/check_python.cpp  `$PKG_CONFIG --cflags --libs python3-embed`
+	case $? in
+		0)	;;
+		*)	echo Python missing or broken\! 1>&2
+			exit 1
+			;;
+	esac
+	rm -f $TMPDIR/check_python.cpp $TMPDIR/check_python
+}
+
 quiet_config()
 {
 	cat <<EOF
@@ -176,6 +196,7 @@ else
 endif
 
 ifeq (\$(VERBOSE), 0)
+    QUIET_EMBED    = @echo '    EMBED    '$@;
     QUIET_CC       = @echo '    CC       '\$@;
     QUIET_CXX      = @echo '    CXX      '\$@;
     QUIET_AR       = @echo '    AR       '\$@;
@@ -195,12 +216,16 @@ check_boostsystem
 check_boostwave
 check_boostthread
 check_boostfilesystem
+check_python
 
 #echo
 #echo -n "docs:"
 #check_docs
 #echo
 
+echo 'CFLAGS_PYTHON=`$(PKG_CONFIG) --cflags python3-embed`' >> $CONFIG
+echo 'LDFLAGS_PYTHON=`$(PKG_CONFIG) --libs python3-embed`' >> $CONFIG
+echo 'CAT=cat' >> $CONFIG
 echo >> $CONFIG
 echo "%.o: %.c" >> $CONFIG
 echo '	$(QUIET_CC)$(CC) $(CFLAGS) $(EXTRA_CFLAGS) -c -o $@ $<' >> $CONFIG

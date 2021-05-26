@@ -418,6 +418,12 @@ fill_flag_fields_node_to_vertices(G &g, std::vector<flag_fields_node> nodes,
 	}
 }
 
+using graph_t = boost::adjacency_list<boost::vecS, boost::vecS,
+  boost::directedS, pandagen::vertex_property,
+  pandagen::edge_property, boost::no_property, boost::vecS>;
+using vertex_descriptor_t = boost::graph_traits<graph_t>::vertex_descriptor;
+using root_t = std::tuple<std::string, vertex_descriptor_t, bool, bool>;
+
 } // namespace pandagen
 
 #endif

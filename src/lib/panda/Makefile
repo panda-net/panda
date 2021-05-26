@@ -23,7 +23,6 @@ PARSEROSEXT = $(addprefix $(PARSERDIR)/, $(PARSEROBJS))
 else
 
 PARSERCSEXT = $(PARSEROBJSEXT:.o=.p.c)
-PARSERHSEXT = $(PARSEROBJSEXT:.o=.p.h)
 PARSEROSEXT = $(PARSEROBJSEXT:.o=.p.o)
 
 $(PARSERCSEXT): %.p.c: %.c
@@ -39,18 +38,13 @@ libpanda.a: $(ALLOBJS) $(ADDLIB)
 libpanda.so: $(ALLOBJS) $(ADDLIB)
 	$(CC) -shared $^ -o $@ -lpcap
 
-.PHONY: install-generated-headers
-install-generated-headers: $(PARSERHSEXT)
-	install -m 0755 $^ $(INSTALLDIR)$(HDRDIR)/panda/parsers
-
 .PHONY: install-libs
 install-libs: $(TARGETS)
 	$(QUIET_INSTALL)$(INSTALL) -m 0755 $^ $(INSTALLDIR)$(LIBDIR)
 
 .PHONY: install
-install: install-libs install-generated-headers
-
+install: install-libs
 
 .PHONY: clean
 clean:
-	@rm -f $(ALLOBJS) $(ADDLIB) $(TARGETS) $(PARSERCSEXT) $(PARSERHSEXT) $(PARSEROSEXT)
+	@rm -f $(ALLOBJS) $(ADDLIB) $(TARGETS) $(PARSERCSEXT) $(PARSEROSEXT)
