@@ -112,7 +112,7 @@ struct panda_proto_node {
 	enum panda_parser_node_type node_type;
 	__u8 encap;
 	__u8 overlay;
-	char *name;
+	const char *name;
 	size_t min_len;
 	const struct panda_parse_ops ops;
 };
@@ -549,6 +549,7 @@ struct panda_parse_flag_field_node_ops {
 /* A parse node for a single flag field */
 struct panda_parse_flag_field_node {
 	const struct panda_parse_flag_field_node_ops ops;
+	const char *name;
 };
 
 /* One entry in a flag-fields protocol table:
@@ -672,6 +673,7 @@ struct panda_proto_flag_fields_node {
 	static const struct panda_parse_flag_field_node NODE_NAME = {	\
 		.ops.extract_metadata = METADATA_FUNC,			\
 		.ops.handle_flag_field = HANDLER_FUNC,			\
+		.name = #NODE_NAME,					\
 	}
 
 /* Definitions for parsing TLVs
@@ -730,6 +732,7 @@ struct panda_parse_tlv_node_ops {
 struct panda_parse_tlv_node {
 	const struct panda_parse_tlv_node_ops tlv_ops;
 	const struct panda_proto_tlvs_table *overlay_table;
+	const char *name;
 };
 
 /* One entry in a TLV table:
@@ -889,6 +892,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 		.tlv_ops.check_length = CHECK_LENGTH,			\
 		.tlv_ops.extract_metadata = METADATA_FUNC,		\
 		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
+		.name = #NODE_NAME,					\
 	}
 
 #define PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(NODE_NAME, CHECK_LENGTH,	\
@@ -905,6 +909,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 		.tlv_ops.unknown_overlay_type =				\
 					UNKNOWN_OVERLAY_TYPE_FUNC,	\
 		.overlay_table = &OVERLAY_TABLE,			\
+		.name = #NODE_NAME,					\
 	}
 
 /* Parsing functions */

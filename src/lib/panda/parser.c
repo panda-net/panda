@@ -92,12 +92,15 @@ static int panda_parse_one_tlv(
 		const struct panda_parse_tlvs_node *parse_tlvs_node,
 		const struct panda_parse_tlv_node *parse_tlv_node,
 		const void *hdr, void *frame, int type,
-		struct panda_ctrl_data tlv_ctrl)
+		struct panda_ctrl_data tlv_ctrl, unsigned int flags)
 {
 	const struct panda_parse_tlv_node_ops *ops;
 	int ret;
 
 parse_again:
+
+	if (flags & PANDA_F_DEBUG)
+		printf("PANDA parsing TLV %s\n", parse_tlv_node->name);
 
 	ops = &parse_tlv_node->tlv_ops;
 
@@ -152,7 +155,8 @@ parse_again:
 
 static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 			    const void *hdr, void *frame,
-			    const struct panda_ctrl_data ctrl)
+			    const struct panda_ctrl_data ctrl,
+			    unsigned int flags)
 {
 	const struct panda_parse_tlvs_node *parse_tlvs_node;
 	const struct panda_proto_tlvs_node *proto_tlvs_node;
@@ -223,8 +227,8 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 				parse_tlvs_node->tlv_proto_table);
 		if (parse_tlv_node) {
 			ret = panda_parse_one_tlv(parse_tlvs_node,
-						  parse_tlv_node, cp,
-						  frame, type, tlv_ctrl);
+						  parse_tlv_node, cp, frame,
+						  type, tlv_ctrl, flags);
 			if (ret != PANDA_OKAY)
 				return ret;
 		}
@@ -243,7 +247,8 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 
 static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 				   const void *hdr, void *frame,
-				   struct panda_ctrl_data data)
+				   struct panda_ctrl_data data,
+				   unsigned int pflags)
 {
 	const struct panda_parse_flag_fields_node *parse_flag_fields_node;
 	const struct panda_proto_flag_fields_node *proto_flag_fields_node;
@@ -282,6 +287,10 @@ static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 			const __u8 *cp = hdr + off;
 
 			flag_ctrl.hdr_len = flag_fields->fields[i].size;
+
+			if (pflags & PANDA_F_DEBUG)
+				printf("PANDA parsing flag-field %s\n",
+				      parse_flag_field_node->name);
 
 			if (ops->extract_metadata)
 				ops->extract_metadata(cp, frame, flag_ctrl);
@@ -375,7 +384,7 @@ int __panda_parse(const struct panda_parser *parser,
 				 * but proto_node is not TLVs type
 				 */
 				ret = panda_parse_tlvs(parse_node, hdr, frame,
-						       ctrl);
+						       ctrl, flags);
 				if (ret != PANDA_OKAY)
 					return ret;
 			}
@@ -388,7 +397,8 @@ int __panda_parse(const struct panda_parser *parser,
 				 * type but proto_node is not flag-fields type
 				 */
 				ret = panda_parse_flag_fields(parse_node, hdr,
-							      frame, ctrl);
+							      frame, ctrl,
+							      flags);
 				if (ret != PANDA_OKAY)
 					return ret;
 			}
