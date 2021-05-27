@@ -308,6 +308,7 @@ static void show_help(void)
 		"-N      Suppress the actual parser call.\n"
 		"-H      Compute/print metadata hashes.\n"
 		"-v      show computation cost\n"
+		"-d      enable debug messages\n"
 		"-n N    Repeat each input packet a total of N times "
 		"(default 1)\n"
 		"-i NAME[,ARGS]\n"
@@ -351,7 +352,7 @@ static void show_help(void)
 
 static void usage(char *progname)
 {
-	fprintf(stderr, "Usage: %s [-NHv] [-n <number>] [-i <type>[,<arg>]] "
+	fprintf(stderr, "Usage: %s [-NHvd] [-n <number>] [-i <type>[,<arg>]] "
 		"[-o <type>[,<arg>]] [-c <core>]\n", progname);
 
 	exit(-1);
