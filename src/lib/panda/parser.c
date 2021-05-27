@@ -88,6 +88,68 @@ static const struct panda_parse_flag_field_node *lookup_flag_field_node(int idx,
 	return NULL;
 }
 
+static int panda_parse_one_tlv(
+		const struct panda_parse_tlvs_node *parse_tlvs_node,
+		const struct panda_parse_tlv_node *parse_tlv_node,
+		const void *hdr, void *frame, int type,
+		struct panda_ctrl_data tlv_ctrl)
+{
+	const struct panda_parse_tlv_node_ops *ops;
+	int ret;
+
+parse_again:
+
+	ops = &parse_tlv_node->tlv_ops;
+
+	if (ops->check_length) {
+		int ret = ops->check_length(hdr, frame);
+
+		if (ret != PANDA_OKAY) {
+			if (parse_tlvs_node->ops.unknown_type) {
+				ret = parse_tlvs_node->ops.unknown_type(
+					hdr, frame, type, ret);
+
+				return ret;
+			} else {
+				return PANDA_OKAY;
+			}
+		}
+	}
+
+	if (ops->extract_metadata)
+		ops->extract_metadata(hdr, frame, tlv_ctrl);
+
+	if (ops->handle_tlv) {
+		ret = ops->handle_tlv(hdr, frame, tlv_ctrl);
+		if (ret != PANDA_OKAY)
+			return ret;
+	}
+
+	if (!parse_tlv_node->overlay_table)
+		return PANDA_OKAY;
+
+	/* We have an TLV overlay  node */
+
+	if (parse_tlv_node->tlv_ops.overlay_type)
+		type = parse_tlv_node->tlv_ops.overlay_type(hdr);
+	else
+		type = tlv_ctrl.hdr_len;
+
+	/* Get TLV node */
+	parse_tlv_node = lookup_tlv_node(type, parse_tlv_node->overlay_table);
+	if (parse_tlv_node)
+		goto parse_again;
+
+	/* Unknown TLV overlay node */
+	if (parse_tlv_node->tlv_ops.unknown_overlay_type) {
+		ret = parse_tlv_node->tlv_ops.unknown_overlay_type(hdr,
+					frame, type);
+		return ret;
+	}
+
+	return PANDA_OKAY;
+}
+
 static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 			    const void *hdr, void *frame,
 			    const struct panda_ctrl_data ctrl)
@@ -99,7 +161,7 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 	const __u8 *cp = hdr;
 	size_t offset, len;
 	ssize_t tlv_len;
-	int type;
+	int type, ret;
 
 	parse_tlvs_node = (struct panda_parse_tlvs_node *)parse_node;
 	proto_tlvs_node = (struct panda_proto_tlvs_node *)
@@ -160,44 +222,13 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 		parse_tlv_node = lookup_tlv_node(type,
 				parse_tlvs_node->tlv_proto_table);
 		if (parse_tlv_node) {
-			const struct panda_parse_tlv_node_ops *ops =
-						&parse_tlv_node->tlv_ops;
-
-			if (ops->check_length) {
-				int ret = ops->check_length(cp, frame);
-
-				if (ret != PANDA_OKAY) {
-					if (!parse_tlvs_node->ops.unknown_type)
-						goto next_tlv;
-
-					ret = parse_tlvs_node->ops.unknown_type(
-							hdr, frame, type, ret);
-
-					if (ret == PANDA_OKAY)
-						goto next_tlv;
-				}
-			}
-
-			if (ops->extract_metadata)
-				ops->extract_metadata(cp, frame, tlv_ctrl);
-
-			if (ops->handle_tlv)
-				ops->handle_tlv(cp, frame, tlv_ctrl);
-		} else {
-			int ret;
-
-			/* Unknown TLV */
-
-			if (parse_tlvs_node->ops.unknown_type)
-				goto next_tlv;
-
-			ret = parse_tlvs_node->ops.unknown_type(hdr, frame,
-						type, PANDA_STOP_UNKNOWN_TLV);
+			ret = panda_parse_one_tlv(parse_tlvs_node,
+						  parse_tlv_node, cp,
+						  frame, type, tlv_ctrl);
 			if (ret != PANDA_OKAY)
 				return ret;
 		}
 
-next_tlv:
 		/* Move over current header */
 		cp += tlv_len;
 		len -= tlv_len;
