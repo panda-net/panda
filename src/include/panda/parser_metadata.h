@@ -479,6 +479,67 @@ static void NAME(const void *vopt, void *iframe,			\
 	}								\
 }
 
+/* Common macro to set one metadata entry for sack. N indicates which
+ * entry (per protocol specification that is 0, 1, 2, or 3)
+ */
+#define PANDA_METADATA_SET_TCP_SACK(N, VOPT, IFRAME, STRUCT) do {	\
+	const struct tcp_opt_union *opt = vopt;				\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->tcp_options.sack[N].left_edge =				\
+				ntohl(opt->sack[N].left_edge);		\
+	frame->tcp_options.sack[N].right_edge =				\
+				ntohl(opt->sack[N].right_edge);		\
+} while (0)
+
+/* Meta data helper for setting one TCP sack option
+ * Uses common metadata field: tcp_options.sack[0]
+ */
+#define PANDA_METADATA_TEMP_tcp_option_sack_1(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe,			\
+		 struct panda_ctrl_data ctrl)				\
+{									\
+	PANDA_METADATA_SET_TCP_SACK(0, vopt, iframe, STRUCT);		\
+}
+
+/* Meta data helper for setting two TCP sack options
+ * Uses common metadata field: tcp_options.sack[0], tcp_options.sack[1]
+ */
+#define PANDA_METADATA_TEMP_tcp_option_sack_2(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe,			\
+		 struct panda_ctrl_data ctrl)				\
+{									\
+	PANDA_METADATA_SET_TCP_SACK(0, vopt, iframe, STRUCT);		\
+	PANDA_METADATA_SET_TCP_SACK(1, vopt, iframe, STRUCT);		\
+}
+
+/* Meta data helper for setting three TCP sack options
+ * Uses common metadata field: tcp_options.sack[0], tcp_options.sack[1],
+ * tcp_options.sack[2]
+ */
+#define PANDA_METADATA_TEMP_tcp_option_sack_3(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe,			\
+		 struct panda_ctrl_data ctrl)				\
+{									\
+	PANDA_METADATA_SET_TCP_SACK(0, vopt, iframe, STRUCT);		\
+	PANDA_METADATA_SET_TCP_SACK(1, vopt, iframe, STRUCT);		\
+	PANDA_METADATA_SET_TCP_SACK(2, vopt, iframe, STRUCT);		\
+}
+
+/* Meta data helper for setting four TCP sack options
+ * Uses common metadata field: tcp_options.sack[0], tcp_options.sack[1],
+ * tcp_options.sack[2], tcp_options.sack[3]
+ */
+#define PANDA_METADATA_TEMP_tcp_option_sack_4(NAME, STRUCT)		\
+static void NAME(const void *vopt, void *iframe,			\
+		 struct panda_ctrl_data ctrl)				\
+{									\
+	PANDA_METADATA_SET_TCP_SACK(0, vopt, iframe, STRUCT);		\
+	PANDA_METADATA_SET_TCP_SACK(1, vopt, iframe, STRUCT);		\
+	PANDA_METADATA_SET_TCP_SACK(2, vopt, iframe, STRUCT);		\
+	PANDA_METADATA_SET_TCP_SACK(3, vopt, iframe, STRUCT);		\
+}
+
 /* Meta data helper for IP overlay (differentiate based on version number).
  * Uses common metadata fields: eth_proto
  */
