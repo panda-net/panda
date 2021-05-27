@@ -67,7 +67,15 @@ PANDA_METADATA_TEMP_tcp_option_window_scaling(tcp_opt_window_scaling_metadata,
 					      panda_metadata_all)
 PANDA_METADATA_TEMP_tcp_option_timestamp(tcp_opt_timestamp_metadata,
 					 panda_metadata_all)
-PANDA_METADATA_TEMP_tcp_option_sack(tcp_opt_sack_metadata, panda_metadata_all)
+
+PANDA_METADATA_TEMP_tcp_option_sack_1(tcp_opt_sack_metadata_1,
+				      panda_metadata_all)
+PANDA_METADATA_TEMP_tcp_option_sack_2(tcp_opt_sack_metadata_2,
+				      panda_metadata_all)
+PANDA_METADATA_TEMP_tcp_option_sack_3(tcp_opt_sack_metadata_3,
+				      panda_metadata_all)
+PANDA_METADATA_TEMP_tcp_option_sack_4(tcp_opt_sack_metadata_4,
+				      panda_metadata_all)
 
 PANDA_METADATA_TEMP_gre(gre_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_gre_pptp(gre_pptp_metadata, panda_metadata_all)
@@ -153,8 +161,13 @@ PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_window_scaling_node,
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_option_timestamp_check_length,
 			  tcp_opt_timestamp_metadata, NULL);
-PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_node, tcp_option_sack_check_length,
-			  tcp_opt_sack_metadata, NULL);
+
+PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(tcp_opt_sack_node, NULL, NULL, NULL,
+				  tcp_sack_tlv_table, NULL, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_1, NULL, tcp_opt_sack_metadata_1, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_2, NULL, tcp_opt_sack_metadata_2, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_3, NULL, tcp_opt_sack_metadata_3, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_4, NULL, tcp_opt_sack_metadata_4, NULL);
 
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_csum_node, gre_checksum_metadata,
 				 NULL);
@@ -274,6 +287,14 @@ PANDA_MAKE_TLV_TABLE(tcp_tlv_table,
 	{ TCPOPT_WINDOW, &tcp_opt_window_scaling_node },
 	{ TCPOPT_TIMESTAMP, &tcp_opt_timestamp_node },
 	{ TCPOPT_SACK, &tcp_opt_sack_node }
+);
+
+/* Keys are possible lengths of the TCP sack option */
+PANDA_MAKE_TLV_TABLE(tcp_sack_tlv_table,
+	{ 10, &tcp_opt_sack_1 },
+	{ 18, &tcp_opt_sack_2 },
+	{ 26, &tcp_opt_sack_3 },
+	{ 34, &tcp_opt_sack_4 }
 );
 
 PANDA_MAKE_FLAG_FIELDS_TABLE(gre_v0_flag_fields_table,
