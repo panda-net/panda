@@ -163,7 +163,7 @@ PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_opt_timestamp_metadata, NULL);
 
 PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(tcp_opt_sack_node, NULL, NULL, NULL,
-				  tcp_sack_tlv_table, NULL, NULL);
+				  tcp_sack_tlv_table, NULL, PANDA_OKAY, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_1, NULL, tcp_opt_sack_metadata_1, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_2, NULL, tcp_opt_sack_metadata_2, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_3, NULL, tcp_opt_sack_metadata_3, NULL);

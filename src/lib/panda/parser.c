@@ -142,13 +142,11 @@ parse_again:
 		goto parse_again;
 
 	/* Unknown TLV overlay node */
-	if (parse_tlv_node->tlv_ops.unknown_overlay_type) {
-		ret = parse_tlv_node->tlv_ops.unknown_overlay_type(hdr,
-					frame, type);
-		return ret;
-	}
+	parse_tlv_node = parse_tlv_node->overlay_wildcard_node;
+	if (parse_tlv_node)
+		goto parse_again;
 
-	return PANDA_OKAY;
+	return parse_tlv_node->unknown_overlay_ret;
 }
 
 static int panda_parse_tlvs(const struct panda_parse_node *parse_node,

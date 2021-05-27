@@ -727,7 +727,6 @@ struct panda_parse_tlv_node_ops {
 	int (*handle_tlv)(const void *hdr, void *frame,
 			  const struct panda_ctrl_data ctrl);
 	int (*overlay_type)(const void *hdr);
-	int (*unknown_overlay_type)(const void *hdr, void *frame, int type);
 };
 
 /* Parse node for a single TLV. Use common parse node operations
@@ -736,6 +735,8 @@ struct panda_parse_tlv_node_ops {
 struct panda_parse_tlv_node {
 	const struct panda_parse_tlv_node_ops tlv_ops;
 	const struct panda_proto_tlvs_table *overlay_table;
+	const struct panda_parse_tlv_node *overlay_wildcard_node;
+	int unknown_overlay_ret;
 	const char *name;
 };
 
@@ -906,15 +907,16 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 					  METADATA_FUNC, HANDLER_FUNC,	\
 					  OVERLAY_TABLE,		\
 					  OVERLAY_TYPE_FUNC,		\
-					  UNKNOWN_OVERLAY_TYPE_FUNC)	\
+					  UNKNOWN_OVERLAY_RET,		\
+					  OVERLAY_WILDCARD_NODE)	\
 	PANDA_DECL_TLVS_TABLE(OVERLAY_TABLE);				\
 	static const struct panda_parse_tlv_node NODE_NAME = {		\
 		.tlv_ops.check_length = CHECK_LENGTH,			\
 		.tlv_ops.extract_metadata = METADATA_FUNC,		\
 		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
 		.tlv_ops.overlay_type = OVERLAY_TYPE_FUNC,		\
-		.tlv_ops.unknown_overlay_type =				\
-					UNKNOWN_OVERLAY_TYPE_FUNC,	\
+		.unknown_overlay_ret = UNKNOWN_OVERLAY_RET,		\
+		.overlay_wildcard_node = OVERLAY_WILDCARD_NODE,		\
 		.overlay_table = &OVERLAY_TABLE,			\
 		.name = #NODE_NAME,					\
 	}
