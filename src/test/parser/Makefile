@@ -2,11 +2,17 @@ include ../../config.mk
 
 COMPDIR=../../tools/compiler
 
+ifneq ($(OPTIMIZED_PARSER),n)
+CORES_LIST = cores.list
+else
+CORES_LIST = cores-nonopt.list
+endif
+
 IMETHODS != sed -f method.sed < imethods.list
 IMETHODS_OBJ := $(foreach m,$(IMETHODS),in-$(m).o)
 OMETHODS != sed -f method.sed < omethods.list
 OMETHODS_OBJ := $(foreach m,$(OMETHODS),out-$(m).o)
-CORES != sed -f method.sed < cores.list
+CORES != sed -f method.sed < $(CORES_LIST)
 CORES_OBJ := $(foreach m,$(CORES),core-$(m).o)
 
 CFLAGS += -I../../lib/panda
@@ -63,7 +69,7 @@ omethods.inc: omethods.list
 CLEANFILES += omethods.inc
 PREDEPEND += omethods.inc
 
-cores.inc: cores.list
-	< cores.list sed -f method_strip.sed | sed -e 's@.*@__CORE_OP(&)@' > cores.inc || rm -f cores.inc
+cores.inc: $(CORES_LIST)
+	< $(CORES_LIST) sed -f method_strip.sed | sed -e 's@.*@__CORE_OP(&)@' > cores.inc || rm -f cores.inc
 CLEANFILES += cores.inc
 PREDEPEND += cores.inc

@@ -18,12 +18,17 @@ TARGETS = libpanda.so libpanda.a
 .PHONY: all
 all: $(TARGETS)
 
+ifeq ($(OPTIMIZED_PARSER),n)
+PARSEROSEXT = $(addprefix $(PARSERDIR)/, $(PARSEROBJS))
+else
+
 PARSERCSEXT = $(PARSEROBJSEXT:.o=.p.c)
 PARSERHSEXT = $(PARSEROBJSEXT:.o=.p.h)
 PARSEROSEXT = $(PARSEROBJSEXT:.o=.p.o)
 
 $(PARSERCSEXT): %.p.c: %.c
 	../../tools/compiler/panda-compiler $< $@
+endif
 
 CFLAGS += -I.
 ALLOBJS += $(PARSEROSEXT)
