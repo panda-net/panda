@@ -89,11 +89,13 @@ static const struct panda_parse_flag_field_node *lookup_flag_field_node(int idx,
 }
 
 static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
-			    const void *hdr, void *frame, size_t hlen)
+			    const void *hdr, void *frame,
+			    const struct panda_ctrl_data ctrl)
 {
 	const struct panda_parse_tlvs_node *parse_tlvs_node;
 	const struct panda_proto_tlvs_node *proto_tlvs_node;
 	const struct panda_parse_tlv_node *parse_tlv_node;
+	struct panda_ctrl_data tlv_ctrl;
 	const __u8 *cp = hdr;
 	size_t offset, len;
 	ssize_t tlv_len;
@@ -107,7 +109,7 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 	offset = proto_tlvs_node->ops.start_offset(hdr);
 
 	/* We assume start offset is less than or equal to minimal length */
-	len = hlen - offset;
+	len = ctrl.hdr_len - offset;
 
 	cp += offset;
 
@@ -150,6 +152,8 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 			tlv_len = proto_tlvs_node->min_len;
 		}
 
+		tlv_ctrl.hdr_len = tlv_len;
+
 		type = proto_tlvs_node->ops.type(cp);
 
 		/* Get TLV node */
@@ -175,10 +179,10 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 			}
 
 			if (ops->extract_metadata)
-				ops->extract_metadata(cp, frame, tlv_len);
+				ops->extract_metadata(cp, frame, tlv_ctrl);
 
 			if (ops->handle_tlv)
-				ops->handle_tlv(cp, frame, tlv_len);
+				ops->handle_tlv(cp, frame, tlv_ctrl);
 		} else {
 			int ret;
 
@@ -201,13 +205,14 @@ next_tlv:
 
 	if (parse_tlvs_node->ops.post_tlv_handle_proto)
 		return parse_tlvs_node->ops.post_tlv_handle_proto(hdr, frame,
-								  hlen);
+								  ctrl);
 	else
 		return PANDA_OKAY;
 }
 
 static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
-				   const void *hdr, void *frame, size_t hlen)
+				   const void *hdr, void *frame,
+				   struct panda_ctrl_data data)
 {
 	const struct panda_parse_flag_fields_node *parse_flag_fields_node;
 	const struct panda_proto_flag_fields_node *proto_flag_fields_node;
@@ -242,14 +247,16 @@ static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 		if (parse_flag_field_node) {
 			const struct panda_parse_flag_field_node_ops
 				*ops = &parse_flag_field_node->ops;
+			struct panda_ctrl_data flag_ctrl;
 			const __u8 *cp = hdr + off;
-			size_t size = flag_fields->fields[i].size;
+
+			flag_ctrl.hdr_len = flag_fields->fields[i].size;
 
 			if (ops->extract_metadata)
-				ops->extract_metadata(cp, frame, size);
+				ops->extract_metadata(cp, frame, flag_ctrl);
 
 			if (ops->handle_flag_field)
-				ops->handle_flag_field(cp, frame, size);
+				ops->handle_flag_field(cp, frame, flag_ctrl);
 		}
 	}
 
@@ -274,6 +281,7 @@ int __panda_parse(const struct panda_parser *parser,
 {
 	const struct panda_parse_node *next_parse_node;
 	void *frame = metadata->frame_data;
+	struct panda_ctrl_data ctrl;
 	unsigned int frame_num = 0;
 	int type, ret;
 
@@ -309,6 +317,8 @@ int __panda_parse(const struct panda_parser *parser,
 			hlen = proto_node->min_len;
 		}
 
+		ctrl.hdr_len = hlen;
+
 		/* Callback processing order
 		 *    1) Extract Metadata
 		 *    2) Process TLVs
@@ -320,7 +330,7 @@ int __panda_parse(const struct panda_parser *parser,
 		/* Extract metadata, per node processing */
 
 		if (parse_node->ops.extract_metadata)
-			parse_node->ops.extract_metadata(hdr, frame, hlen);
+			parse_node->ops.extract_metadata(hdr, frame, ctrl);
 
 		switch (parse_node->node_type) {
 		case PANDA_NODE_TYPE_PLAIN:
@@ -334,7 +344,7 @@ int __panda_parse(const struct panda_parser *parser,
 				 * but proto_node is not TLVs type
 				 */
 				ret = panda_parse_tlvs(parse_node, hdr, frame,
-						       hlen);
+						       ctrl);
 				if (ret != PANDA_OKAY)
 					return ret;
 			}
@@ -347,7 +357,7 @@ int __panda_parse(const struct panda_parser *parser,
 				 * type but proto_node is not flag-fields type
 				 */
 				ret = panda_parse_flag_fields(parse_node, hdr,
-							      frame, hlen);
+							      frame, ctrl);
 				if (ret != PANDA_OKAY)
 					return ret;
 			}
@@ -356,7 +366,7 @@ int __panda_parse(const struct panda_parser *parser,
 
 		/* Process protocol */
 		if (parse_node->ops.handle_proto)
-			parse_node->ops.handle_proto(hdr, frame, hlen);
+			parse_node->ops.handle_proto(hdr, frame, ctrl);
 
 		/* Proceed to next protocol layer */
 

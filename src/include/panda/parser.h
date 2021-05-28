@@ -147,6 +147,10 @@ struct panda_ctx {
 	struct panda_metadata metadata;
 };
 
+struct panda_ctrl_data {
+	size_t hdr_len;
+};
+
 /* Parse node operations
  *
  * Operations to process a parsing node
@@ -161,8 +165,10 @@ struct panda_ctx {
  *	values indicate to stop parsing
  */
 struct panda_parse_node_ops {
-	void (*extract_metadata)(const void *hdr, void *frame, size_t len);
-	int (*handle_proto)(const void *hdr, void *frame, size_t len);
+	void (*extract_metadata)(const void *hdr, void *frame,
+				 const struct panda_ctrl_data ctrl);
+	int (*handle_proto)(const void *hdr, void *frame,
+			    const struct panda_ctrl_data ctrl);
 	int (*unknown_next_proto)(const void *hdr, void *frame, int type,
 				  int err);
 };
@@ -534,8 +540,10 @@ struct panda_proto_flag_fields_ops {
  *	values indicate to stop parsing
  */
 struct panda_parse_flag_field_node_ops {
-	void (*extract_metadata)(const void *hdr, void *frame, size_t len);
-	int (*handle_flag_field)(const void *hdr, void *frame, size_t len);
+	void (*extract_metadata)(const void *hdr, void *frame,
+				 struct panda_ctrl_data ctrl);
+	int (*handle_flag_field)(const void *hdr, void *frame,
+				 struct panda_ctrl_data ctrl);
 };
 
 /* A parse node for a single flag field */
@@ -708,8 +716,10 @@ struct panda_proto_tlvs_opts {
  */
 struct panda_parse_tlv_node_ops {
 	int (*check_length)(const void *hdr, void *frame);
-	void (*extract_metadata)(const void *hdr, void *frame, size_t len);
-	int (*handle_tlv)(const void *hdr, void *frame, size_t len);
+	void (*extract_metadata)(const void *hdr, void *frame,
+				 const struct panda_ctrl_data ctrl);
+	int (*handle_tlv)(const void *hdr, void *frame,
+			  const struct panda_ctrl_data ctrl);
 };
 
 /* Parse node for a single TLV. Use common parse node operations
@@ -739,7 +749,8 @@ struct panda_proto_tlvs_table {
 
 /* TLV specific operations for TLVs parse node */
 struct panda_parse_tlvs_ops {
-	int (*post_tlv_handle_proto)(const void *hdr, void *frame, size_t len);
+	int (*post_tlv_handle_proto)(const void *hdr, void *frame,
+				     struct panda_ctrl_data ctrl);
 	int (*unknown_type)(const void *hdr, void *frame, int type,
 			    int err);
 };
