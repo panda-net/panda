@@ -116,6 +116,10 @@ enum panda_addr_types {
 
 #define PANDA_METADATA_flow_label	__u32 flow_label
 
+#define PANDA_METADATA_l2_off		__u16 l2_off
+#define PANDA_METADATA_l3_off		__u16 l3_off
+#define PANDA_METADATA_l4_off		__u16 l4_off
+
 #define PANDA_METADATA_ports						\
 	union {								\
 		__be32 ports;						\
@@ -218,6 +222,10 @@ struct panda_metadata_all {
 	PANDA_METADATA_arp;
 	PANDA_METADATA_gre;
 	PANDA_METADATA_gre_pptp;
+	PANDA_METADATA_l2_off;
+	PANDA_METADATA_l3_off;
+	PANDA_METADATA_l4_off;
+
 
 #define PANDA_HASH_START_FIELD_ALL eth_proto
 	PANDA_METADATA_eth_proto __aligned(8);
@@ -318,6 +326,21 @@ static void NAME(const void *veth, void *iframe,			\
 	       sizeof(frame->eth_addrs));				\
 }
 
+/* Meta data helper for Ethernet with setting L2 offset.
+ * Uses common metadata fields: eth_proto, eth_addrs, l2_off
+ */
+#define PANDA_METADATA_TEMP_ether_off(NAME, STRUCT)			\
+static void NAME(const void *veth, void *iframe,			\
+		 struct panda_ctrl_data ctrl)				\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->l2_off = ctrl.hdr_offset;				\
+	frame->eth_proto = ((struct ethhdr *)veth)->h_proto;		\
+	memcpy(frame->eth_addrs, &((struct ethhdr *)veth)->h_dest,	\
+	       sizeof(frame->eth_addrs));				\
+}
+
 /* Meta data helper for Ethernet without extracting addresses.
  * Uses common metadata fields: eth_proto
  */
@@ -332,7 +355,7 @@ static void NAME(const void *veth, void *iframe,			\
 
 /* Meta data helper for IPv4.
  * Uses common metadata fields: is_fragment, first_frag, ip_proto,
- * addr_type, addrs.v4_addrs
+ * addr_type, addrs.v4_addrs, l3_off
  */
 #define PANDA_METADATA_TEMP_ipv4(NAME, STRUCT)				\
 static void NAME(const void *viph, void *iframe,			\
@@ -347,6 +370,7 @@ static void NAME(const void *viph, void *iframe,			\
 				!(iph->frag_off & htons(IP_OFFSET));	\
 	}								\
 									\
+	frame->l3_off = ctrl.hdr_offset;				\
 	frame->addr_type = PANDA_ADDR_TYPE_IPV4;			\
 	frame->ip_proto = iph->protocol;				\
 	memcpy(frame->addrs.v4_addrs, &iph->saddr,			\
@@ -370,7 +394,8 @@ static void NAME(const void *viph, void *iframe,			\
 }
 
 /* Meta data helper for IPv6.
- * Uses common metadata fields: ip_proto, addr_type, flow_label, addrs.v6_addrs
+ * Uses common metadata fields: ip_proto, addr_type, flow_label,
+ * addrs.v6_addrs, l3_off
  */
 #define PANDA_METADATA_TEMP_ipv6(NAME, STRUCT)				\
 static void NAME(const void *viph, void *iframe,			\
@@ -379,6 +404,7 @@ static void NAME(const void *viph, void *iframe,			\
 	struct STRUCT *frame = iframe;					\
 	const struct ipv6hdr *iph = viph;				\
 									\
+	frame->l3_off = ctrl.hdr_offset;				\
 	frame->ip_proto = iph->nexthdr;					\
 	frame->addr_type = PANDA_ADDR_TYPE_IPV6;			\
 	frame->flow_label = ntohl(ip6_flowlabel(iph));			\
@@ -412,6 +438,19 @@ static void NAME(const void *vphdr, void *iframe,			\
 	struct STRUCT *frame = iframe;					\
 									\
 	frame->ports = ((struct port_hdr *)vphdr)->ports;		\
+}
+
+/* Meta data helper for transport with ports and offset
+ * Uses common metadata fields: ports, l4_off
+ */
+#define PANDA_METADATA_TEMP_ports_off(NAME, STRUCT)			\
+static void NAME(const void *vphdr, void *iframe,			\
+		 struct panda_ctrl_data ctrl)				\
+{									\
+	struct STRUCT *frame = iframe;					\
+									\
+	frame->ports = ((struct port_hdr *)vphdr)->ports;		\
+	frame->l4_off = ctrl.hdr_offset;				\
 }
 
 /* Meta data helpers for TCP options */

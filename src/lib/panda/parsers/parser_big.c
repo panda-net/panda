@@ -48,13 +48,13 @@
 /* Meta data functions for parser nodes. Use the canned templates
  * for common metadata
  */
-PANDA_METADATA_TEMP_ether(ether_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_ether_off(ether_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ipv4(ipv4_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ipv6(ipv6_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ip_overlay(ip_overlay_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ipv6_eh(ipv6_eh_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_ipv6_frag(ipv6_frag_metadata, panda_metadata_all)
-PANDA_METADATA_TEMP_ports(ports_metadata, panda_metadata_all)
+PANDA_METADATA_TEMP_ports_off(ports_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_icmp(icmp_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_vlan_8021AD(e8021AD_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_vlan_8021Q(e8021Q_metadata, panda_metadata_all)

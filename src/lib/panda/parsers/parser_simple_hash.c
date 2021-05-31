@@ -52,7 +52,7 @@ PANDA_METADATA_TEMP_ether_noaddrs(ether_metadata,
 				   panda_parser_simple_hash_metadata)
 PANDA_METADATA_TEMP_ipv4_addrs(ipv4_metadata,
 				panda_parser_simple_hash_metadata)
-PANDA_METADATA_TEMP_ipv6(ipv6_metadata, panda_parser_simple_hash_metadata)
+PANDA_METADATA_TEMP_ipv6_addrs(ipv6_metadata, panda_parser_simple_hash_metadata)
 PANDA_METADATA_TEMP_ports(ports_metadata, panda_parser_simple_hash_metadata)
 
 
