@@ -161,9 +161,9 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 	const struct panda_parse_tlvs_node *parse_tlvs_node;
 	const struct panda_proto_tlvs_node *proto_tlvs_node;
 	const struct panda_parse_tlv_node *parse_tlv_node;
+	size_t off, len, offset = ctrl.hdr_offset;
 	struct panda_ctrl_data tlv_ctrl;
 	const __u8 *cp = hdr;
-	size_t offset, len;
 	ssize_t tlv_len;
 	int type, ret;
 
@@ -172,18 +172,20 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 						parse_node->proto_node;
 
 	/* Assume hlen marks end of TLVs */
-	offset = proto_tlvs_node->ops.start_offset(hdr);
+	off = proto_tlvs_node->ops.start_offset(hdr);
 
 	/* We assume start offset is less than or equal to minimal length */
-	len = ctrl.hdr_len - offset;
+	len = ctrl.hdr_len - off;
 
-	cp += offset;
+	cp += off;
+	offset += off;
 
 	while (len > 0) {
 		if (proto_tlvs_node->pad1_enable &&
 		   *cp == proto_tlvs_node->pad1_val) {
 			/* One byte padding, just advance */
 			cp++;
+			offset++;
 			len--;
 			continue;
 		}
@@ -191,6 +193,7 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 		if (proto_tlvs_node->eol_enable &&
 		    *cp == proto_tlvs_node->eol_val) {
 			cp++;
+			offset++;
 			len--;
 
 			/* Hit EOL, we're done */
@@ -219,6 +222,7 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 		}
 
 		tlv_ctrl.hdr_len = tlv_len;
+		tlv_ctrl.hdr_offset = offset;
 
 		type = proto_tlvs_node->ops.type(cp);
 
@@ -235,6 +239,7 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 
 		/* Move over current header */
 		cp += tlv_len;
+		offset += tlv_len;
 		len -= tlv_len;
 	}
 
@@ -247,15 +252,16 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 
 static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 				   const void *hdr, void *frame,
-				   struct panda_ctrl_data data,
+				   struct panda_ctrl_data ctrl,
 				   unsigned int pflags)
 {
 	const struct panda_parse_flag_fields_node *parse_flag_fields_node;
 	const struct panda_proto_flag_fields_node *proto_flag_fields_node;
 	const struct panda_parse_flag_field_node *parse_flag_field_node;
 	const struct panda_flag_fields *flag_fields;
-	__u32 flags;
+	size_t offset = ctrl.hdr_offset, ioff;
 	ssize_t off;
+	__u32 flags;
 	int i;
 
 	parse_flag_fields_node =
@@ -268,7 +274,9 @@ static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 	flags = proto_flag_fields_node->ops.get_flags(hdr);
 
 	/* Position at start of field data */
-	hdr += proto_flag_fields_node->ops.start_fields_offset(hdr);
+	ioff = proto_flag_fields_node->ops.start_fields_offset(hdr);
+	hdr += ioff;
+	offset += ioff;
 
 	for (i = 0; i < flag_fields->num_idx; i++) {
 		off = panda_flag_fields_offset(i, flags, flag_fields);
@@ -287,6 +295,7 @@ static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
 			const __u8 *cp = hdr + off;
 
 			flag_ctrl.hdr_len = flag_fields->fields[i].size;
+			flag_ctrl.hdr_offset = offset + off;
 
 			if (pflags & PANDA_F_DEBUG)
 				printf("PANDA parsing flag-field %s\n",
@@ -323,6 +332,7 @@ int __panda_parse(const struct panda_parser *parser,
 	void *frame = metadata->frame_data;
 	struct panda_ctrl_data ctrl;
 	unsigned int frame_num = 0;
+	const void *base_hdr = hdr;
 	int type, ret;
 
 	/* Main parsing loop. The loop normal teminates when we encounter a
@@ -358,6 +368,7 @@ int __panda_parse(const struct panda_parser *parser,
 		}
 
 		ctrl.hdr_len = hlen;
+		ctrl.hdr_offset = hdr - base_hdr;
 
 		/* Callback processing order
 		 *    1) Extract Metadata

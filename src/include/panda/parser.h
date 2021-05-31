@@ -149,6 +149,7 @@ struct panda_ctx {
 
 struct panda_ctrl_data {
 	size_t hdr_len;
+	size_t hdr_offset;
 };
 
 /* Parse node operations
