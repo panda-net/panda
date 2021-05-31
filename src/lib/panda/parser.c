@@ -452,12 +452,10 @@ int __panda_parse(const struct panda_parser *parser,
 		if (!next_parse_node) {
 			/* Unknown protocol */
 
-			if (parse_node->ops.unknown_next_proto)
-				return parse_node->ops.unknown_next_proto(
-						hdr, frame, type,
-						PANDA_STOP_UNKNOWN_PROTO);
+			if (parse_node->wildcard_node)
+				next_parse_node = parse_node->wildcard_node;
 			else
-				return PANDA_STOP_UNKNOWN_PROTO;
+				return parse_node->unknown_ret;
 		}
 
 		/* Found next protocol node, set up to process */

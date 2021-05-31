@@ -170,8 +170,6 @@ struct panda_parse_node_ops {
 				 const struct panda_ctrl_data ctrl);
 	int (*handle_proto)(const void *hdr, void *frame,
 			    const struct panda_ctrl_data ctrl);
-	int (*unknown_next_proto)(const void *hdr, void *frame, int type,
-				  int err);
 };
 
 /* Protocol node and parse node operations ordering. When processing a
@@ -215,9 +213,11 @@ struct panda_proto_table {
  */
 struct panda_parse_node {
 	enum panda_parser_node_type node_type;
+	int unknown_ret;
 	const struct panda_proto_node *proto_node;
 	const struct panda_parse_node_ops ops;
 	const struct panda_proto_table *proto_table;
+	const struct panda_parse_node *wildcard_node;
 };
 
 /* Declaration of a PANDA parser */
@@ -327,12 +327,14 @@ static const struct panda_parser __##PARSER = {				\
 /* Helper to create a parse node with a next protocol table */
 #define __PANDA_MAKE_PARSE_NODE(PARSE_NODE, PROTO_NODE,			\
 				EXTRACT_METADATA, HANDLER,		\
-				UNKNOWN_NEXT_PROTO, PROTO_TABLE)	\
+				UNKNOWN_RET, WILDCARD_NODE,		\
+				PROTO_TABLE)				\
 	static const struct panda_parse_node PARSE_NODE = {		\
 		.proto_node = &PROTO_NODE,				\
 		.ops.extract_metadata = EXTRACT_METADATA,		\
 		.ops.handle_proto = HANDLER,				\
-		.ops.unknown_next_proto = UNKNOWN_NEXT_PROTO,		\
+		.unknown_ret = UNKNOWN_RET,				\
+		.wildcard_node = WILDCARD_NODE,				\
 		.proto_table = PROTO_TABLE,				\
 	}
 
@@ -344,7 +346,7 @@ static const struct panda_parser __##PARSER = {				\
 	PANDA_DECL_PROTO_TABLE(PROTO_TABLE);				\
 	__PANDA_MAKE_PARSE_NODE(PARSE_NODE, PROTO_NODE,			\
 				EXTRACT_METADATA, HANDLER,		\
-				panda_unknown_next_proto_fail,		\
+				PANDA_STOP_UNKNOWN_PROTO, NULL,		\
 				&PROTO_TABLE)
 
 /* Helper to create a leaf parse node with no next protocol table */
@@ -352,7 +354,8 @@ static const struct panda_parser __##PARSER = {				\
 				   EXTRACT_METADATA, HANDLER)		\
 	__PANDA_MAKE_PARSE_NODE(PARSE_NODE, PROTO_NODE,			\
 				EXTRACT_METADATA, HANDLER,		\
-				panda_unknown_next_proto_fail, NULL)
+				PANDA_STOP_UNKNOWN_PROTO, NULL,		\
+				NULL)
 
 /* Definitions for parsing flag-fields
  *
@@ -839,7 +842,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 /* Helper to create a parse node with a next protocol table */
 #define __PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 				     EXTRACT_METADATA, HANDLER,		\
-				     UNKNOWN_NEXT_PROTO,		\
+				     UNKNOWN_RET, WILDCARD_NODE,	\
 				     UNKNOWN_TLV_TYPE,			\
 				     POST_TLV_HANDLER,			\
 				     PROTO_TABLE, TLV_TABLE)		\
@@ -848,7 +851,8 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 		.parse_node.proto_node = &PROTO_TLV_NODE.proto_node,	\
 		.parse_node.ops.extract_metadata = EXTRACT_METADATA,	\
 		.parse_node.ops.handle_proto = HANDLER,			\
-		.parse_node.ops.unknown_next_proto = UNKNOWN_NEXT_PROTO,\
+		.parse_node.unknown_ret = UNKNOWN_RET,			\
+		.parse_node.wildcard_node = WILDCARD_NODE,		\
 		.parse_node.proto_table = PROTO_TABLE,			\
 		.tlv_proto_table = TLV_TABLE,				\
 		.ops.unknown_type = UNKNOWN_TLV_TYPE,			\
@@ -868,7 +872,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE,			\
 				    (PROTO_NODE).pnode,			\
 				    EXTRACT_METADATA, HANDLER,		\
-				    panda_unknown_next_proto_fail,	\
+				    PANDA_STOP_UNKNOWN_PROTO, NULL,	\
 				    panda_unknown_tlv_ignore,		\
 				    POST_TLV_HANDLER,			\
 				    &PROTO_TABLE, &TLV_TABLE)
@@ -882,7 +886,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 	PANDA_DECL_TLVS_TABLE(TLV_TABLE);				\
 	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 				     EXTRACT_METADATA, HANDLER,		\
-				     panda_unknown_next_proto_fail,	\
+				     PANDA_STOP_UNKNOWN_PROTO, NULL,	\
 				     panda_unknown_tlv_ignore,		\
 				     POST_TLV_HANDLER,			\
 				     NULL, &TLV_TABLE)
@@ -1106,18 +1110,6 @@ void panda_print_hash_input(const void *start, size_t len);
 } while (0)
 
 /* Default functions that can be set for various call backs */
-
-static inline int panda_unknown_next_proto_fail(const void *hdr, void *frame,
-						int type, int err)
-{
-	return PANDA_STOP_UNKNOWN_PROTO;
-}
-
-static inline int panda_unknown_next_proto_ignore(const void *hdr, void *frame,
-						  int type, int err)
-{
-	return PANDA_STOP_OKAY;
-}
 
 static inline int panda_unknown_tlv_fail(const void *hdr, void *frame,
 					 int type, int err)
