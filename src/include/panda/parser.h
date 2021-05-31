@@ -761,8 +761,6 @@ struct panda_proto_tlvs_table {
 struct panda_parse_tlvs_ops {
 	int (*post_tlv_handle_proto)(const void *hdr, void *frame,
 				     struct panda_ctrl_data ctrl);
-	int (*unknown_type)(const void *hdr, void *frame, int type,
-			    int err);
 };
 
 /* Parse node for parsing a protocol header that contains TLVs to be
@@ -783,6 +781,8 @@ struct panda_parse_tlvs_node {
 	const struct panda_proto_tlvs_table *tlv_proto_table;
 	size_t max_tlvs;
 	size_t max_tlv_len;
+	int unknown_tlv_type_ret;
+	const struct panda_parse_tlv_node *tlv_wildcard_node;
 };
 
 /* A protocol node for parsing proto with TLVs
@@ -843,7 +843,8 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 #define __PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 				     EXTRACT_METADATA, HANDLER,		\
 				     UNKNOWN_RET, WILDCARD_NODE,	\
-				     UNKNOWN_TLV_TYPE,			\
+				     UNKNOWN_TLV_TYPE_RET,		\
+				     TLV_WILDCARD_NODE,			\
 				     POST_TLV_HANDLER,			\
 				     PROTO_TABLE, TLV_TABLE)		\
 	static const struct panda_parse_tlvs_node PARSE_TLV_NODE = {	\
@@ -855,8 +856,9 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 		.parse_node.wildcard_node = WILDCARD_NODE,		\
 		.parse_node.proto_table = PROTO_TABLE,			\
 		.tlv_proto_table = TLV_TABLE,				\
-		.ops.unknown_type = UNKNOWN_TLV_TYPE,			\
 		.ops.post_tlv_handle_proto = POST_TLV_HANDLER,		\
+		.unknown_tlv_type_ret = UNKNOWN_TLV_TYPE_RET,		\
+		.tlv_wildcard_node = TLV_WILDCARD_NODE,			\
 	}
 
 /* Helper to create a TLVs parse node with default unknown next proto
@@ -873,7 +875,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 				    (PROTO_NODE).pnode,			\
 				    EXTRACT_METADATA, HANDLER,		\
 				    PANDA_STOP_UNKNOWN_PROTO, NULL,	\
-				    panda_unknown_tlv_ignore,		\
+				    PANDA_OKAY, NULL,			\
 				    POST_TLV_HANDLER,			\
 				    &PROTO_TABLE, &TLV_TABLE)
 
@@ -887,7 +889,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 				     EXTRACT_METADATA, HANDLER,		\
 				     PANDA_STOP_UNKNOWN_PROTO, NULL,	\
-				     panda_unknown_tlv_ignore,		\
+				     PANDA_OKAY, NULL,			\
 				     POST_TLV_HANDLER,			\
 				     NULL, &TLV_TABLE)
 
@@ -1108,20 +1110,6 @@ void panda_print_hash_input(const void *start, size_t len);
 	printf("Source port %04x\n", ntohs((FRAME)->port16[0]));	\
 	printf("Destination port %04x\n", ntohs((FRAME)->port16[1]));	\
 } while (0)
-
-/* Default functions that can be set for various call backs */
-
-static inline int panda_unknown_tlv_fail(const void *hdr, void *frame,
-					 int type, int err)
-{
-	return PANDA_STOP_UNKNOWN_TLV;
-}
-
-static inline int panda_unknown_tlv_ignore(const void *hdr, void *frame,
-					   int type, int err)
-{
-	return PANDA_OKAY;
-}
 
 /* Null flag-field node for filling out flag-fields table */
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(PANDA_FLAG_NODE_NULL, NULL, NULL);

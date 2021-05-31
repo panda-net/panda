@@ -108,14 +108,12 @@ parse_again:
 		int ret = ops->check_length(hdr, frame);
 
 		if (ret != PANDA_OKAY) {
-			if (parse_tlvs_node->ops.unknown_type) {
-				ret = parse_tlvs_node->ops.unknown_type(
-					hdr, frame, type, ret);
-
-				return ret;
-			} else {
-				return PANDA_OKAY;
-			}
+			/* Treat check length error as an unrecognized TLV */
+			parse_tlv_node = parse_tlvs_node->tlv_wildcard_node;
+			if (parse_tlv_node)
+				goto parse_again;
+			else
+				return parse_tlvs_node->unknown_tlv_type_ret;
 		}
 	}
 
@@ -230,11 +228,18 @@ static int panda_parse_tlvs(const struct panda_parse_node *parse_node,
 		parse_tlv_node = lookup_tlv_node(type,
 				parse_tlvs_node->tlv_proto_table);
 		if (parse_tlv_node) {
+parse_one_tlv:
 			ret = panda_parse_one_tlv(parse_tlvs_node,
 						  parse_tlv_node, cp, frame,
 						  type, tlv_ctrl, flags);
 			if (ret != PANDA_OKAY)
 				return ret;
+		} else {
+			parse_tlv_node = parse_tlvs_node->tlv_wildcard_node;
+			if (parse_tlv_node)
+				goto parse_one_tlv;
+			else
+				return parse_tlvs_node->unknown_tlv_type_ret;
 		}
 
 		/* Move over current header */
