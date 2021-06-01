@@ -76,7 +76,7 @@ int parser_prog(struct xdp_md *ctx)					\
 		return PARSER_FAIL(rc, ctx, NULL);			\
 									\
 	rc = PANDA_PARSE_XDP(PARSER, &parser_ctx->ctx,			\
-			     (const void **)&data, data_end, false);	\
+			     (const void **)&data, data_end, true);	\
 	if (rc != PANDA_OKAY && rc != PANDA_STOP_OKAY) {		\
 		rc = PARSER_FAIL(rc, ctx, parser_ctx);			\
 		bpf_xdp_adjust_head(ctx, -parser_ctx->ctx.offset);	\
