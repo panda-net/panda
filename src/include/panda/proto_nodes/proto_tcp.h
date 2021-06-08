@@ -77,11 +77,6 @@ static inline ssize_t tcp_len(const void *vtcp)
 	return ((struct tcphdr *)vtcp)->doff * 4;
 }
 
-static inline size_t tcp_tlv_data_offset(const void *hdr)
-{
-	return sizeof(struct tcp_opt);
-}
-
 static inline ssize_t tcp_tlv_len(const void *hdr)
 {
 	return ((struct tcp_opt *)hdr)->len;
@@ -165,7 +160,6 @@ static const struct panda_proto_tlvs_node panda_parse_tcp_tlvs __unused() = {
 	.proto_node.name = "TCP with TLVs",
 	.proto_node.min_len = sizeof(struct tcphdr),
 	.proto_node.ops.len = tcp_len,
-	.ops.data_offset = tcp_tlv_data_offset,
 	.ops.len = tcp_tlv_len,
 	.ops.type = tcp_tlv_type,
 	.ops.start_offset = tcp_tlvs_start_offset,

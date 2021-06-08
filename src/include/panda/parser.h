@@ -696,13 +696,11 @@ struct panda_proto_flag_fields_node {
  *	node, then this considered and error.
  * type: Return the type of the TLV. If the return value is less than zero
  *	(PANDA_STOP_* value) then this indicates and error and parsing stops
- * data_offset: Return the offset of the data in a TLV
  */
 struct panda_proto_tlvs_opts {
 	size_t (*start_offset)(const void *hdr);
 	ssize_t (*len)(const void *hdr);
 	int (*type)(const void *hdr);
-	size_t (*data_offset)(const void *hdr);
 };
 
 /* TLV parse node operations
