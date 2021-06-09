@@ -109,11 +109,20 @@ parse_again:
 
 		if (ret != PANDA_OKAY) {
 			/* Treat check length error as an unrecognized TLV */
+
 			parse_tlv_node = parse_tlvs_node->tlv_wildcard_node;
-			if (parse_tlv_node)
+			if (parse_tlv_node) {
+				/* If a wildcard node is present, parse it as
+				 * an overlay node for this one. The wildcard
+				 * node can perform error processing
+				 */
 				goto parse_again;
-			else
+			} else {
+				/* Return default error code. Returning
+				 * PANDA_OKAY means skip
+				 */
 				return parse_tlvs_node->unknown_tlv_type_ret;
+			}
 		}
 	}
 
@@ -233,11 +242,20 @@ parse_one_tlv:
 			if (ret != PANDA_OKAY)
 				return ret;
 		} else {
+			/* Unknown TLV */
 			parse_tlv_node = parse_tlvs_node->tlv_wildcard_node;
-			if (parse_tlv_node)
+			if (parse_tlv_node) {
+				/* If a wilcard node is present parse that
+				 * node as an overlay to this one. The
+				 * wild card node can perform error processing
+				 */
 				goto parse_one_tlv;
-			else
+			} else {
+				/* Return default error code. Returning
+				 * PANDA_OKAY means skip
+				 */
 				return parse_tlvs_node->unknown_tlv_type_ret;
+			}
 		}
 
 		/* Move over current header */
@@ -455,10 +473,18 @@ int __panda_parse(const struct panda_parser *parser,
 		if (!next_parse_node) {
 			/* Unknown protocol */
 
-			if (parse_node->wildcard_node)
+			if (parse_node->wildcard_node) {
+				/* Perform default processing in a wildcard
+				 * node
+				 */
 				next_parse_node = parse_node->wildcard_node;
-			else
+			} else {
+				/* Return default code. Parsing will stop
+				 * with the inidicated code
+				 */
+
 				return parse_node->unknown_ret;
+			}
 		}
 
 		/* Found next protocol node, set up to process */
