@@ -261,6 +261,21 @@ auto make_python_object(graph_t const& graph, vertex_descriptor_t const& vertex)
 	  tlv.set("metadata", t.metadata);
 	  tlv.set("handler", t.handler);
 	  tlv.set("type", t.type);
+	  {
+		  python::list overlay_nodes;
+		  for (auto&& overlay : t.tlv_nodes) {
+			  std::cout << "overlay is not empty, adding " <<
+			  overlay.name << std::endl;
+			  python::dict tlv_overlay;
+			  tlv_overlay.set("name", overlay.name);
+			  tlv_overlay.set("string_name", overlay.string_name);
+			  tlv_overlay.set("metadata", overlay.metadata);
+			  tlv_overlay.set("handler", overlay.handler);
+			  tlv_overlay.set("type", overlay.type);
+			  overlay_nodes.append(std::move(tlv_overlay));
+		  }
+		  tlv.set("overlay_nodes", std::move(overlay_nodes));
+	  }
 	  tlv_nodes.append(std::move(tlv));
   }
   

@@ -54,7 +54,20 @@ namespace pandagen
 {
 
 struct tlv_node {
-	std::string name, string_name, metadata, handler, type;
+	std::string name, string_name, metadata, handler, type, overlay_table,
+		unknown_overlay_ret, wildcard_node, check_length;
+
+	std::vector<tlv_node> tlv_nodes;
+
+	friend inline std::ostream& operator<<(std::ostream& os, tlv_node v) {
+		return os << "[tlv_node {name: " << v.name <<
+		       " string_name: " << v.string_name << " metadata: " <<
+		       v. metadata << " handler: " << v. handler << " type: " <<
+		       v. type << " overlay_table: " << v. overlay_table <<
+		       " unknown_overlay_ret: " << v.unknown_overlay_ret <<
+		       " wildcard_node: " << v. wildcard_node <<
+		       " check_length: " << v. check_length << "}]";
+	}
 };
 
 struct flag_fields_node {
@@ -68,6 +81,21 @@ struct vertex_property {
 
 	std::vector<tlv_node> tlv_nodes;
 	std::vector<flag_fields_node> flag_fields_nodes;
+
+	friend inline std::ostream& operator<<(std::ostream& os,
+					       vertex_property v) {
+		return os << "[vertex {name: " << v.name << " parser_node: " <<
+		       v.parser_node << " metadata: " << v.metadata <<
+		       " handler: " << v. handler << " table: " << v. table <<
+		       " tlv_table: " << v. tlv_table <<
+		       " flag_fields_table: " << v. flag_fields_table <<
+		       " post_handle_flags: " << v. post_handle_flags <<
+		       // " unknown_overlay_ret: "
+		       // v.unknown_overlay_ret << " wildcard_node: " <<
+		       // v. wildcard_node << " check_length: " <<
+		       // v.check_length <<
+		       "}]";
+	}
 };
 
 struct edge_property {
@@ -350,8 +378,8 @@ fill_tlv_node_to_vertices(G &g, std::vector<tlv_node> tlv_nodes,
 				for (auto &&entry : table_it->entries) {
 					auto node_name = entry.right;
 					auto node_it = std::find_if(
-							tlv_nodes.begin (),
-							tlv_nodes.end (),
+							tlv_nodes.begin(),
+							tlv_nodes.end(),
 							[&] (auto &&n) {
 						return n.name == node_name; });
 					if (node_it != tlv_nodes.end()) {
@@ -373,6 +401,44 @@ fill_tlv_node_to_vertices(G &g, std::vector<tlv_node> tlv_nodes,
 	}
 }
 
+void
+fill_tlv_overlay_to_tlv_node(std::vector<tlv_node>& tlv_nodes,
+			  std::vector<table> tlv_tables)
+{
+	for (auto&& node : tlv_nodes) {
+		if (!node.overlay_table.empty()) {
+			auto table_it = std::find_if(tlv_tables.begin(),
+					tlv_tables.end(), [&] (auto &&tt) {
+					return node.overlay_table ==
+								tt.name; });
+			if (table_it != tlv_tables.end()) {
+				for (auto &&entry : table_it->entries) {
+					auto node_name = entry.right;
+					auto node_it = std::find_if(
+							tlv_nodes.begin (),
+							tlv_nodes.end (),
+							[&] (auto &&n) {
+						return n.name == node_name; });
+					if (node_it != tlv_nodes.end()) {
+						std::cout << "Found TLV for overlay table " << node.overlay_table << std::endl;
+						node.tlv_nodes.push_back(
+								*node_it);
+						node.tlv_nodes.back().type =
+								entry.left;
+					} else {
+						std::cerr << "node TLV not "
+							     "found" <<
+							std::endl;
+					}
+				}
+			} else {
+				std::cerr << "Not found overlay TLV table " <<
+						node.overlay_table << std::endl;
+			}
+		}
+	}
+}
+
 template <typename G> void
 fill_flag_fields_node_to_vertices(G &g, std::vector<flag_fields_node> nodes,
 			  std::vector<table> tables)
@@ -380,47 +446,48 @@ fill_flag_fields_node_to_vertices(G &g, std::vector<flag_fields_node> nodes,
 	auto vs = vertices(g);
 
 	for (auto &&v : boost::make_iterator_range(vs.first, vs.second)) {
-		if (!g[v].flag_fields_table.empty()) {
-			auto table_it = std::find_if(tables.begin(),
-						     tables.end(),
-						     [&] (auto &&tt) {
-							return g[v].flag_fields_table ==
-								tt.name; });
-			if (table_it != tables.end()) {
-				for (auto &&entry : table_it->entries) {
-					auto node_name = entry.right;
-					auto node_it = std::find_if(
-							nodes.begin(),
-							nodes.end(),
-							[&] (auto &&n) {
-						return n.name == node_name; });
-					if (node_it != nodes.end()) {
-						g[v].flag_fields_nodes.push_back(
-								*node_it);
-						g[v].flag_fields_nodes.back().index =
-								entry.left;
-					} else if (node_name != "PANDA_FLAG_NODE_NULL") {
-						g[v].flag_fields_nodes.push_back
-							({"PANDA_FLAG_NODE_NULL", ""});
-						g[v].flag_fields_nodes.back().index =
-								entry.left;
-					} else {
-						std::cerr << "node flag fields not "
-							     "found" <<
-							std::endl;
-					}
+		if (g[v].flag_fields_table.empty())
+			continue;
+
+		auto table_it = std::find_if(tables.begin(), tables.end(),
+					     [&] (auto &&tt) {
+				return g[v].flag_fields_table == tt.name; });
+
+		if (table_it != tables.end()) {
+			for (auto &&entry : table_it->entries) {
+				auto node_name = entry.right;
+				auto node_it = std::find_if(nodes.begin(),
+							    nodes.end(),
+							    [&] (auto &&n) {
+					return n.name == node_name; });
+
+				if (node_it != nodes.end()) {
+					g[v].flag_fields_nodes.push_back(
+							*node_it);
+					g[v].flag_fields_nodes.back().index =
+							entry.left;
+				} else if (node_name ==
+					   "PANDA_FLAG_NODE_NULL") {
+					g[v].flag_fields_nodes.push_back(
+						{"PANDA_FLAG_NODE_NULL", ""});
+					g[v].flag_fields_nodes.back().index =
+							entry.left;
+				} else {
+					std::cerr << "node flag fields not "
+						"found " << node_name <<
+						std::endl;
 				}
-			} else {
-				std::cerr << "Not found flag fields table " <<
-						g[v].flag_fields_table << std::endl;
 			}
+		} else {
+			std::cerr << "Not found flag fields table " <<
+					g[v].flag_fields_table << std::endl;
 		}
 	}
 }
 
 using graph_t = boost::adjacency_list<boost::vecS, boost::vecS,
-  boost::directedS, pandagen::vertex_property,
-  pandagen::edge_property, boost::no_property, boost::vecS>;
+	boost::directedS, pandagen::vertex_property,
+	pandagen::edge_property, boost::no_property, boost::vecS>;
 using vertex_descriptor_t = boost::graph_traits<graph_t>::vertex_descriptor;
 using root_t = std::tuple<std::string, vertex_descriptor_t, bool, bool>;
 

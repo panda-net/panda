@@ -194,6 +194,36 @@ handle_make_leaf_tlv_node(G &graph, std::vector<ContainerT> const &arguments)
 	}
 }
 
+template <typename NC, typename ContainerT> void
+handle_make_tlv_overlay_node(NC &nodes,
+			     std::vector<ContainerT> const &arguments)
+{
+	if (arguments.size() == 8) {
+		auto name = get_identifier_from_tokens(arguments[0]);
+
+		typename NC::value_type node{ name,
+					      get_identifier_from_tokens(
+								arguments[1]),
+					      get_identifier_from_tokens(
+								arguments[2]),
+					      get_identifier_from_tokens(
+								arguments[3]) };
+
+		node.check_length = get_identifier_from_tokens(arguments[1]);
+		node.overlay_table = get_identifier_from_tokens(arguments[4]);
+		node.unknown_overlay_ret =
+				get_identifier_from_tokens(arguments[6]);
+		node.wildcard_node = get_identifier_from_tokens(arguments[7]);
+
+		std::cout << "tlv overlay " << node << std::endl;
+		nodes.push_back(node);
+	} else {
+		// should error'out
+		std::cerr << "PANDA_MAKE_TLV_OVERLAY_PARSE_NODE should "
+			     "have 8 parameter" << std::endl;
+	}
+}
+
 template <typename G, typename ContainerT> void
 handle_make_flag_fields_node(G &graph, std::vector<ContainerT> const &arguments)
 {

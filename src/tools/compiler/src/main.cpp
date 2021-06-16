@@ -126,7 +126,9 @@ template <typename G> struct MacroOnly :
       pandagen::handle_parser(*graph, *roots, arguments);
     } else if (macro_name.get_value() == "PANDA_PARSER_XDP") {
       pandagen::handle_parser_xdp(*graph, *roots, arguments);
-                }
+    } else if (macro_name.get_value() == "PANDA_MAKE_TLV_OVERLAY_PARSE_NODE") {
+      pandagen::handle_make_tlv_overlay_node(*tlv_nodes, arguments);
+	}
     return true;
   }
 
@@ -176,6 +178,10 @@ add_panda_macros (Context &context)
     "PANDA_PARSER_EXT(parser, description, node_addr)",
     "PANDA_PARSER(parser, description, node_addr)",
     "PANDA_PARSER_XDP(parser, description, node_addr)",
+	"PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(node_name, "
+	"check_length,	metadata_func, handler_func, "
+	"overlay_table, overlay_type_func, "
+	"unknown_overlay_ret, overlay_wildcard_node)",
   };
 
   for (const auto &macro : macros)
@@ -229,6 +235,7 @@ parse_file(G &g, std::vector<std::tuple<std::string,
       " flag fields nodes " << flag_fields_nodes.size () << std::endl;
 
     pandagen::connect_vertices (g, parser_tables);
+    pandagen::fill_tlv_overlay_to_tlv_node (tlv_nodes, tlv_tables);
     pandagen::fill_tlv_node_to_vertices (g, tlv_nodes, tlv_tables);
     pandagen::fill_flag_fields_node_to_vertices (g, flag_fields_nodes, flag_fields_tables);
   }
