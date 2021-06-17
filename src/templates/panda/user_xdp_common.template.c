@@ -27,7 +27,6 @@ PANDA_PARSER_OPT(
       @!parser_name!@_panda_parse_@!root_name!@
     );
 <!--(end)-->
-
 <!--(macro generate_protocol_fields_parse_function)-->
 static inline __attribute__((always_inline)) int
 	__@!name!@_panda_parse_flag_fields(
@@ -72,6 +71,7 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 		const struct panda_parse_node *parse_node,
 		const void *hdr, void *frame, struct panda_ctrl_data ctrl)
 {
+	const struct panda_parse_tlv_node_ops *ops; (void)ops;
 	const struct panda_parse_tlvs_node* parse_tlvs_node =
 		(const struct panda_parse_tlvs_node*)&@!name!@;
 	const struct panda_proto_tlvs_node *proto_tlvs_node =
@@ -125,67 +125,56 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 	<!--(for tlv in graph[name]['tlv_nodes'])-->
 		case @!tlv['type']!@:
 		{
+			int ret;
+			struct panda_ctrl_data tlv_ctrl = {
+					tlv_len, ctrl.hdr_offset };
 			parse_tlv_node = &@!tlv['name']!@;
-			const struct panda_parse_tlv_node_ops *ops =
-						&parse_tlv_node->tlv_ops;
+		<!--(if len(tlv['overlay_nodes']) != 0)-->
+			ops = &parse_tlv_node->tlv_ops;
+		<!--(end)-->
+			ret = panda_parse_tlv(parse_tlvs_node, parse_tlv_node,
+					      cp, frame, tlv_ctrl);
+			if (ret != PANDA_OKAY)
+				return ret;
 
-			if (ops->check_length) {
-				int ret;
+		<!--(if len(tlv['overlay_nodes']) != 0)-->
+			if (ops->overlay_type)
+				type = ops->overlay_type(cp);
+			else
+				type = tlv_ctrl.hdr_len;
 
-				ret = ops->check_length(cp, frame);
-				if (ret != PANDA_OKAY) {
-#if 0
-	XXXTH Need to call wildcard TLV parse node function here. The function
-	return code should be checked, if it is PANDA_OKAY then skip over the
-	TLV, else return. Roughly something like:
-
-< !-- if wildcard for this node -->
-					ret = @ !some_name@_parse_wildcard_tlv(
-						...)
-<! else>
-					ret = parse_tlvs_node->
-							unknown_tlv_type_ret;
-<! endif>
-					if (ret == PANDA_OKAY)
-						goto next_tlv;
-					else
-						return ret;
-#endif
-				}
-			}
-
-			ctrl.hdr_len = tlv_len;
-
-			if (ops->extract_metadata)
-				ops->extract_metadata(cp, frame, ctrl);
-
-			if (ops->handle_tlv)
-				ops->handle_tlv(cp, frame, ctrl);
-
-			break;
+			switch (type) {
+			<!--(for overlay in tlv['overlay_nodes'])-->
+			case @!overlay['type']!@:
+				parse_tlv_node = &@!overlay['name']!@;
+				ret = panda_parse_tlv(parse_tlvs_node,
+						      parse_tlv_node, cp,
+						      frame, tlv_ctrl);
+				if (ret != PANDA_OKAY)
+					return ret;
+				break;
+			<!--(end)-->
+			default:
+				break;
+			 }
+		<!--(end)-->
 		}
 	<!--(end)-->
 		default:
 		{
-			/* Unknown TLV */
-#if 0
-	XXXTH Need to call wildcard TLV parse node function here. The function
-	return code should be checked, if it is PANDA_OKAY then skip over the
-	TLV, else return. Roughly something like:
+			struct panda_ctrl_data tlv_ctrl =
+						{ tlv_len, ctrl.hdr_offset };
 
-< !-- if wildcard for this node -->
-					ret = @ !some_name@_parse_wildcard_tlv(
-						...)
-< !else>
-					ret = parse_tlvs_node->
-							unknown_tlv_type_ret;
-< !endif>
-					if (ret != PANDA_OKAY)
-						return ret;
-#endif
+			if (parse_tlvs_node->tlv_wildcard_node)
+				return panda_parse_tlv(parse_tlvs_node,
+						       parse_tlvs_node->
+							    tlv_wildcard_node,
+						       cp, frame, tlv_ctrl);
+			else
+				return parse_tlvs_node->unknown_tlv_type_ret;
 		}
 		}
-next_tlv:
+
 		/* Move over current header */
 		cp += tlv_len;
 		ctrl.hdr_offset += tlv_len;
