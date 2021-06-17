@@ -265,18 +265,13 @@ static inline int __@!name!@_panda_parse(const struct panda_parser *parser,
 		<!--(end)-->
 	}
 	/* Unknown protocol */
-#if 0
-	XXXTH Need to call wildcard parse node function here and return
-	the value. Roughly something like:
-
-< !-- if wildcard for this node -->
-					return @ !some_name@_parse_wildcard(
-						...)
-< !else>
-					return parse_node->unknown_ret;
-< !endif>
-#endif
-	return 0; /* XXXTH */
+		<!--(if len(graph[name]['wildcard_proto_node']) != 0)-->
+	return __@!graph[name]['wildcard_proto_node']!@_panda_parse(
+		parser, hdr, len, offset, metadata, flags, max_encaps,
+		frame, frame_num);
+		<!--(else)-->
+	return PANDA_STOP_UNKNOWN_PROTO;
+		<!--(end)-->
 	}
 	<!--(else)-->
 	return PANDA_STOP_OKAY;
