@@ -61,6 +61,16 @@ static inline int ipv6_proto_stopflowlabel(const void *viph)
 	return iph->nexthdr;
 }
 
+static inline ssize_t ipv6_length_check(const void *viph)
+{
+	const struct ipv6hdr *iph = viph;
+
+	if (iph->version != 6)
+		return PANDA_STOP_UNKNOWN_PROTO;
+
+	return sizeof(struct ipv6hdr);
+}
+
 #endif /* __PANDA_PROTO_IPV6_H__ */
 
 #ifdef PANDA_DEFINE_PARSE_NODE
@@ -87,6 +97,35 @@ static const struct panda_proto_node
 				panda_parse_ipv6_stopflowlabel __unused() = {
 	.name = "IPv6 stop at non-zero flow label",
 	.min_len = sizeof(struct ipv6hdr),
+	.ops.next_proto = ipv6_proto_stopflowlabel,
+};
+
+
+/* panda_parse_ipv6_check protocol node
+ *
+ * Check version is six and parse IPv6 header
+ *
+ * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
+ */
+static const struct panda_proto_node panda_parse_ipv6_check __unused() = {
+	.name = "IPv6",
+	.min_len = sizeof(struct ipv6hdr),
+	.ops.len = ipv6_length_check,
+	.ops.next_proto = ipv6_proto,
+};
+
+/* parse_ipv6_stopflowlabel_check protocol node
+ *
+ * Check version is six, parse IPv6 header, and stop at a non-zero flow label
+ *
+ * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
+ */
+static const struct panda_proto_node
+				panda_parse_ipv6_stopflowlabel_check
+							__unused() = {
+	.name = "IPv6 stop at non-zero flow label",
+	.min_len = sizeof(struct ipv6hdr),
+	.ops.len = ipv6_length_check,
 	.ops.next_proto = ipv6_proto_stopflowlabel,
 };
 
