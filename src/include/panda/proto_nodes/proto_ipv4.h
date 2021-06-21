@@ -78,6 +78,16 @@ static inline ssize_t ipv4_length(const void *viph)
 	return ipv4_len(viph);
 }
 
+static inline ssize_t ipv4_length_check(const void *viph)
+{
+	const struct iphdr *iph = viph;
+
+	if (iph->version != 4)
+		return PANDA_STOP_UNKNOWN_PROTO;
+
+	return ipv4_len(viph);
+}
+
 #endif /* __PROTO_IPV4_H__ */
 
 #ifdef PANDA_DEFINE_PARSE_NODE
@@ -102,6 +112,34 @@ static const struct panda_proto_node panda_parse_ipv4 __unused() = {
  * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
  */
 static const struct panda_proto_node panda_parse_ipv4_stop1stfrag __unused() = {
+	.name = "IPv4 without parsing 1st fragment",
+	.min_len = sizeof(struct iphdr),
+	.ops.len = ipv4_length,
+	.ops.next_proto = ipv4_proto_stop1stfrag,
+};
+
+/* panda_parse_ipv4_check protocol node
+ *
+ * Check version is four and parse IPv4 header
+ *
+ * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
+ */
+static const struct panda_proto_node panda_parse_ipv4_check __unused() = {
+	.name = "IPv4-check",
+	.min_len = sizeof(struct iphdr),
+	.ops.len = ipv4_length_check,
+	.ops.next_proto = ipv4_proto,
+};
+
+/* panda_parse_ipv4_stop1stfrag_check protocol node
+ *
+ * Check IP version is four an parse IPv4 header but don't parse into first
+ * fragment
+ *
+ * Next protocol operation returns IP proto number (e.g. IPPROTO_TCP)
+ */
+static const struct panda_proto_node panda_parse_ipv4_stop1stfrag_check
+							__unused() = {
 	.name = "IPv4 without parsing 1st fragment",
 	.min_len = sizeof(struct iphdr),
 	.ops.len = ipv4_length,
