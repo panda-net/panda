@@ -169,8 +169,6 @@ static inline ssize_t gre_v0_len_check(const void *vgre)
 	if (panda_flag_fields_check_invalid(gre->flags, GRE_FLAGS_V0_MASK |
 								GRE_VERSION))
 		return PANDA_STOP_BAD_FLAG;
-	if (panda_flag_fields_check_invalid(gre->flags, GRE_FLAGS_V1_MASK))
-		return PANDA_STOP_BAD_FLAG;
 
 	/* Only look inside GRE without routing */
 	if (((struct gre_hdr *)vgre)->flags & GRE_ROUTING)
