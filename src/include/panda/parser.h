@@ -349,6 +349,14 @@ static const struct panda_parser __##PARSER = {				\
 				PANDA_STOP_UNKNOWN_PROTO, NULL,		\
 				&PROTO_TABLE)
 
+/* Helper to create a parse node single overlay node */
+#define PANDA_MAKE_OVERLAY_PARSE_NODE(PARSE_NODE, PROTO_NODE,		\
+			      EXTRACT_METADATA, HANDLER, OVERLAY_NODE)	\
+	__PANDA_MAKE_PARSE_NODE(PARSE_NODE, PROTO_NODE,			\
+				EXTRACT_METADATA, HANDLER,		\
+				PANDA_STOP_UNKNOWN_PROTO, OVERLAY_NODE,	\
+				NULL)
+
 /* Helper to create a leaf parse node with no next protocol table */
 #define PANDA_MAKE_LEAF_PARSE_NODE(PARSE_NODE, PROTO_NODE,		\
 				   EXTRACT_METADATA, HANDLER)		\
@@ -648,6 +656,20 @@ struct panda_proto_flag_fields_node {
 					    NULL, &PROTO_TABLE,		\
 					    &FLAG_FIELDS_TABLE)
 
+/* Helper to create an overlay flag-fields parse node */
+#define PANDA_MAKE_FLAG_FIELDS_OVERLAY_PARSE_NODE(			\
+					PARSE_FLAG_FIELDS_NODE,		\
+					PROTO_FLAG_FIELDS_NODE,		\
+					EXTRACT_METADATA, HANDLER,	\
+					OVERLAY_NODE,			\
+					FLAG_FIELDS_TABLE)		\
+	PANDA_DECL_FLAG_FIELDS_TABLE(FLAG_FIELDS_TABLE);		\
+	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
+					    PROTO_FLAG_FIELDS_NODE,	\
+					    EXTRACT_METADATA, HANDLER,	\
+					    OVERLAY_NODE, NULL,		\
+					    &FLAG_FIELDS_TABLE)		\
+
 /* Helper to create a leaf flag-fields parse node */
 #define PANDA_MAKE_LEAF_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					       PROTO_FLAG_FIELDS_NODE,	\
@@ -855,6 +877,22 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 				    EXTRACT_METADATA, HANDLER,		\
 				    PANDA_STOP_UNKNOWN_PROTO, NULL,	\
 				    PANDA_OKAY, NULL,			\
+				    &PROTO_TABLE, &TLV_TABLE)
+
+/* Helper to create a TLVs parse node with default unknown next proto
+ * function that returns parse failure code and default unknown TLV
+ * function that ignores unknown TLVs
+ */
+#define PANDA_MAKE_TLVS_OVERLAY_PARSE_NODE(PARSE_TLV_NODE,		\
+					   PROTO_TLV_NODE,		\
+					   EXTRACT_METADATA, HANDLER,	\
+					   OVERLAY_NODE, TLV_TABLE)	\
+	PANDA_DECL_TLVS_TABLE(TLV_TABLE);				\
+	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE,			\
+				    (PROTO_NODE).pnode,			\
+				    EXTRACT_METADATA, HANDLER,		\
+				    PANDA_STOP_UNKNOWN_PROTO,		\
+				    OVERLAY_NODE, PANDA_OKAY, NULL,	\
 				    &PROTO_TABLE, &TLV_TABLE)
 
 /* Helper to create a leaf TLVs parse node with default unknown TLV
