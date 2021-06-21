@@ -374,7 +374,6 @@ int __panda_parse(const struct panda_parser *parser,
 
 		if (proto_node->ops.len) {
 			hlen = proto_node->ops.len(hdr);
-
 			if (len < hlen)
 				return PANDA_STOP_LENGTH;
 
@@ -439,8 +438,11 @@ int __panda_parse(const struct panda_parser *parser,
 
 		/* Proceed to next protocol layer */
 
-		if (!proto_node->ops.next_proto)
+		if (!parse_node->proto_table && !parse_node->wildcard_node) {
+			/* Leaf parse node */
+
 			return PANDA_STOP_OKAY;
+		}
 
 		if (proto_node->encap) {
 			/* New encapsulation leyer. Check against
@@ -456,33 +458,37 @@ int __panda_parse(const struct panda_parser *parser,
 			}
 		}
 
-		/* Lookup next proto */
+		if (proto_node->ops.next_proto && parse_node->proto_table) {
+			/* Lookup next proto */
 
-		type = proto_node->ops.next_proto(hdr);
-		if (type < 0)
-			return type;
+			type = proto_node->ops.next_proto(hdr);
+			if (type < 0)
+				return type;
 
-		assert(parse_node->proto_table);
+			/* Get next node */
+			next_parse_node = lookup_node(type,
+						parse_node->proto_table);
 
-		/* Get next node */
-		next_parse_node = lookup_node(type, parse_node->proto_table);
-		if (!next_parse_node) {
-			/* Unknown protocol */
-
-			if (parse_node->wildcard_node) {
-				/* Perform default processing in a wildcard
-				 * node
-				 */
-				next_parse_node = parse_node->wildcard_node;
-			} else {
-				/* Return default code. Parsing will stop
-				 * with the inidicated code
-				 */
-
-				return parse_node->unknown_ret;
-			}
+			if (next_parse_node)
+				goto found_next;
 		}
 
+		/* Try wildcard node. Either table lookup failed to find a node
+		 * or there is only a wildcard
+		 */
+		if (parse_node->wildcard_node) {
+			/* Perform default processing in a wildcard node */
+
+			next_parse_node = parse_node->wildcard_node;
+		} else {
+			/* Return default code. Parsing will stop
+			 * with the inidicated code
+			 */
+
+			return parse_node->unknown_ret;
+		}
+
+found_next:
 		/* Found next protocol node, set up to process */
 
 		if (!proto_node->overlay) {
@@ -492,6 +498,7 @@ int __panda_parse(const struct panda_parser *parser,
 		}
 
 		parse_node = next_parse_node;
+
 	} while (1);
 }
 
