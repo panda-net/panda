@@ -127,19 +127,6 @@ static inline int tcp_option_timestamp_check_length(const void *hdr,
 	return PANDA_OKAY;
 }
 
-static inline int tcp_option_sack_check_length(const void *hdr, void *frame)
-{
-	const struct tcp_opt_union *opt = hdr;
-	size_t dlen = opt->opt.len - sizeof(struct tcp_opt);
-	unsigned int num_sacks = dlen / 8;
-
-	if ((dlen % sizeof(struct tcp_sack_option_data)) ||
-	    (num_sacks > TCP_MAX_SACKS))
-		return PANDA_STOP_TLV_LENGTH;
-
-	return PANDA_OKAY;
-}
-
 #endif /* __PANDA_PROTO_TCP_H__ */
 
 #ifdef PANDA_DEFINE_PARSE_NODE

@@ -160,7 +160,7 @@ PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_window_scaling_node,
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
 			  tcp_option_timestamp_check_length,
 			  tcp_opt_timestamp_metadata, NULL);
-PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_node, tcp_option_sack_check_length,
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_node, NULL,
 			  tcp_opt_sack_metadata, NULL);
 
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_csum_node, gre_checksum_metadata,
