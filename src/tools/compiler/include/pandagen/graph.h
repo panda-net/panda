@@ -88,8 +88,8 @@ struct vertex_property {
 		return os << "[vertex {name: " << v.name << " parser_node: " <<
 		       v.parser_node << " metadata: " << v.metadata <<
 		       " handler: " << v. handler << " table: " << v. table <<
-		       " tlv_table: " << v. tlv_table << "
-		       flag_fields_table: " << v. flag_fields_table <<
+		       " tlv_table: " << v. tlv_table <<
+		       "flag_fields_table: " << v. flag_fields_table <<
 		       " unknown_proto_ret: " << v.unknown_proto_ret <<
 		       " wildcard_proto_node: " << v. wildcard_proto_node <<
 		       "}]";

@@ -619,6 +619,7 @@ struct panda_proto_flag_fields_node {
 #define __PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					    PROTO_FLAG_FIELDS_NODE,	\
 					    EXTRACT_METADATA, HANDLER,	\
+					    WILDCARD_NODE,		\
 					    PROTO_TABLE,		\
 					    FLAG_FIELDS_TABLE)		\
 	static const struct panda_parse_flag_fields_node		\
@@ -629,6 +630,7 @@ struct panda_proto_flag_fields_node {
 				&PROTO_FLAG_FIELDS_NODE.proto_node,	\
 		.parse_node.ops.extract_metadata = EXTRACT_METADATA,	\
 		.parse_node.ops.handle_proto = HANDLER,			\
+		.parse_node.wildcard_node = WILDCARD_NODE,		\
 		.parse_node.proto_table = PROTO_TABLE,			\
 	}
 
@@ -643,7 +645,7 @@ struct panda_proto_flag_fields_node {
 	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					    PROTO_FLAG_FIELDS_NODE,	\
 					    EXTRACT_METADATA, HANDLER,	\
-					    &PROTO_TABLE,		\
+					    NULL, &PROTO_TABLE,		\
 					    &FLAG_FIELDS_TABLE)
 
 /* Helper to create a leaf flag-fields parse node */
@@ -656,7 +658,8 @@ struct panda_proto_flag_fields_node {
 	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					    PROTO_FLAG_FIELDS_NODE,	\
 					    EXTRACT_METADATA, HANDLER,	\
-					    NULL, &FLAG_FIELDS_TABLE)
+					    NULL, NULL,			\
+					    &FLAG_FIELDS_TABLE)
 
 /* Helper to create a parse node for a single flag-field */
 #define PANDA_MAKE_FLAG_FIELD_PARSE_NODE(NODE_NAME, METADATA_FUNC,	\
