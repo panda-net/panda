@@ -261,6 +261,8 @@ auto make_python_object(graph_t const& graph, vertex_descriptor_t const& vertex)
 	  tlv.set("metadata", t.metadata);
 	  tlv.set("handler", t.handler);
 	  tlv.set("type", t.type);
+	  tlv.set("unknown_overlay_ret", t.unknown_overlay_ret);
+	  tlv.set("wildcard_node", t.wildcard_node);
 	  {
 		  python::list overlay_nodes;
 		  for (auto&& overlay : t.tlv_nodes) {
@@ -272,6 +274,10 @@ auto make_python_object(graph_t const& graph, vertex_descriptor_t const& vertex)
 			  tlv_overlay.set("metadata", overlay.metadata);
 			  tlv_overlay.set("handler", overlay.handler);
 			  tlv_overlay.set("type", overlay.type);
+			  tlv_overlay.set("unknown_overlay_ret",
+					  overlay.unknown_overlay_ret);
+			  tlv_overlay.set("wildcard_node",
+					  overlay.wildcard_node);
 			  overlay_nodes.append(std::move(tlv_overlay));
 		  }
 		  tlv.set("overlay_nodes", std::move(overlay_nodes));
@@ -301,6 +307,8 @@ auto make_python_object(graph_t const& graph, vertex_descriptor_t const& vertex)
   obj.set("tlv_table", v.table);
   obj.set("flag_fields_table", v.flag_fields_table);
   obj.set("post_handle_flags", v.post_handle_flags);
+  obj.set("unknown_proto_ret", v.unknown_proto_ret);
+  obj.set("wildcard_proto_node", v.wildcard_proto_node);
   obj.set("tlv_nodes", std::move(tlv_nodes));
   obj.set("flag_fields_nodes", std::move(flag_fields_nodes));
   obj.set("out_edges", make_edge_list(graph, vertex));

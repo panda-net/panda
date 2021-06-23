@@ -77,7 +77,9 @@ struct flag_fields_node {
 struct vertex_property {
 	// TODO enable node instead of its name
 	// ParseNode& node;
-	std::string name, parser_node, metadata, handler, table, tlv_table, flag_fields_table, post_handle_flags;
+	std::string name, parser_node, metadata, handler, table, tlv_table,
+	flag_fields_table, post_handle_flags, unknown_proto_ret,
+	wildcard_proto_node;
 
 	std::vector<tlv_node> tlv_nodes;
 	std::vector<flag_fields_node> flag_fields_nodes;
@@ -90,10 +92,8 @@ struct vertex_property {
 		       " tlv_table: " << v. tlv_table <<
 		       " flag_fields_table: " << v. flag_fields_table <<
 		       " post_handle_flags: " << v. post_handle_flags <<
-		       // " unknown_overlay_ret: "
-		       // v.unknown_overlay_ret << " wildcard_node: " <<
-		       // v. wildcard_node << " check_length: " <<
-		       // v.check_length <<
+		       " unknown_proto_ret: " << v.unknown_proto_ret <<
+		       " wildcard_proto_node: " << v. wildcard_proto_node <<
 		       "}]";
 	}
 };
