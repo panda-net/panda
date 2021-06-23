@@ -78,8 +78,7 @@ struct vertex_property {
 	// TODO enable node instead of its name
 	// ParseNode& node;
 	std::string name, parser_node, metadata, handler, table, tlv_table,
-	flag_fields_table, post_handle_flags, unknown_proto_ret,
-	wildcard_proto_node;
+	flag_fields_table, unknown_proto_ret, wildcard_proto_node;
 
 	std::vector<tlv_node> tlv_nodes;
 	std::vector<flag_fields_node> flag_fields_nodes;
@@ -89,9 +88,8 @@ struct vertex_property {
 		return os << "[vertex {name: " << v.name << " parser_node: " <<
 		       v.parser_node << " metadata: " << v.metadata <<
 		       " handler: " << v. handler << " table: " << v. table <<
-		       " tlv_table: " << v. tlv_table <<
-		       " flag_fields_table: " << v. flag_fields_table <<
-		       " post_handle_flags: " << v. post_handle_flags <<
+		       " tlv_table: " << v. tlv_table << "
+		       flag_fields_table: " << v. flag_fields_table <<
 		       " unknown_proto_ret: " << v.unknown_proto_ret <<
 		       " wildcard_proto_node: " << v. wildcard_proto_node <<
 		       "}]";

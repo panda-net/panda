@@ -306,7 +306,6 @@ auto make_python_object(graph_t const& graph, vertex_descriptor_t const& vertex)
   obj.set("table", v.table);
   obj.set("tlv_table", v.table);
   obj.set("flag_fields_table", v.flag_fields_table);
-  obj.set("post_handle_flags", v.post_handle_flags);
   obj.set("unknown_proto_ret", v.unknown_proto_ret);
   obj.set("wildcard_proto_node", v.wildcard_proto_node);
   obj.set("tlv_nodes", std::move(tlv_nodes));

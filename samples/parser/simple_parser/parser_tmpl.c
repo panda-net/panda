@@ -72,7 +72,7 @@ PANDA_MAKE_PARSE_NODE(ipv6_node, panda_parse_ipv6, ipv6_metadata,
 PANDA_MAKE_LEAF_PARSE_NODE(ports_node, panda_parse_ports, ports_metadata,
 			   NULL);
 PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs, ports_metadata,
-				NULL, NULL, tcp_tlv_table);
+				NULL, tcp_tlv_table);
 
 /* TCP TLV nodes */
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,

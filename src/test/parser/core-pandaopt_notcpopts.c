@@ -118,10 +118,10 @@ PANDA_MAKE_PARSE_NODE(gre_base_node, panda_parse_gre_base, NULL, NULL,
 
 PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v0_node, panda_parse_gre_v0,
 				  gre_metadata, NULL, gre_v0_table,
-				  gre_v0_flag_fields_table, NULL);
+				  gre_v0_flag_fields_table);
 PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(gre_v1_node, panda_parse_gre_v1,
 				  gre_pptp_metadata, NULL, gre_v1_table,
-				  gre_v1_flag_fields_table, NULL);
+				  gre_v1_flag_fields_table);
 
 PANDA_MAKE_PARSE_NODE(e8021AD_node, panda_parse_vlan, e8021AD_metadata, NULL,
 		      ether_table);
@@ -150,7 +150,7 @@ PANDA_MAKE_LEAF_PARSE_NODE(fcoe_node, panda_parse_fcoe, NULL, NULL);
 PANDA_MAKE_LEAF_PARSE_NODE(igmp_node, panda_parse_igmp, NULL, NULL);
 
 PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs,	ports_metadata,
-				NULL, NULL, tcp_tlv_table);
+				NULL, tcp_tlv_table);
 
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_mss_node, tcp_option_mss_check_length,
 			  tcp_opt_mss_metadata, NULL);

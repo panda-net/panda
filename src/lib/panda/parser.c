@@ -264,11 +264,7 @@ parse_one_tlv:
 		len -= tlv_len;
 	}
 
-	if (parse_tlvs_node->ops.post_tlv_handle_proto)
-		return parse_tlvs_node->ops.post_tlv_handle_proto(hdr, frame,
-								  ctrl);
-	else
-		return PANDA_OKAY;
+	return PANDA_OKAY;
 }
 
 static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,

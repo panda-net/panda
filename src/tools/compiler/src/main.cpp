@@ -170,10 +170,10 @@ add_panda_macros (Context &context)
     "PANDA_MAKE_PARSE_NODE(node, name, metadata, pointer, table)",
     "PANDA_MAKE_TLVS_PARSE_NODE(node, name, metadata, pointer, "
     "table)",
-    "PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(node, name, metadata, pointer, table, flag_fields_table, post_flag_handle)",
+    "PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(node, name, metadata, pointer, table, flag_fields_table)",
     "PANDA_MAKE_LEAF_PARSE_NODE(node, name, metadata, pointer)",
     "PANDA_MAKE_LEAF_TLVS_PARSE_NODE(node, name, metadata, "
-    "pointer, another_pointer, table)",
+    "pointer, table)",
     "PANDA_PARSER_ADD(name, description, node_addr)",
     "PANDA_PARSER_EXT(parser, description, node_addr)",
     "PANDA_PARSER(parser, description, node_addr)",

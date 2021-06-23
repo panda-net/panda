@@ -179,7 +179,7 @@ handle_make_leaf_node(G &graph, std::vector<ContainerT> const &arguments)
 template <typename G, typename ContainerT> void
 handle_make_leaf_tlv_node(G &graph, std::vector<ContainerT> const &arguments)
 {
-	if (arguments.size() == 6) {
+	if (arguments.size() == 5) {
 		auto name = get_identifier_from_tokens(arguments[0]);
 		auto &&node = graph[insert_node_by_name(graph, name).first];
 
@@ -190,7 +190,7 @@ handle_make_leaf_tlv_node(G &graph, std::vector<ContainerT> const &arguments)
 	} else {
 		// should error'out
 		std::cerr << "PANDA_MAKE_LEAF_TLVS_PARSE_NODE should "
-			     "have 6 parameter" << std::endl;
+			     "have 5 parameter" << std::endl;
 	}
 }
 
@@ -227,7 +227,7 @@ handle_make_tlv_overlay_node(NC &nodes,
 template <typename G, typename ContainerT> void
 handle_make_flag_fields_node(G &graph, std::vector<ContainerT> const &arguments)
 {
-	if (arguments.size() == 7) {
+	if (arguments.size() == 6) {
 		auto name = get_identifier_from_tokens(arguments[0]);
 		auto &&node = graph[insert_node_by_name(graph, name).first];
 
@@ -236,11 +236,10 @@ handle_make_flag_fields_node(G &graph, std::vector<ContainerT> const &arguments)
 		node.handler = get_identifier_from_tokens(arguments[3]);
 		node.table = get_identifier_from_tokens(arguments[4]);
 		node.flag_fields_table = get_identifier_from_tokens(arguments[5]);
-		node.post_handle_flags = get_identifier_from_tokens(arguments[6]);
 	} else {
 		// should error'out
 		std::cerr << "PANDA_MAKE_FLAG_FIELDS_PARSE_NODE should "
-			     "have 7 parameter" << std::endl;
+			     "have 6 parameter" << std::endl;
 	}
 }
 

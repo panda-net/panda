@@ -576,18 +576,11 @@ struct panda_proto_flag_fields_table {
 	const struct panda_proto_flag_fields_table_entry *entries;
 };
 
-/* Flag-fields specific operations for flag-fields parse node */
-struct panda_parse_flag_fields_ops {
-	int (*post_flag_fields_handle_proto)(const void *hdr, void *frame,
-					     size_t len);
-};
-
 /* A flag-fields parse node. Note this is a super structure for a PANDA parse
  * node and tyoe is PANDA_NODE_TYPE_FLAG_FIELDS
  */
 struct panda_parse_flag_fields_node {
 	const struct panda_parse_node parse_node;
-	const struct panda_parse_flag_fields_ops ops;
 	const struct panda_proto_flag_fields_table *flag_fields_proto_table;
 };
 
@@ -627,8 +620,7 @@ struct panda_proto_flag_fields_node {
 					    PROTO_FLAG_FIELDS_NODE,	\
 					    EXTRACT_METADATA, HANDLER,	\
 					    PROTO_TABLE,		\
-					    FLAG_FIELDS_TABLE,		\
-					    POST_FLAG_FIELDS_HANDLER)	\
+					    FLAG_FIELDS_TABLE)		\
 	static const struct panda_parse_flag_fields_node		\
 					PARSE_FLAG_FIELDS_NODE = {	\
 		.flag_fields_proto_table = FLAG_FIELDS_TABLE,		\
@@ -638,8 +630,6 @@ struct panda_proto_flag_fields_node {
 		.parse_node.ops.extract_metadata = EXTRACT_METADATA,	\
 		.parse_node.ops.handle_proto = HANDLER,			\
 		.parse_node.proto_table = PROTO_TABLE,			\
-		.ops.post_flag_fields_handle_proto =			\
-					POST_FLAG_FIELDS_HANDLER,	\
 	}
 
 /* Helper to create a flag-fields parse node */
@@ -647,24 +637,21 @@ struct panda_proto_flag_fields_node {
 					  PROTO_FLAG_FIELDS_NODE,	\
 					  EXTRACT_METADATA, HANDLER,	\
 					  PROTO_TABLE,			\
-					  FLAG_FIELDS_TABLE,		\
-					  POST_FLAG_FIELDS_HANDLER)	\
+					  FLAG_FIELDS_TABLE)		\
 	PANDA_DECL_FLAG_FIELDS_TABLE(FLAG_FIELDS_TABLE);		\
 	PANDA_DECL_PROTO_TABLE(PROTO_TABLE);				\
 	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					    PROTO_FLAG_FIELDS_NODE,	\
 					    EXTRACT_METADATA, HANDLER,	\
 					    &PROTO_TABLE,		\
-					    &FLAG_FIELDS_TABLE,		\
-					    POST_FLAG_FIELDS_HANDLER)
+					    &FLAG_FIELDS_TABLE)
 
 /* Helper to create a leaf flag-fields parse node */
 #define PANDA_MAKE_LEAF_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					       PROTO_FLAG_FIELDS_NODE,	\
 					       EXTRACT_METADATA,	\
 					       HANDLER,			\
-					       FLAG_FIELDS_TABLE,	\
-					       POST_FLAG_FIELDS_HANDLER)\
+					       FLAG_FIELDS_TABLE)	\
 	PANDA_DECL_FLAG_FIELDS_TABLE(FLAG_FIELDS_TABLE);		\
 	__PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(PARSE_FLAG_FIELDS_NODE,	\
 					    PROTO_FLAG_FIELDS_NODE,	\
@@ -756,12 +743,6 @@ struct panda_proto_tlvs_table {
 	const struct panda_proto_tlvs_table_entry *entries;
 };
 
-/* TLV specific operations for TLVs parse node */
-struct panda_parse_tlvs_ops {
-	int (*post_tlv_handle_proto)(const void *hdr, void *frame,
-				     struct panda_ctrl_data ctrl);
-};
-
 /* Parse node for parsing a protocol header that contains TLVs to be
  * parser:
  *
@@ -776,7 +757,6 @@ struct panda_parse_tlvs_ops {
  */
 struct panda_parse_tlvs_node {
 	const struct panda_parse_node parse_node;
-	const struct panda_parse_tlvs_ops ops;
 	const struct panda_proto_tlvs_table *tlv_proto_table;
 	size_t max_tlvs;
 	size_t max_tlv_len;
@@ -844,7 +824,6 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 				     UNKNOWN_RET, WILDCARD_NODE,	\
 				     UNKNOWN_TLV_TYPE_RET,		\
 				     TLV_WILDCARD_NODE,			\
-				     POST_TLV_HANDLER,			\
 				     PROTO_TABLE, TLV_TABLE)		\
 	static const struct panda_parse_tlvs_node PARSE_TLV_NODE = {	\
 		.parse_node.node_type = PANDA_NODE_TYPE_TLVS,		\
@@ -855,7 +834,6 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 		.parse_node.wildcard_node = WILDCARD_NODE,		\
 		.parse_node.proto_table = PROTO_TABLE,			\
 		.tlv_proto_table = TLV_TABLE,				\
-		.ops.post_tlv_handle_proto = POST_TLV_HANDLER,		\
 		.unknown_tlv_type_ret = UNKNOWN_TLV_TYPE_RET,		\
 		.tlv_wildcard_node = TLV_WILDCARD_NODE,			\
 	}
@@ -866,8 +844,7 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
  */
 #define PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 				   EXTRACT_METADATA, HANDLER,		\
-				   POST_TLV_HANDLER, PROTO_TABLE,	\
-				   TLV_TABLE)				\
+				   PROTO_TABLE, TLV_TABLE)		\
 	PANDA_DECL_TLVS_TABLE(TLV_TABLE);				\
 	PANDA_DECL_PROTO_TABLE(PROTO_TABLE)				\
 	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE,			\
@@ -875,7 +852,6 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 				    EXTRACT_METADATA, HANDLER,		\
 				    PANDA_STOP_UNKNOWN_PROTO, NULL,	\
 				    PANDA_OKAY, NULL,			\
-				    POST_TLV_HANDLER,			\
 				    &PROTO_TABLE, &TLV_TABLE)
 
 /* Helper to create a leaf TLVs parse node with default unknown TLV
@@ -883,13 +859,12 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
  */
 #define PANDA_MAKE_LEAF_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 					EXTRACT_METADATA, HANDLER,	\
-					POST_TLV_HANDLER, TLV_TABLE)	\
+					TLV_TABLE)			\
 	PANDA_DECL_TLVS_TABLE(TLV_TABLE);				\
 	__PANDA_MAKE_TLVS_PARSE_NODE(PARSE_TLV_NODE, PROTO_TLV_NODE,	\
 				     EXTRACT_METADATA, HANDLER,		\
 				     PANDA_STOP_UNKNOWN_PROTO, NULL,	\
 				     PANDA_OKAY, NULL,			\
-				     POST_TLV_HANDLER,			\
 				     NULL, &TLV_TABLE)
 
 #define PANDA_MAKE_TLV_PARSE_NODE(NODE_NAME, CHECK_LENGTH,		\
