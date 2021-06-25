@@ -186,7 +186,7 @@ handle_make_leaf_tlv_node(G &graph, std::vector<ContainerT> const &arguments)
 		node.parser_node = get_identifier_from_tokens(arguments[1]);
 		node.metadata = get_identifier_from_tokens(arguments[2]);
 		node.handler = get_identifier_from_tokens(arguments[3]);
-		node.tlv_table = get_identifier_from_tokens(arguments[5]);
+		node.tlv_table = get_identifier_from_tokens(arguments[4]);
 	} else {
 		// should error'out
 		std::cerr << "PANDA_MAKE_LEAF_TLVS_PARSE_NODE should "
