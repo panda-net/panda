@@ -87,6 +87,35 @@ static __always_inline bool panda_encap_layer(struct panda_metadata *metadata,
 	return PANDA_OKAY;
 }
 
+static inline __attribute__((always_inline)) int panda_parse_tlv(
+		const struct panda_parse_tlvs_node *parse_node,
+		const struct panda_parse_tlv_node *parse_tlv_node,
+		const __u8 *cp, const void *hdr_end, void *frame,
+		struct panda_ctrl_data tlv_ctrl) {
+	const struct panda_parse_tlv_node_ops *ops = &parse_tlv_node->tlv_ops;
+	const struct panda_proto_tlv_node *proto_tlv_node =
+					parse_tlv_node->proto_tlv_node;
+
+	if (proto_tlv_node &&
+	    (cp + proto_tlv_node->min_len > (const __u8 *)hdr_end)) {
+		/* Treat check length error as an unrecognized TLV */
+		if (parse_node->tlv_wildcard_node)
+			return panda_parse_tlv(parse_node,
+					parse_node->tlv_wildcard_node,
+					cp, hdr_end, frame, tlv_ctrl);
+		else
+			return parse_node->unknown_tlv_type_ret;
+	}
+
+	if (ops->extract_metadata)
+		ops->extract_metadata(cp, frame, tlv_ctrl);
+
+	if (ops->handle_tlv)
+		ops->handle_tlv(cp, frame, tlv_ctrl);
+
+	return PANDA_OKAY;
+}
+
 <!--(macro generate_entry_parse_function)-->
 static __always_inline int @!parser_name!@_panda_parse_@!root_name!@(
 		struct panda_ctx *ctx, const void **hdr,
@@ -105,8 +134,17 @@ static __always_inline int @!parser_name!@_panda_parse_@!root_name!@(
 			break;
 		<!--(for node in graph)-->
 		else if (ctx->next == CODE_@!node!@)
+			<!--(if len(graph[node]['tlv_nodes']) == 0)-->
 			ret = __@!node!@_panda_parse(ctx, hdr, hdr_end,
 						     *hdr - start_hdr, frame);
+			<!--(else)-->
+			if (tailcall)
+				ret = __@!node!@_panda_parse(ctx, hdr, hdr_end,
+							     *hdr - start_hdr,
+							     frame);
+			else
+				return PANDA_OKAY;
+			<!--(end)-->
 		<!--(end)-->
 		else
 			return PANDA_STOP_UNKNOWN_PROTO;
@@ -125,13 +163,15 @@ static __always_inline int panda_xdp_parser_@!parser_name!@(
 
 <!--(macro generate_protocol_tlvs_parse_function)-->
 static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
-		const struct panda_parse_node *parse_node, const void *hdr,
+	const struct panda_parse_node *parse_node, const void *hdr,
 		const void *hdr_end, void *frame, struct panda_ctrl_data ctrl)
 {
+	const struct panda_parse_tlv_node_ops *ops; (void)ops;
 	const struct panda_parse_tlvs_node* parse_tlvs_node =
 				(const struct panda_parse_tlvs_node*)&@!name!@;
 	const struct panda_proto_tlvs_node *proto_tlvs_node =
 		(const struct panda_proto_tlvs_node*)parse_node->proto_node;
+
 	const struct panda_parse_tlv_node *parse_tlv_node;
 	const __u8 *cp = hdr;
 	size_t offset, len;
@@ -139,13 +179,13 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 	int type;
 
 	offset = proto_tlvs_node->ops.start_offset(hdr);
-
 	/* Assume hlen marks end of TLVs */
-	len = hlen - offset;
+	len = ctrl.hdr_len - offset;
 	cp += offset;
 	ctrl.hdr_offset += offset;
+
 #pragma unroll
-	for (int i = 0; i < 8; i++) {
+	for (int i = 0; i < 2; i++) {
 		if (panda_bpf_check_pkt(cp, 1, hdr_end))
 			return PANDA_STOP_LENGTH;
 		if (proto_tlvs_node->pad1_enable &&
@@ -154,7 +194,8 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 			cp++;
 			ctrl.hdr_offset++;
 			len--;
-			continue;
+			if (panda_bpf_check_pkt(cp, 1, hdr_end))
+				return PANDA_STOP_LENGTH;
 		}
 		if (proto_tlvs_node->eol_enable &&
 			proto_tlvs_node->eol_val) {
@@ -163,9 +204,11 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 			len--;
 			break;
 		}
-
 		if (len < proto_tlvs_node->min_len)
 			return PANDA_STOP_TLV_LENGTH;
+
+		if (panda_bpf_check_pkt(cp, proto_tlvs_node->min_len, hdr_end))
+			return PANDA_STOP_LENGTH;
 
 		if (proto_tlvs_node->ops.len) {
 			tlv_len = proto_tlvs_node->ops.len(cp);
@@ -178,13 +221,14 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 			tlv_len = proto_tlvs_node->min_len;
 		}
 
-		ctrl.hdr_len = tlv_len;
-
 		type = proto_tlvs_node->ops.type (cp);
 		switch (type) {
 	<!--(for tlv in graph[name]['tlv_nodes'])-->
 		case @!tlv['type']!@:
 		{
+			int ret;
+			struct panda_ctrl_data tlv_ctrl = { tlv_len,
+							    ctrl.hdr_offset };
 			parse_tlv_node = &@!tlv['name']!@;
 			const struct panda_parse_tlv_node_ops *ops =
 						&parse_tlv_node->tlv_ops;
@@ -193,52 +237,75 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 
 			if (proto_tlv_node &&
 			    (tlv_ctrl.hdr_len < proto_tlv_node->min_len)) {
-#if 0
-        XXXTH Need to call wildcard TLV parse node function here. The function
-        return code should be checked, if it is PANDA_OKAY then skip over the
-        TLV, else return. Roughly something like:
 
-< !-- if wildcard for this node -->
-				ret = @ !some_name@_parse_wildcard_tlv(
-					...)
-<! else>
-				ret = parse_tlvs_node->unknown_tlv_type_ret;
-<! endif>
-				if (ret == PANDA_OKAY)
-					goto next_tlv;
-				else
+		<!--(if len(tlv['overlay_nodes']) != 0)-->
+				ops = &parse_tlv_node->tlv_ops;
+		<!--(end)-->
+
+				if ((ret = panda_parse_tlv(parse_tlvs_node,
+							   parse_tlv_node, cp,
+							   hdr_end, frame,
+							   tlv_ctrl)) !=
+								PANDA_OKAY)
 					return ret;
-#endif
+		<!--(if len(tlv['overlay_nodes']) != 0)-->
+				if (ops->overlay_type) {
+					type = ops->overlay_type(cp);
+					switch (type) {
+			<!--(for overlay in tlv['overlay_nodes'])-->
+					case @!overlay['type']!@:
+						parse_tlv_node = &@!overlay['name']!@;
+						if ((ret = panda_parse_tlv(
+							    parse_tlvs_node,
+							    parse_tlv_node, cp,
+							    hdr_end, frame,
+							    tlv_ctrl)) !=
+								PANDA_OKAY)
+							return ret;
+						break;
+			<!--(end)-->
+					default:
+						break;
+					}
+			} else {
+					switch (tlv_ctrl.hdr_len) {
+			<!--(for overlay in tlv['overlay_nodes'])-->
+					case @!overlay['type']!@:
+						tlv_ctrl.hdr_len =
+							@!overlay['type']!@;
+						parse_tlv_node =
+							&@!overlay['name']!@;
+						if ((ret = panda_parse_tlv(
+							    parse_tlvs_node,
+							    parse_tlv_node, cp,
+							    hdr_end, frame,
+							    tlv_ctrl)) !=
+								PANDA_OKAY)
+							return ret;
+						break;
+			<!--(end)-->
+					default:
+						break;
+					}
+				}
+		<!--(end)-->
 			}
-			if (panda_bpf_extract_@!name!@(ops, hdr, hdr_end,
-						       frame, tlv_end,
-						       ctrl) != PANDA_OKAY)
-				return PANDA_STOP_FAIL;
-
-			if (ops->handle_tlv)
-				ops->handle_tlv(cp, frame, ctrl);
 			break;
-		}
 		}
 	<!--(end)-->
 		default:
-#if 0
-        XXXTH Need to call wildcard TLV parse node function here. The function
-        return code should be checked, if it is PANDA_OKAY then skip over the
-        TLV, else return. Roughly something like:
-
-< !-- if wildcard for this node -->
-                                        ret = @ !some_name@_parse_wildcard_tlv(
-                                                ...)
-< !else>
-                                        ret = parse_tlvs_node->
-                                                        unknown_tlv_type_ret;
-< !endif>
-                                        if (ret != PANDA_OKAY)
-                                                return ret;
-#endif
+		{
+			struct panda_ctrl_data tlv_ctrl = { tlv_len,
+							    ctrl.hdr_offset };
+			if (parse_tlvs_node->tlv_wildcard_node)
+				return panda_parse_tlv(parse_tlvs_node,
+					parse_tlvs_node->tlv_wildcard_node,
+					cp, hdr_end, frame, tlv_ctrl);
+			else
+				return parse_tlvs_node->unknown_tlv_type_ret;
 		}
-	next_tlv:
+		}
+
 		/* Move over current header */
 		cp += tlv_len;
 		ctrl.hdr_offset += tlv_len;
@@ -313,19 +380,13 @@ static int __always_inline __@!name!@_panda_parse(
 		<!--(end)-->
 	}
 	/* Unknown protocol */
-#if 0
-        XXXTH Need to call wildcard parse node function here and return
-        the value. Roughly something like:
-
-< !-- if wildcard for this node -->
-                                        return @ !some_name@_parse_wildcard(
-                                                ...)
-< !else>
-                                        return parse_node->unknown_ret;
-< !endif>
-#endif
-	return 0; /* XXXTH */
-
+		<!--(if len(graph[name]['wildcard_proto_node']) != 0)-->
+	return __@!graph[name]['wildcard_proto_node']!@_panda_parse(
+		parser, hdr, len, offset, metadata, flags, max_encaps,
+		frame, frame_num);
+		<!--(else)-->
+	return PANDA_STOP_UNKNOWN_PROTO;
+		<!--(end)-->
 	<!--(else)-->
 	ctx->next = CODE_IGNORE;
 	return PANDA_STOP_OKAY;
