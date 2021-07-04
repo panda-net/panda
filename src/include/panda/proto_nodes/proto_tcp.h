@@ -92,41 +92,6 @@ static inline size_t tcp_tlvs_start_offset(const void *hdr)
 	return sizeof(struct tcphdr);
 }
 
-/* Functions to check length of TCP options */
-
-static inline int tcp_option_mss_check_length(const void *hdr, void *frame)
-{
-	const struct tcp_opt_union *opt = hdr;
-
-	if (opt->opt.len != sizeof(struct tcp_opt) + sizeof(__be16))
-		return PANDA_STOP_TLV_LENGTH;
-
-	return PANDA_OKAY;
-}
-
-static inline int tcp_option_window_scaling_check_length(const void *hdr,
-							 void *frame)
-{
-	const struct tcp_opt_union *opt = hdr;
-
-	if (opt->opt.len != sizeof(struct tcp_opt) + sizeof(__u8))
-		return PANDA_STOP_TLV_LENGTH;
-
-	return PANDA_OKAY;
-}
-
-static inline int tcp_option_timestamp_check_length(const void *hdr,
-						    void *frame)
-{
-	const struct tcp_opt_union *opt = hdr;
-
-	if (opt->opt.len != sizeof(struct tcp_opt) +
-				sizeof(struct tcp_timestamp_option_data))
-		return PANDA_STOP_TLV_LENGTH;
-
-	return PANDA_OKAY;
-}
-
 #endif /* __PANDA_PROTO_TCP_H__ */
 
 #ifdef PANDA_DEFINE_PARSE_NODE
@@ -164,6 +129,48 @@ static const struct panda_proto_node panda_parse_tcp_notlvs __unused() = {
 	.name = "TCP without TLVs",
 	.min_len = sizeof(struct tcphdr),
 	.ops.len = tcp_len,
+};
+
+/* Protocol nodes for individual TLVs */
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_mss
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) + sizeof(__be16),
+};
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_window_scaling
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) + sizeof(__u8),
+};
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_timestamp
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) +
+				sizeof(struct tcp_timestamp_option_data),
+};
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_sack_1
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) +
+				sizeof(struct tcp_sack_option_data),
+};
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_sack_2
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) +
+				2 * sizeof(struct tcp_sack_option_data),
+};
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_sack_3
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) +
+				3 * sizeof(struct tcp_sack_option_data),
+};
+
+static const struct panda_proto_tlv_node panda_parse_tcp_option_sack_4
+							__unused() = {
+	.min_len = sizeof(struct tcp_opt) +
+				4 * sizeof(struct tcp_sack_option_data),
 };
 
 #endif /* PANDA_DEFINE_PARSE_NODE */

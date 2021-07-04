@@ -147,7 +147,7 @@ PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs, extract_ports,
 
 /* TCP TLV nodes */
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
-			  tcp_option_timestamp_check_length,
+			  panda_parse_tcp_option_timestamp,
 			  extract_tcp_timestamp, NULL);
 
 /* Protocol tables */

@@ -719,8 +719,6 @@ struct panda_proto_tlvs_opts {
  *
  * Operations to process a sigle TLV parsenode
  *
- * check_length: Check the length of a TLV is appropriate for the type (may
- *	also perform other validations for proper format)
  * extract_metadata: Extract metadata for the node. Input is the meta
  *	data frame which points to a parser defined metadata structure.
  *	If the value is NULL then no metadata is extracted
@@ -731,7 +729,6 @@ struct panda_proto_tlvs_opts {
  *	values indicate to stop parsing
  */
 struct panda_parse_tlv_node_ops {
-	int (*check_length)(const void *hdr, void *frame);
 	void (*extract_metadata)(const void *hdr, void *frame,
 				 const struct panda_ctrl_data ctrl);
 	int (*handle_tlv)(const void *hdr, void *frame,
@@ -743,6 +740,7 @@ struct panda_parse_tlv_node_ops {
  * (extract_metadata and handle_proto)
  */
 struct panda_parse_tlv_node {
+	const struct panda_proto_tlv_node *proto_tlv_node;
 	const struct panda_parse_tlv_node_ops tlv_ops;
 	const struct panda_proto_tlvs_table *overlay_table;
 	const struct panda_parse_tlv_node *overlay_wildcard_node;
@@ -809,6 +807,14 @@ struct panda_proto_tlvs_node {
 	__u8 eol_val;
 	__u8 pad1_enable;
 	__u8 eol_enable;
+	size_t min_len;
+};
+
+/* A protocol node for parsing proto with TLVs
+ *
+ * min_len: Minimal length of TLV
+ */
+struct panda_proto_tlv_node {
 	size_t min_len;
 };
 
@@ -908,16 +914,16 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 				     PANDA_OKAY, NULL,			\
 				     NULL, &TLV_TABLE)
 
-#define PANDA_MAKE_TLV_PARSE_NODE(NODE_NAME, CHECK_LENGTH,		\
+#define PANDA_MAKE_TLV_PARSE_NODE(NODE_NAME, PROTO_TLV_NODE,		\
 				  METADATA_FUNC, HANDLER_FUNC)		\
 	static const struct panda_parse_tlv_node NODE_NAME = {		\
-		.tlv_ops.check_length = CHECK_LENGTH,			\
+		.proto_tlv_node = &PROTO_TLV_NODE,			\
 		.tlv_ops.extract_metadata = METADATA_FUNC,		\
 		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
 		.name = #NODE_NAME,					\
 	}
 
-#define PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(NODE_NAME, CHECK_LENGTH,	\
+#define PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(NODE_NAME,			\
 					  METADATA_FUNC, HANDLER_FUNC,	\
 					  OVERLAY_TABLE,		\
 					  OVERLAY_TYPE_FUNC,		\
@@ -925,7 +931,6 @@ const struct panda_parse_tlv_node *panda_parse_lookup_tlv(
 					  OVERLAY_WILDCARD_NODE)	\
 	PANDA_DECL_TLVS_TABLE(OVERLAY_TABLE);				\
 	static const struct panda_parse_tlv_node NODE_NAME = {		\
-		.tlv_ops.check_length = CHECK_LENGTH,			\
 		.tlv_ops.extract_metadata = METADATA_FUNC,		\
 		.tlv_ops.handle_tlv = HANDLER_FUNC,			\
 		.tlv_ops.overlay_type = OVERLAY_TYPE_FUNC,		\

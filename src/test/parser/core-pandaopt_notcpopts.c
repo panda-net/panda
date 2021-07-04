@@ -80,7 +80,15 @@ PANDA_METADATA_TEMP_tcp_option_window_scaling(tcp_opt_window_scaling_metadata,
 					      panda_metadata_all)
 PANDA_METADATA_TEMP_tcp_option_timestamp(tcp_opt_timestamp_metadata,
 					 panda_metadata_all)
-PANDA_METADATA_TEMP_tcp_option_sack(tcp_opt_sack_metadata, panda_metadata_all)
+
+PANDA_METADATA_TEMP_tcp_option_sack_1(tcp_opt_sack_metadata_1,
+				      panda_metadata_all)
+PANDA_METADATA_TEMP_tcp_option_sack_2(tcp_opt_sack_metadata_2,
+				      panda_metadata_all)
+PANDA_METADATA_TEMP_tcp_option_sack_3(tcp_opt_sack_metadata_3,
+				      panda_metadata_all)
+PANDA_METADATA_TEMP_tcp_option_sack_4(tcp_opt_sack_metadata_4,
+				      panda_metadata_all)
 
 PANDA_METADATA_TEMP_gre(gre_metadata, panda_metadata_all)
 PANDA_METADATA_TEMP_gre_pptp(gre_pptp_metadata, panda_metadata_all)
@@ -152,16 +160,25 @@ PANDA_MAKE_LEAF_PARSE_NODE(igmp_node, panda_parse_igmp, NULL, NULL);
 PANDA_MAKE_LEAF_TLVS_PARSE_NODE(tcp_node, panda_parse_tcp_tlvs,	ports_metadata,
 				NULL, tcp_tlv_table);
 
-PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_mss_node, tcp_option_mss_check_length,
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_mss_node, panda_parse_tcp_option_mss,
 			  tcp_opt_mss_metadata, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_window_scaling_node,
-			  tcp_option_window_scaling_check_length,
+			  panda_parse_tcp_option_window_scaling,
 			  tcp_opt_window_scaling_metadata, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_timestamp_node,
-			  tcp_option_timestamp_check_length,
+			  panda_parse_tcp_option_timestamp,
 			  tcp_opt_timestamp_metadata, NULL);
-PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_node, NULL,
-			  tcp_opt_sack_metadata, NULL);
+
+PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(tcp_opt_sack_node, NULL, NULL,
+				  tcp_sack_tlv_table, NULL, PANDA_OKAY, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_1, panda_parse_tcp_option_sack_1,
+			  tcp_opt_sack_metadata_1, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_2, panda_parse_tcp_option_sack_2,
+			  tcp_opt_sack_metadata_2, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_3, panda_parse_tcp_option_sack_3,
+			  tcp_opt_sack_metadata_3, NULL);
+PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_4, panda_parse_tcp_option_sack_4,
+			  tcp_opt_sack_metadata_4, NULL);
 
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_csum_node, gre_checksum_metadata,
 				 NULL);

@@ -94,6 +94,8 @@ static int panda_parse_one_tlv(
 		const void *hdr, void *frame, int type,
 		struct panda_ctrl_data tlv_ctrl, unsigned int flags)
 {
+	const struct panda_proto_tlv_node *proto_tlv_node =
+					parse_tlv_node->proto_tlv_node;
 	const struct panda_parse_tlv_node_ops *ops;
 	int ret;
 
@@ -102,29 +104,16 @@ parse_again:
 	if (flags & PANDA_F_DEBUG)
 		printf("PANDA parsing TLV %s\n", parse_tlv_node->name);
 
-	ops = &parse_tlv_node->tlv_ops;
-
-	if (ops->check_length) {
-		int ret = ops->check_length(hdr, frame);
-
-		if (ret != PANDA_OKAY) {
-			/* Treat check length error as an unrecognized TLV */
-
-			parse_tlv_node = parse_tlvs_node->tlv_wildcard_node;
-			if (parse_tlv_node) {
-				/* If a wildcard node is present, parse it as
-				 * an overlay node for this one. The wildcard
-				 * node can perform error processing
-				 */
-				goto parse_again;
-			} else {
-				/* Return default error code. Returning
-				 * PANDA_OKAY means skip
-				 */
-				return parse_tlvs_node->unknown_tlv_type_ret;
-			}
-		}
+	if (proto_tlv_node && (tlv_ctrl.hdr_len < proto_tlv_node->min_len)) {
+		/* Treat check length error as an unrecognized TLV */
+		parse_tlv_node = parse_tlvs_node->tlv_wildcard_node;
+		if (parse_tlv_node)
+			goto parse_again;
+		else
+			return parse_tlvs_node->unknown_tlv_type_ret;
 	}
+
+	ops = &parse_tlv_node->tlv_ops;
 
 	if (ops->extract_metadata)
 		ops->extract_metadata(hdr, frame, tlv_ctrl);
