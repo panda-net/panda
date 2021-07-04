@@ -497,27 +497,6 @@ static void NAME(const void *vopt, void *iframe,			\
 				ntohl(opt->timestamp.echo);		\
 }
 
-/* Meta data helper for TCP sack option
- * Uses common metadata field: tcp_options
- */
-#define PANDA_METADATA_TEMP_tcp_option_sack(NAME, STRUCT)		\
-static void NAME(const void *vopt, void *iframe,			\
-		 struct panda_ctrl_data ctrl)				\
-{									\
-	ssize_t s_len = ctrl.hdr_len - sizeof(struct tcp_opt);		\
-	const struct tcp_opt_union *opt = vopt;				\
-	struct STRUCT *frame = iframe;					\
-	int i;								\
-									\
-	for (i = 0; s_len > 0;						\
-	     i++, s_len -= sizeof(struct tcp_sack_option_data)) {	\
-		frame->tcp_options.sack[i].left_edge =			\
-				ntohl(opt->sack[i].left_edge);		\
-		frame->tcp_options.sack[i].right_edge =			\
-				ntohl(opt->sack[i].right_edge);		\
-	}								\
-}
-
 /* Common macro to set one metadata entry for sack. N indicates which
  * entry (per protocol specification that is 0, 1, 2, or 3)
  */
