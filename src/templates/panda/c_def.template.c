@@ -50,19 +50,17 @@ static inline __attribute__((always_inline)) int panda_parse_tlv(
 		const struct panda_parse_tlv_node *parse_tlv_node,
 		const __u8 *cp, void *frame, struct panda_ctrl_data tlv_ctrl) {
 	const struct panda_parse_tlv_node_ops *ops = &parse_tlv_node->tlv_ops;
+	const struct panda_proto_tlv_node *proto_tlv_node =
+					parse_tlv_node->proto_tlv_node;
 
-	if (ops->check_length) {
-		int ret;
-
-		ret = ops->check_length(cp, frame);
-		if (ret != PANDA_OKAY) {
-			if (parse_node->tlv_wildcard_node)
-				return panda_parse_tlv(parse_node,
-						parse_node->tlv_wildcard_node,
-						cp, frame, tlv_ctrl);
-			else
-				return parse_node->unknown_tlv_type_ret;
-		}
+	if (proto_tlv_node && (tlv_ctrl.hdr_len < proto_tlv_node->min_len)) {
+		/* Treat check length error as an unrecognized TLV */
+		if (parse_node->tlv_wildcard_node)
+			return panda_parse_tlv(parse_node,
+					parse_node->tlv_wildcard_node,
+					cp, frame, tlv_ctrl);
+		else
+			return parse_node->unknown_tlv_type_ret;
 	}
 
 	if (ops->extract_metadata)

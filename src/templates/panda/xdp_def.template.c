@@ -162,25 +162,26 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 			parse_tlv_node = &@!tlv['name']!@;
 			const struct panda_parse_tlv_node_ops *ops =
 						&parse_tlv_node->tlv_ops;
-			if (ops->check_length) {
-				int ret = ops->check_length(cp, frame);
-				if (ret != PANDA_OKAY) {
+			const struct panda_proto_tlv_node *proto_tlv_node =
+					parse_tlv_node->proto_tlv_node;
+
+			if (proto_tlv_node &&
+			    (tlv_ctrl.hdr_len < proto_tlv_node->min_len)) {
 #if 0
         XXXTH Need to call wildcard TLV parse node function here. The function
         return code should be checked, if it is PANDA_OKAY then skip over the
         TLV, else return. Roughly something like:
 
 < !-- if wildcard for this node -->
-                                        ret = @ !some_name@_parse_wildcard_tlv(
-                                                ...)
+				ret = @ !some_name@_parse_wildcard_tlv(
+					...)
 <! else>
-                                        ret = parse_tlvs_node->
-                                                        unknown_tlv_type_ret;
+				ret = parse_tlvs_node->unknown_tlv_type_ret;
 <! endif>
-                                        if (ret == PANDA_OKAY)
-                                                goto next_tlv;
-                                        else
-                                                return ret;
+				if (ret == PANDA_OKAY)
+					goto next_tlv;
+				else
+					return ret;
 #endif
 			}
 			if (panda_bpf_extract_@!name!@(ops, hdr, hdr_end,

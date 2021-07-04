@@ -198,7 +198,7 @@ template <typename NC, typename ContainerT> void
 handle_make_tlv_overlay_node(NC &nodes,
 			     std::vector<ContainerT> const &arguments)
 {
-	if (arguments.size() == 8) {
+	if (arguments.size() == 7) {
 		auto name = get_identifier_from_tokens(arguments[0]);
 
 		typename NC::value_type node{ name,
@@ -209,11 +209,10 @@ handle_make_tlv_overlay_node(NC &nodes,
 					      get_identifier_from_tokens(
 								arguments[3]) };
 
-		node.check_length = get_identifier_from_tokens(arguments[1]);
-		node.overlay_table = get_identifier_from_tokens(arguments[4]);
+		node.overlay_table = get_identifier_from_tokens(arguments[3]);
 		node.unknown_overlay_ret =
-				get_identifier_from_tokens(arguments[6]);
-		node.wildcard_node = get_identifier_from_tokens(arguments[7]);
+				get_identifier_from_tokens(arguments[5]);
+		node.wildcard_node = get_identifier_from_tokens(arguments[6]);
 
 		std::cout << "tlv overlay " << node << std::endl;
 		nodes.push_back(node);

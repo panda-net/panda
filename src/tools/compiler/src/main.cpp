@@ -165,7 +165,7 @@ add_panda_macros (Context &context)
     "PANDA_MAKE_PROTO_TABLE(table_name, ...)",
     "PANDA_MAKE_TLV_TABLE(table_name, ...)",
     "PANDA_MAKE_FLAG_FIELDS_TABLE(table_name, ...)",
-    "PANDA_MAKE_TLV_PARSE_NODE(node, name, metadata, pointer)",
+    "PANDA_MAKE_TLV_PARSE_NODE(node, proto_tlv_node, metadata, handler)",
     "PANDA_MAKE_FLAG_FIELD_PARSE_NODE(node, name, metadata)",
     "PANDA_MAKE_PARSE_NODE(node, name, metadata, pointer, table)",
     "PANDA_MAKE_TLVS_PARSE_NODE(node, name, metadata, pointer, "
@@ -179,7 +179,7 @@ add_panda_macros (Context &context)
     "PANDA_PARSER(parser, description, node_addr)",
     "PANDA_PARSER_XDP(parser, description, node_addr)",
 	"PANDA_MAKE_TLV_OVERLAY_PARSE_NODE(node_name, "
-	"check_length,	metadata_func, handler_func, "
+	"metadata_func, handler_func, "
 	"overlay_table, overlay_type_func, "
 	"unknown_overlay_ret, overlay_wildcard_node)",
   };
