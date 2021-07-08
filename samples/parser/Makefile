@@ -1,6 +1,6 @@
 TOPTARGETS := all clean install
 
-SUBDIRS = simple_parser
+SUBDIRS = simple_parser offset_parser
 
 $(TOPTARGETS) : $(SUBDIRS)
 
