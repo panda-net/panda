@@ -186,3 +186,7 @@ See [flow_tracker_tmpl](samples/xdp/flow_tracker_tmpl/README.md) for details.
 
 **samples/xdp/flow_tracker_combo** contains and example PANDA Parser in XDP and also demonstrates use of the same parser code in a userspace application. See
 [flow_tracker_combo](samples/xdp/flow_tracker_combo/README.md) for details.
+
+# kmod
+
+**samples/kmod/cls** contains a sample kernel module that runs the PANDA Parser using the panda classifier.

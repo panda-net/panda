@@ -1,0 +1,3 @@
+obj-m += panda_big.o
+ccflags-y := -I$(PANDADIR)/include
+panda_big-y := module.o parser.kmod.o

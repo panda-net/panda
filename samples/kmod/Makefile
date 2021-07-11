@@ -1,6 +1,6 @@
 TOPTARGETS := all clean install
 
-SUBDIRS = parser kmod xdp
+SUBDIRS = cls
 
 $(TOPTARGETS) : $(SUBDIRS)
 
