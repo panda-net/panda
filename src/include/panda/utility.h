@@ -133,6 +133,10 @@ static inline unsigned int panda_get_log_round_up(unsigned long long x)
 	_a < _b ? _a : _b;					\
 })
 
+#define PANDA_SWAP(a, b) do {					\
+	typeof(a) __tmp = (a); (a) = (b); (b) = __tmp;		\
+} while (0)
+
 #define PANDA_NSEC_PER_SEC 1000000000
 
 static inline void
