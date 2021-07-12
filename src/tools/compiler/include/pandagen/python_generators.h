@@ -39,6 +39,7 @@ extern const char* pyratempsrc;
 extern const char* template_gen;
 extern const char* user_xdp_common_template_str;
 extern const char* c_def_template_str;
+extern const char *kmod_def_template_str;
 extern const char* xdp_def_template_str;
 
 namespace pandagen::python {
@@ -455,6 +456,54 @@ int generate_root_parser_xdp_c(std::string filename,
            PyObject_GetAttrString(PyImport_AddModule("__main__"), "generate_parser_function"),
            std::string{"Failed to get 'generate_parser_function'"}
           ));
+
+		{
+			auto py_graph = make_python_object(graph);
+			auto py_roots = make_python_object(graph, roots);
+
+			call_function(
+						  generate_parser_entry_function,
+						  filename,
+						  output,
+						  py_graph.get(),
+						  py_roots.get(),
+						  template_str.c_str()
+						  );
+		}
+	}
+
+	if (Py_FinalizeEx() < 0) {
+		std::cerr << "Error running generation template" << std::endl;
+		return 120;
+	}
+
+	return 0;
+}
+
+int generate_root_parser_kmod_c(std::string filename,
+							   std::string output,
+							   graph_t graph,
+							   std::vector<root_t> roots)
+{
+	{
+		auto ptr = [](auto *p) { PyMem_RawFree(p); };
+		auto program_name = decode_locale("main.py", NULL);
+		auto template_str = std::string(user_xdp_common_template_str) + std::string(kmod_def_template_str);
+
+		Py_SetProgramName(program_name.get());
+		Py_Initialize();
+
+		auto checker = error_checker{};
+
+		PyRun_SimpleString(pyratempsrc);
+		PyRun_SimpleString(template_gen);
+
+		auto generate_parser_entry_function = make_python_object(
+				ensure_not_null(
+			PyObject_GetAttrString(PyImport_AddModule("__main__"),
+					       "generate_parser_function"),
+			std::string{"Failed to get 'generate_parser_function'"}
+		));
 
 		{
 			auto py_graph = make_python_object(graph);

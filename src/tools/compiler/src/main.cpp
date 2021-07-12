@@ -311,11 +311,32 @@ int main (int argc, char *argv[])
         std::cout << "Generating dot file...\n";
         pandagen::dotify(graph, output,
              get<1>(roots[0]), back_edges);
+      } else if (output.substr(std::max(output.size() - 7,
+                               0ul)) == ".kmod.c") {
+         try {
+        auto file = std::ofstream { output };
+        auto out = std::ostream_iterator<char>(file);
+
+		auto res = pandagen::python::generate_root_parser_kmod_c(
+              filename,
+              output,
+              graph,
+              roots
+            );
+		if (res != 0) {
+			std::cout << "failed python gen?" << std::endl;
+			return res;
+		}
+
+        } catch (std::exception const& e) {
+          std::cerr << "Failed to generate " << output << ": " << e.what() << "\n";
+          return 1;
+        }
       } else if (output.substr(std::max(output.size() - 2,
              0ul)) == ".c") {
         try {
             auto res = pandagen::python::generate_root_parser_c(
-              filename,																
+              filename,
               output,
               graph,
               roots

@@ -86,6 +86,24 @@ static const struct panda_parser __##PARSER = {				\
 	.parser_entry_point = &FUNC					\
 };
 
+/* Helpers to create and use Kmod parser vairant */
+#define __PANDA_PARSER_KMOD(PARSER, NAME, ROOT_NODE, FUNC)		\
+const struct panda_parser __##PARSER##_kmod = {				\
+	.name = NAME,							\
+	.root_node = ROOT_NODE,						\
+	.parser_type = PANDA_KMOD,					\
+	.parser_entry_point = &FUNC					\
+};
+
+#define PANDA_PARSER_KMOD(PARSER, NAME, ROOT_NODE, FUNC)		\
+	__PANDA_PARSER_KMOD(PARSER, NAME, ROOT_NODE, FUNC)		\
+	const struct panda_parser *PARSER##_kmod = &__##PARSER##_kmod;
+
+#define PANDA_PARSER_KMOD_EXTERN(NAME)					\
+	extern struct panda_parser *NAME##_kmod
+
+#define PANDA_PARSER_KMOD_NAME(NAME) NAME##_kmod
+
 #define PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)			\
 	__PANDA_PARSER_OPT(PARSER, NAME, ROOT_NODE, FUNC)		\
 	static const struct panda_parser *PARSER __unused() =		\
@@ -177,11 +195,21 @@ static const struct panda_parser __##PARSER = {				\
 /* Flags to Panda parser functions */
 #define PANDA_F_DEBUG			(1 << 0)
 
+#ifndef __KERNEL__
 /* Parse starting at the provided root node */
 int __panda_parse(const struct panda_parser *parser,
 		  const struct panda_parse_node *node, const void *hdr,
 		  size_t len, struct panda_metadata *metadata,
 		  unsigned int flags, unsigned int max_encaps);
+#else
+static inline int __panda_parse(const struct panda_parser *parser,
+		  const struct panda_parse_node *node, const void *hdr,
+		  size_t len, struct panda_metadata *metadata,
+		  unsigned int flags, unsigned int max_encaps)
+{
+	return 0;
+}
+#endif
 
 /* Parse packet starting from a parser node
  *

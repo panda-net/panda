@@ -3,4 +3,5 @@
 # extension.
 c_def
 xdp_def
+kmod_def
 user_xdp_common
