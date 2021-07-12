@@ -24,10 +24,10 @@
  * SUCH DAMAGE.
  */
 
-/* Include all proto nodes and define proto nodei */
-
 #ifndef __PANDA_PROTO_NODES_DEF_H__
 #define __PANDA_PROTO_NODES_DEF_H__
+
+/* Include all proto nodes and define proto nodes */
 
 #define PANDA_DEFINE_PARSE_NODE_STATIC static
 #define PANDA_DEFINE_PARSE_NODE 1

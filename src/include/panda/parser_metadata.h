@@ -24,6 +24,9 @@
  * SUCH DAMAGE.
  */
 
+#ifndef __PANDA_PARSER_METADATA_H__
+#define __PANDA_PARSER_METADATA_H__
+
 /* Helper definitions for PANDA parser metadata handling
  *
  * This defines a set of macros, constants, and functions that can be
@@ -31,8 +34,9 @@
  * data handling as well as packet hashing.
  */
 
-#ifndef __PANDA_PARSER_METADATA_H__
-#define __PANDA_PARSER_METADATA_H__
+#ifndef __KERNEL__
+#include <string.h>
+#endif
 
 #include <linux/if_ether.h>
 #include <linux/mpls.h>
@@ -838,5 +842,32 @@ static void NAME(const void *vdata, void *iframe,			\
 									\
 	frame->gre_pptp.ack = *(__u32 *)vdata;				\
 }
+
+/* Helper function to define a function to print common metadata */
+#define PANDA_PRINT_METADATA(FRAME) do {				\
+	char a4buf[INET_ADDRSTRLEN];					\
+	char a6buf[INET6_ADDRSTRLEN];					\
+									\
+	switch ((FRAME)->addr_type) {					\
+	case PANDA_ADDR_TYPE_IPV4:					\
+		printf("IPv4 source address: %s\n",			\
+		inet_ntop(AF_INET, &(FRAME)->addrs.v4_addrs[0],		\
+			  a4buf, sizeof(a4buf)));			\
+		printf("IPv4 destination address: %s\n",		\
+		       inet_ntop(AF_INET, &(FRAME)->addrs.v4_addrs[1],	\
+		       a4buf, sizeof(a4buf)));				\
+		break;							\
+	case PANDA_ADDR_TYPE_IPV6:					\
+		printf("IPv6 source address: %s\n",			\
+		       inet_ntop(AF_INET6, &(FRAME)->addrs.v6_addrs[0],	\
+				 a6buf, sizeof(a6buf)));		\
+		printf("IPv6 destination address: %s\n",		\
+		       inet_ntop(AF_INET6, &(FRAME)->addrs.v6_addrs[1],	\
+				 a6buf, sizeof(a6buf)));		\
+		break;							\
+	}								\
+	printf("Source port %04x\n", ntohs((FRAME)->port16[0]));	\
+	printf("Destination port %04x\n", ntohs((FRAME)->port16[1]));	\
+} while (0)
 
 #endif /* __PANDA_PARSER_METADATA_H__ */

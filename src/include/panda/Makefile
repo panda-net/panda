@@ -15,6 +15,7 @@ INCDIR=$(INSTALLDIR)$(HDRDIR)/panda
 
 TARGETS= utility.h parser.h proto_nodes.h proto_nodes_def.h
 TARGETS += parser_metadata.h pcap.h bpf.h xdp_tmpl.h
+TARGETS += compiler_helpers.h parser_types.h flag_fields.h tlvs.h
 
 install: $(TARGETS)
 	@install -m 0755 -d $(INCDIR)
