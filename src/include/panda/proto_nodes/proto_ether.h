@@ -33,7 +33,6 @@
 
 #include "panda/parser.h"
 
-
 static inline int ether_proto(const void *veth)
 {
 	return ((struct ethhdr *)veth)->h_proto;

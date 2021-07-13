@@ -40,7 +40,9 @@
 #include "panda/tlvs.h"
 #include "panda/utility.h"
 
+#ifndef __KERNEL__
 #include "siphash/siphash.h"
+#endif
 
 /* Panda parser return codes */
 enum {
@@ -287,6 +289,7 @@ int panda_parser_init(void);
 const struct panda_parse_node *panda_parse_lookup_by_proto(
 		const struct panda_parse_node *node, int proto);
 
+#ifndef __KERNEL__
 
 extern siphash_key_t __panda_hash_key;
 
@@ -334,5 +337,7 @@ void panda_hash_secret_init(siphash_key_t *init_key);
 
 /* Function to print the raw bytesused in a hash */
 void panda_print_hash_input(const void *start, size_t len);
+
+#endif /* __KERNEL__ */
 
 #endif /* __PANDA_PARSER_H__ */

@@ -29,8 +29,10 @@
 
 /* Definitions and functions for processing and parsing TLVs */
 
+#ifndef __KERNEL__
 #include <stddef.h>
 #include <sys/types.h>
+#endif
 
 #include <linux/types.h>
 

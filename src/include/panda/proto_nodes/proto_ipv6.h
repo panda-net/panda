@@ -29,9 +29,11 @@
 
 /* IPv6 node definitions */
 
+#ifndef __KERNEL__
 #include <arpa/inet.h>
+#endif
+
 #include <linux/ipv6.h>
-#include <string.h>
 
 #include "panda/parser.h"
 

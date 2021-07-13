@@ -29,8 +29,13 @@
 
 /* GRE node definitions */
 
+#ifndef __KERNEL__
 #include <arpa/inet.h>
+#endif
+
 #include <linux/ip.h>
+
+#include "panda/parser.h"
 
 /* Define common GRE constants. These normally come from linux/if_tunnel.h,
  * however that include file has a lot of other definitions beyond just GRE

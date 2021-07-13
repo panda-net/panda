@@ -27,7 +27,10 @@
 #ifndef __PANDA_PROTO_ARP_RARP_H__
 #define __PANDA_PROTO_ARP_RARP_H__
 
+#ifndef __KERNEL__
 #include <arpa/inet.h>
+#endif
+
 #include <linux/if_arp.h>
 
 #include "panda/parser.h"

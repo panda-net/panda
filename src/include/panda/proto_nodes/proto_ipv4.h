@@ -29,10 +29,11 @@
 
 /* IPv4 node definitions */
 
+#ifndef __KERNEL__
 #include <arpa/inet.h>
+#endif
+
 #include <linux/ip.h>
-#include <stdbool.h>
-#include <string.h>
 
 #include "panda/parser.h"
 

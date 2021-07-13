@@ -35,10 +35,12 @@
 
 /* VLAN node definitions */
 
+#ifndef __KERNEL__
 struct vlan_hdr {
 	__be16  h_vlan_TCI;
 	__be16  h_vlan_encapsulated_proto;
 };
+#endif
 
 static inline int vlan_proto(const void *vvlan)
 {

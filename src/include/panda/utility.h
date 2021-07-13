@@ -42,30 +42,18 @@
 #include <stdarg.h>
 #include <time.h>
 #include <unistd.h>
+#else
+/* To get ARRAY_SIZE, container_of, etc. */
+#include <linux/kernel.h>
+#endif /* __KERNEL__ */
+
+#include "panda/compiler_helpers.h"
+
+/* Utilities that work in kernel or userspace */
 
 /* Define the common ARRAY_SIZE macro if it's not already defined */
 #ifndef ARRAY_SIZE
 #define ARRAY_SIZE(arr) (sizeof(arr) / sizeof(arr[0]))
-#endif
-
-/* Define the __defaligned macro if it's not already defined */
-#ifndef __defaligned
-#define __defaligned() __attribute__ ((__aligned__))
-#endif
-
-/* Define the __aligned macro if it's not already defined */
-#ifndef __aligned
-#define __aligned(size) __attribute__((__aligned__(size)))
-#endif
-
-/* Define the __unused macro if it's not already defined */
-#ifndef __unused
-#define __unused() __attribute__((unused))
-#endif
-
-/* Define the __always_inline macro if it's not already defined */
-#ifndef __always_inline
-#define __always_inline __attribute__((always_inline)) inline
 #endif
 
 /* Define the common container_of macro if it's not already defined */
@@ -159,48 +147,6 @@ static inline unsigned int panda_get_log_round_up(unsigned long long x)
 	typeof(a) __tmp = (a); (a) = (b); (b) = __tmp;		\
 } while (0)
 
-#define PANDA_NSEC_PER_SEC 1000000000
-
-static inline void
-panda_timespec_add_nsec(struct timespec *r, const struct timespec *a, __u64 b)
-{
-	r->tv_sec = a->tv_sec + (b / PANDA_NSEC_PER_SEC);
-	r->tv_nsec = a->tv_nsec + (b % PANDA_NSEC_PER_SEC);
-
-	if (r->tv_nsec >= PANDA_NSEC_PER_SEC) {
-		r->tv_sec++;
-		r->tv_nsec -= PANDA_NSEC_PER_SEC;
-	} else if (r->tv_nsec < 0) {
-		r->tv_sec--;
-		r->tv_nsec += PANDA_NSEC_PER_SEC;
-	}
-}
-
-/* Utilities for dynamic arrays in sections */
-
-#define PANDA_DEFINE_SECTION(NAME, TYPE)				\
-extern TYPE __start_##NAME[];						\
-extern TYPE __stop_##NAME[];						\
-static inline unsigned int panda_section_array_size_##NAME(void)	\
-{									\
-	return (unsigned int)(__stop_##NAME - __start_##NAME);		\
-}									\
-static inline TYPE *panda_section_base_##NAME(void)			\
-{									\
-	return __start_##NAME;						\
-}
-
-#ifndef __bpf__
-#define PANDA_SECTION_ATTR(NAME) __attribute__((__used__, __section__(#NAME)))
-#else
-#define PANDA_SECTION_ATTR(NAME)
-#endif
-
-/* Assume cache line size of 64 for purposes of section alignment */
-#ifndef PANDA_ALIGN_SECTION
-#define PANDA_ALIGN_SECTION  __aligned(64)
-#endif
-
 #define __PANDA_COMBINE1(X, Y, Z) X##Y##Z
 #define __PANDA_COMBINE(X, Y, Z) __PANDA_COMBINE1(X, Y, Z)
 
@@ -230,6 +176,12 @@ static inline TYPE *panda_section_base_##NAME(void)			\
 #define PANDA_WARN_ONCE(...)
 #define PANDA_ASSERT(...)
 
+#elif defined(__KERNEL__)
+
+#define PANDA_WARN(...)
+#define PANDA_ERR(RET, ...)
+#define PANDA_WARN_ONCE(...)
+
 #else
 
 #define PANDA_WARN(...) warnx(__VA_ARGS__)
@@ -249,5 +201,28 @@ static inline TYPE *panda_section_base_##NAME(void)			\
 } while (0)
 
 #endif
+
+#ifndef __KERNEL__
+
+/* Userspace only defines */
+
+#define PANDA_NSEC_PER_SEC 1000000000
+
+static inline void
+panda_timespec_add_nsec(struct timespec *r, const struct timespec *a, __u64 b)
+{
+	r->tv_sec = a->tv_sec + (b / PANDA_NSEC_PER_SEC);
+	r->tv_nsec = a->tv_nsec + (b % PANDA_NSEC_PER_SEC);
+
+	if (r->tv_nsec >= PANDA_NSEC_PER_SEC) {
+		r->tv_sec++;
+		r->tv_nsec -= PANDA_NSEC_PER_SEC;
+	} else if (r->tv_nsec < 0) {
+		r->tv_sec--;
+		r->tv_nsec += PANDA_NSEC_PER_SEC;
+	}
+}
+
+#endif /* __KERNEL__ */
 
 #endif /* __PANDA_UTILITY_H__ */

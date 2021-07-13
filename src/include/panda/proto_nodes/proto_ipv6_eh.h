@@ -29,9 +29,13 @@
 
 /* Generic definitions for IPv6 extension headers */
 
+#ifndef __KERNEL__
 #include <arpa/inet.h>
+#endif
+
 #include <linux/ipv6.h>
-#include <string.h>
+
+#include "panda/parser.h"
 
 struct ipv6_frag_hdr {
 	__u8    nexthdr;
