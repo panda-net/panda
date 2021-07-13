@@ -29,10 +29,16 @@
 
 #include "panda/parser.h"
 
-/* Tranport nodes with ports definitions */
+/* Transport nodes with ports definitions */
 
 struct port_hdr {
-	__u32   ports;
+	union {
+		__be32   ports;
+		struct {
+			__be16 sport;
+			__be16 dport;
+		};
+	};
 };
 
 #endif /* __PANDA_PROTO_PORTS_H__ */
