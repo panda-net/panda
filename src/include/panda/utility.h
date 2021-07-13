@@ -32,6 +32,8 @@
  * Definitions and functions for PANDA library.
  */
 
+#ifndef __KERNEL__
+#include <arpa/inet.h>
 #include <err.h>
 #include <linux/types.h>
 #include <pthread.h>
@@ -132,6 +134,26 @@ static inline unsigned int panda_get_log_round_up(unsigned long long x)
 	__typeof__(b) _b = (b);					\
 	_a < _b ? _a : _b;					\
 })
+
+#ifndef htonll
+#if defined(__BIG_ENDIAN)
+#define htonll(x) (x)
+#elif defined(__LITTLE_ENDIAN)
+#define htonll(x) (((uint64_t)htonl((x) & 0xFFFFFFFF) << 32) | htonl((x) >> 32))
+#else
+#error "Cannot determine endianness"
+#endif
+#endif
+
+#ifndef ntohll
+#if defined(__BIG_ENDIAN)
+#define ntohll(x) (x)
+#elif defined(__LITTLE_ENDIAN)
+#define ntohll(x) (((uint64_t)ntohl((x) & 0xFFFFFFFF) << 32) | ntohl((x) >> 32))
+#else
+#error "Cannot determine endianness"
+#endif
+#endif
 
 #define PANDA_SWAP(a, b) do {					\
 	typeof(a) __tmp = (a); (a) = (b); (b) = __tmp;		\
