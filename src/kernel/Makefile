@@ -1,4 +1,5 @@
 PANDADIR ?= $(realpath ..)
+INSTALLDIR ?= /usr/lib/modules/$(shell uname -r)/extra
 TARGETS := cls_panda.ko
 
 .PHONY: all
@@ -12,9 +13,7 @@ clean:
 	$(MAKE) -C $(KDIR) M=$(shell pwd) $@
 
 .PHONY: modules_install
-modules_install:
-	$(MAKE) -C $(KDIR) M=$(shell pwd) $@
-
-.PHONY: install
-install:
-
+modules_install: all
+	@install -m 0755 -d $(INSTALLDIR)
+	install -m 0644 $(TARGETS) $(INSTALLDIR)
+	depmod

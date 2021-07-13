@@ -39,4 +39,7 @@ clean:
 	@rm -f $(TARGETS) $(TMPFILES)
 
 .PHONY: modules_install
-	$(MAKE) -C $(KDIR) M=$(shell pwd) $@
+modules_install: $(TARGETS)
+	@install -m 0755 -d $(INSTALLDIR)
+	install -m 0644 $(TARGETS) $(INSTALLDIR)
+	depmod

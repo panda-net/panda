@@ -140,6 +140,9 @@ To install the panda tc classifier:
 
 **make -C kernel modules_install**
 
+If you are using secure boot, you will need to sign the kernel module.
+Read more about this here: https://ubuntu.com/blog/how-to-sign-things-for-secure-boot
+
 ## User API (uapi) files
 
 Note that the uapi files (i.e. build with **UAPI=1**) should preferably be
