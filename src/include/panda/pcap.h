@@ -61,4 +61,6 @@ static inline ssize_t panda_pcap_readpkt(struct panda_pcap_file *pf,
 
 struct panda_pcap_file *panda_pcap_init(const char *args);
 
+void panda_pcap_close(struct panda_pcap_file *pf);
+
 #endif /* __PANDA_PCAP_H__ */

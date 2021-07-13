@@ -47,3 +47,8 @@ struct panda_pcap_file *panda_pcap_init(const char *args)
 
 	return pf;
 }
+
+void panda_pcap_close(struct panda_pcap_file *pf)
+{
+	pcap_close(pf->pcapf);
+}
