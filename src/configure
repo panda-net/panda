@@ -12,6 +12,8 @@ CONFIG=config.mk
 TMPDIR=$(mktemp -d config.XXXXXX)
 trap 'status=$?; rm -rf $TMPDIR; exit $status' EXIT HUP INT QUIT TERM
 
+PYTHON_VER=3
+
 check_prog()
 {
     echo -n "$2"
@@ -169,7 +171,7 @@ int main(int argc, char **argv)
 	return (0);
 }
 EOF
-        $CXX -I$INCLUDE -o $TMPDIR/check_python $TMPDIR/check_python.cpp  `$PKG_CONFIG --cflags --libs python3-embed`
+        $CXX -I$INCLUDE -o $TMPDIR/check_python $TMPDIR/check_python.cpp  `$PKG_CONFIG --cflags --libs python$PYTHON_VER-embed`
 	case $? in
 		0)	;;
 		*)	echo Python missing or broken\! 1>&2
@@ -206,6 +208,31 @@ endif
 EOF
 }
 
+usage()
+{
+	echo "Usage: $0 [--python-ver <version>] [--pkg-config-path <path>]"
+	exit 1
+}
+
+PROGNAME=$0
+
+while [ -n "$1" ]; do
+	case $1 in
+		"--python-ver") PYTHON_VER=$2; shift;;
+		"--pkg-config-path") MY_PKG_CONFIG_PATH=$2; shift;;
+		*) usage $PROGNAME >&2; exit 1;;
+	esac
+	shift
+done
+
+if [ -n "$MY_PKG_CONFIG_PATH" ]; then
+	if [ -n "$PKG_CONFIG_PATH" ]; then
+		export PKG_CONFIG_PATH="$MY_PKG_CONFIG_PATH:$PKG_CONFIG_PATH"
+	else
+		export PKG_CONFIG_PATH="$MY_PKG_CONFIG_PATH"
+	fi
+fi
+
 echo "# Generated config based on" $INCLUDE >$CONFIG
 quiet_config >> $CONFIG
 
@@ -223,8 +250,16 @@ check_python
 #check_docs
 #echo
 
-echo 'CFLAGS_PYTHON=`$(PKG_CONFIG) --cflags python3-embed`' >> $CONFIG
-echo 'LDFLAGS_PYTHON=`$(PKG_CONFIG) --libs python3-embed`' >> $CONFIG
+echo "PYTHON_VER:=$PYTHON_VER" >> $CONFIG
+if [ -n "$PKG_CONFIG_PATH" ]; then
+	echo "PKG_CONFIG_PATH=$PKG_CONFIG_PATH" >> $CONFIG
+	echo "PATH_ARG=\"--with-path=$PKG_CONFIG_PATH\"" >> $CONFIG
+else
+	echo "PATH_ARG=\"\"" >> $CONFIG
+fi
+
+echo 'CFLAGS_PYTHON=`$(PKG_CONFIG) $(PATH_ARG) --cflags python$(PYTHON_VER)-embed`' >> $CONFIG
+echo 'LDFLAGS_PYTHON=`$(PKG_CONFIG) $(PATH_ARG) --libs python$(PYTHON_VER)-embed`' >> $CONFIG
 echo 'CAT=cat' >> $CONFIG
 echo >> $CONFIG
 echo "%.o: %.c" >> $CONFIG
