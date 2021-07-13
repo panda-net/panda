@@ -59,9 +59,9 @@ LDFLAGS += -L$(CURRDIR)/lib/panda -L$(CURRDIR)/lib/parselite
 # For kernel modules
 KDIR ?= /lib/modules/`uname -r`/build
 
-SUBDIRS= include kernel tools lib test
+SUBDIRS= include tools lib test
 
-all: config.mk
+all: config.mk kernel
 	@set -e; \
 	for i in $(SUBDIRS); \
 	do echo; echo $$i; $(MAKE) $(MFLAGS) -C $$i; done
@@ -78,6 +78,10 @@ install: all
 	@for i in $(SUBDIRS); \
 	do echo; echo $$i; $(MAKE) $(MFLAGS) -C $$i install; done
 
+.PHONY: kernel
+kernel:
+	@$(MAKE) $(MFLAGS) -C kernel KDIR=$(KDIR)
+
 snapshot:
 	echo "static const char SNAPSHOT[] = \""`date +%y%m%d`"\";" \
 		> include/SNAPSHOT.h
@@ -89,6 +93,7 @@ help:
 clean:
 	@for i in $(SUBDIRS) ;\
 	do $(MAKE) $(MFLAGS) -C $$i clean; done
+	@$(MAKE) $(MFLAGS) -C kernel KDIR=$(KDIR) $@
 
 clobber:
 	touch config.mk

@@ -1,8 +1,11 @@
-TOPDIR := $(realpath ..)
+PANDADIR ?= $(realpath ..)
+TARGETS := cls_panda.ko
 
 .PHONY: all
-all:
-	$(MAKE) -C $(KDIR) M=$(shell pwd) PANDADIR=$(TOPDIR)
+all: $(TARGETS)
+
+cls_panda.ko:
+	$(MAKE) -C $(KDIR) M=$(shell pwd) PANDADIR=$(PANDADIR)
 
 .PHONY: clean
 clean:
