@@ -71,17 +71,18 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 		const struct panda_parse_node *parse_node,
 		const void *hdr, void *frame, struct panda_ctrl_data ctrl)
 {
-	const struct panda_parse_tlv_node_ops *ops; (void)ops;
-	const struct panda_parse_tlvs_node* parse_tlvs_node =
-		(const struct panda_parse_tlvs_node*)&@!name!@;
 	const struct panda_proto_tlvs_node *proto_tlvs_node =
 		(const struct panda_proto_tlvs_node*)parse_node->proto_node;
-
+	const struct panda_parse_tlvs_node *parse_tlvs_node =
+		(const struct panda_parse_tlvs_node*)&@!name!@;
 	const struct panda_parse_tlv_node *parse_tlv_node;
+	const struct panda_parse_tlv_node_ops *ops;
 	const __u8 *cp = hdr;
 	size_t offset, len;
 	ssize_t tlv_len;
 	int type;
+
+	(void)ops;
 
 	offset = proto_tlvs_node->ops.start_offset (hdr);
 	/* Assume hdr_len marks end of TLVs */
@@ -137,6 +138,7 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 			if (ret != PANDA_OKAY)
 				return ret;
 
+			break;
 		<!--(if len(tlv['overlay_nodes']) != 0)-->
 			if (ops->overlay_type)
 				type = ops->overlay_type(cp);
@@ -157,6 +159,8 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 			default:
 				break;
 			 }
+
+			break;
 		<!--(end)-->
 		}
 	<!--(end)-->
