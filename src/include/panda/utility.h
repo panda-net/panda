@@ -221,6 +221,14 @@ static inline TYPE *panda_section_base_##NAME(void)			\
 #define PANDA_WARN(...)
 #define PANDA_ERR(RET, ...)
 #define PANDA_WARN_ONCE(...)
+#define PANDA_ASSERT(...)
+
+#elif defined(__KERNEL__)
+
+#define PANDA_WARN(...)
+#define PANDA_ERR(RET, ...)
+#define PANDA_WARN_ONCE(...)
+#define PANDA_ASSERT(...)
 
 #else
 
@@ -233,6 +241,11 @@ static inline TYPE *panda_section_base_##NAME(void)			\
 		PANDA_WARN(__VA_ARGS__);				\
 		warned = true;						\
 	}								\
+} while (0)
+
+#define PANDA_ASSERT(COND, ...) do {					\
+	if (!COND)							\
+		PANDA_ERR(-1, __VA_ARGS__);				\
 } while (0)
 
 #endif
