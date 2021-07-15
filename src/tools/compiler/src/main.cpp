@@ -118,6 +118,8 @@ template <typename G> struct MacroOnly :
       pandagen::handle_make_flag_fields_node(*graph, arguments);
     } else if (macro_name.get_value() == "PANDA_MAKE_PARSE_NODE") {
       pandagen::handle_make_node(*graph, arguments);
+    } else if (macro_name.get_value() == "PANDA_MAKE_OVERLAY_PARSE_NODE") {
+      pandagen::handle_make_overlay_node(*graph, arguments);
     } else if (macro_name.get_value() == "PANDA_PARSER_ADD") {
       pandagen::handle_parser_add(*graph, *roots, arguments);
     } else if (macro_name.get_value() == "PANDA_PARSER_EXT") {
@@ -168,6 +170,7 @@ add_panda_macros (Context &context)
     "PANDA_MAKE_TLV_PARSE_NODE(node, proto_tlv_node, metadata, handler)",
     "PANDA_MAKE_FLAG_FIELD_PARSE_NODE(node, name, metadata)",
     "PANDA_MAKE_PARSE_NODE(node, name, metadata, pointer, table)",
+    "PANDA_MAKE_OVERLAY_PARSE_NODE(node, name, metadata, handler, overlay_node)",
     "PANDA_MAKE_TLVS_PARSE_NODE(node, name, metadata, pointer, "
     "table)",
     "PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(node, name, metadata, pointer, table, flag_fields_table)",

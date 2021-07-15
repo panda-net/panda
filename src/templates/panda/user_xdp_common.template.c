@@ -293,7 +293,6 @@ static inline int __@!name!@_panda_parse(const struct panda_parser *parser,
 			<!--(end)-->
 		<!--(end)-->
 	}
-	/* Unknown protocol */
 		<!--(if len(graph[name]['wildcard_proto_node']) != 0)-->
 	return __@!graph[name]['wildcard_proto_node']!@_panda_parse(
 		parser, hdr, len, offset, metadata, flags, max_encaps,
@@ -303,7 +302,14 @@ static inline int __@!name!@_panda_parse(const struct panda_parser *parser,
 		<!--(end)-->
 	}
 	<!--(else)-->
+
+		<!--(if len(graph[name]['wildcard_proto_node']) != 0)-->
+	return __@!graph[name]['wildcard_proto_node']!@_panda_parse(
+		parser, hdr, len, offset, metadata, flags, max_encaps,
+		frame, frame_num);
+		<!--(else)-->
 	return PANDA_STOP_OKAY;
+		<!--(end)-->
 	<!--(end)-->
 }
 <!--(end)-->
