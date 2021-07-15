@@ -119,6 +119,7 @@ static const struct panda_proto_tlvs_node panda_parse_tcp_tlvs __unused() = {
 	.pad1_enable = 1,
 	.eol_val = TCPOPT_EOL,
 	.eol_enable = 1,
+	.min_len = sizeof(struct tcp_opt),
 };
 
 /* panda_parse_tcp_no_tlvs protocol node
