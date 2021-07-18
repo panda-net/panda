@@ -34,6 +34,10 @@ ifeq ($(OPTIMIZED_PARSER),n)
 DEFINES+= -DNO_OPTIMIZED_PARSER
 endif
 
+ifeq ($(BUILD_KERNEL),y)
+EXTRA_TARGETS += kernel
+endif
+
 DEFINES+=-DCONFDIR=\"$(CONFDIR)\"
 
 CC := gcc
@@ -61,7 +65,7 @@ KDIR ?= /lib/modules/`uname -r`/build
 
 SUBDIRS= include tools lib test
 
-all: config.mk kernel
+all: config.mk $(EXTRA_TARGETS)
 	@set -e; \
 	for i in $(SUBDIRS); \
 	do echo; echo $$i; $(MAKE) $(MFLAGS) -C $$i; done
