@@ -16,8 +16,10 @@ TARGETS = panda-compiler
 CXXFLAGS += -Iinclude -std=c++17 $(CFLAGS_PYTHON)
 BOOST_LIBS ?= -lboost_wave -lboost_thread -lboost_filesystem -lboost_system
 
+LIBS ?= -lpthread -ldl -lutil
+
 panda-compiler: $(OBJS)
-	$(CXX) $^ -o $@ $(BOOST_LIBS) $(LDFLAGS_PYTHON)
+	$(CXX) $^ -o $@ $(BOOST_LIBS) $(LDFLAGS_PYTHON) $(LIBS)
 
 all: $(TARGETS)
 
