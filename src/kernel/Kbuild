@@ -1,0 +1,2 @@
+obj-m := cls_panda.o
+ccflags-y := -I$(PANDADIR)/include

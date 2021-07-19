@@ -1,0 +1,158 @@
+diff --git a/tc/Makefile b/tc/Makefile
+index 5a517af2..d6aa5d6b 100644
+--- a/tc/Makefile
++++ b/tc/Makefile
+@@ -29,6 +29,7 @@ TCMODULES += f_bpf.o
+ TCMODULES += f_flow.o
+ TCMODULES += f_cgroup.o
+ TCMODULES += f_flower.o
++TCMODULES += f_panda.o
+ TCMODULES += q_dsmark.o
+ TCMODULES += q_gred.o
+ TCMODULES += f_tcindex.o
+diff --git a/tc/f_panda.c b/tc/f_panda.c
+new file mode 100644
+index 00000000..f836f617
+--- /dev/null
++++ b/tc/f_panda.c
+@@ -0,0 +1,140 @@
++/*
++ * f_panda.c		Panda Classifier
++ *
++ *		This program is free software; you can distribute it and/or
++ *		modify it under the terms of the GNU General Public License
++ *		as published by the Free Software Foundation; either version
++ *		2 of the License, or (at your option) any later version.
++ *
++ * Authors:	Pedro Tammela <pctammela@mojatatu.com>
++ *
++ */
++
++#include <stdio.h>
++#include <stdlib.h>
++#include <unistd.h>
++#include <fcntl.h>
++#include <sys/socket.h>
++#include <netinet/in.h>
++#include <arpa/inet.h>
++#include <string.h>
++#include <linux/if.h>
++
++#include "utils.h"
++#include "tc_util.h"
++
++/* UAPI */
++enum {
++        TCA_PANDA_UNSPEC,
++        TCA_PANDA_CLASSID,
++        TCA_PANDA_PARSER,
++        __TCA_PANDA_MAX,
++};
++
++#define TCA_PANDA_MAX __TCA_PANDA_MAX
++
++static void explain(void)
++{
++	fprintf(stderr,
++		"Usage: ... TODO ... \n");
++}
++
++static int panda_parse_opt(struct filter_util *qu, char *handle,
++			   int argc, char **argv, struct nlmsghdr *n)
++{
++	struct tcmsg *t = NLMSG_DATA(n);
++        bool seen_parser = false;
++	struct rtattr *tail;
++	long h = 0;
++
++	if (handle) {
++		h = strtol(handle, NULL, 0);
++		if (h == LONG_MIN || h == LONG_MAX) {
++			fprintf(stderr, "Illegal handle \"%s\", must be numeric.\n",
++			    handle);
++			return -1;
++		}
++	}
++	t->tcm_handle = h;
++
++	if (argc < 1) {
++                fprintf(stderr, "Missing parser\n");
++		return -1;
++        }
++
++        tail = (struct rtattr *)(((void *)n)+NLMSG_ALIGN(n->nlmsg_len));
++	addattr_l(n, MAX_MSG, TCA_OPTIONS, NULL, 0);
++
++        if (matches(*argv, "parser") == 0) {
++           char p[256] = {};
++           NEXT_ARG();
++           strncpy(p, *argv, sizeof(p) - 1);
++           addattr_l(n, MAX_MSG, TCA_PANDA_PARSER, p, strlen(p) + 1);
++           argc--; argv++;
++           seen_parser = true;
++        }
++
++	while (argc > 0) {
++		if (matches(*argv, "classid") == 0 ||
++			   strcmp(*argv, "flowid") == 0) {
++			unsigned int handle;
++			NEXT_ARG();
++			if (get_tc_classid(&handle, *argv)) {
++				fprintf(stderr, "Illegal \"classid\"\n");
++				return -1;
++			}
++			addattr_l(n, MAX_MSG, TCA_PANDA_CLASSID, &handle, 4);
++                } else if (strcmp(*argv, "help") == 0) {
++                   explain();
++                   return -1;
++		} else {
++			fprintf(stderr, "What is \"%s\"?\n", *argv);
++			explain();
++			return -1;
++		}
++		argc--; argv++;
++	}
++
++        if (!seen_parser) {
++               fprintf(stderr, "Missing parser\n");
++               explain();
++               return -1;
++
++        }
++
++	tail->rta_len = (((void *)n)+n->nlmsg_len) - (void *)tail;
++
++	return 0;
++}
++
++static int panda_print_opt(struct filter_util *qu, FILE *f,
++			   struct rtattr *opt, __u32 handle)
++{
++	struct rtattr *tb[TCA_PANDA_MAX+1];
++
++	if (opt == NULL)
++		return 0;
++
++	parse_rtattr_nested(tb, TCA_PANDA_MAX, opt);
++
++	if (handle)
++		fprintf(f, "handle 0x%x ", handle);
++
++	if (tb[TCA_PANDA_CLASSID]) {
++		SPRINT_BUF(b1);
++		fprintf(f, "flowid %s ",
++			sprint_tc_classid(rta_getattr_u32(tb[TCA_PANDA_CLASSID]), b1));
++	}
++
++        if (tb[TCA_PANDA_PARSER])
++		fprintf(f, "parser %s ",
++			     rta_getattr_str(tb[TCA_PANDA_PARSER]));
++
++	return 0;
++}
++
++struct filter_util panda_filter_util = {
++	.id = "panda",
++	.parse_fopt = panda_parse_opt,
++	.print_fopt = panda_print_opt,
++};

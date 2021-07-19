@@ -56,7 +56,10 @@ YACCFLAGS = -d -t -v
 LDFLAGS += -L$(CURRDIR)/lib/siphash -L$(CURRDIR)/lib/flowdis
 LDFLAGS += -L$(CURRDIR)/lib/panda -L$(CURRDIR)/lib/parselite
 
-SUBDIRS= include tools lib test
+# For kernel modules
+KDIR ?= /lib/modules/`uname -r`/build
+
+SUBDIRS= include kernel tools lib test
 
 all: config.mk
 	@set -e; \

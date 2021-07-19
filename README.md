@@ -136,6 +136,10 @@ builds the with verbose output from make, includes the uapi files, and
 install the target files in the given install directory (set in
 MYINSTALLDIR)
 
+To install the panda tc classifier:
+
+**make -C kernel modules_install**
+
 ## User API (uapi) files
 
 Note that the uapi files (i.e. build with **UAPI=1**) should preferably be
