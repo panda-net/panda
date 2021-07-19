@@ -46,13 +46,6 @@ static const struct panda_parse_node *lookup_node(int type,
 	return NULL;
 }
 
-/* Lookup up a protocol for the table associated with a parse node */
-const struct panda_parse_node *panda_parse_lookup_by_proto(
-		const struct panda_parse_node *node, int proto)
-{
-	return lookup_node(proto, node->proto_table);
-}
-
 /* Lookup a type in a node TLV table */
 static const struct panda_parse_tlv_node *lookup_tlv_node(int type,
 				const struct panda_proto_tlvs_table *table)
@@ -329,11 +322,11 @@ static int panda_parse_flag_fields(const struct panda_parse_node *parse_node,
  *   - start_node: first node (typically node_ether)
  *   - flags: allowed parameterized parsing
  */
-int __panda_parse(const struct panda_parser *parser,
-		  const struct panda_parse_node *parse_node, const void *hdr,
+int __panda_parse(const struct panda_parser *parser, const void *hdr,
 		  size_t len, struct panda_metadata *metadata,
 		  unsigned int flags, unsigned int max_encaps)
 {
+	const struct panda_parse_node *parse_node = parser->root_node;
 	const struct panda_parse_node *next_parse_node;
 	void *frame = metadata->frame_data;
 	struct panda_ctrl_data ctrl;

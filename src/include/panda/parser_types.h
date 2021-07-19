@@ -208,8 +208,6 @@ struct panda_parser;
 
 /* Panda entry-point for optimized parsers */
 typedef int (*panda_parser_opt_entry_point)(const struct panda_parser *parser,
-					    const struct panda_parse_node
-								*parse_node,
 					    const void *hdr, size_t len,
 					    struct panda_metadata *metadata,
 					    unsigned int flags,
@@ -233,6 +231,25 @@ struct panda_parser {
 	enum panda_parser_type parser_type;
 	panda_parser_opt_entry_point parser_entry_point;
 	panda_parser_xdp_entry_point parser_xdp_entry_point;
+};
+
+/* One entry in a parser table:
+ *	value: key vlaue
+ *	parser: parser associated with the key value
+ */
+struct panda_parser_table_entry {
+	int value;
+	struct panda_parser **parser;
+};
+
+/* Parser table
+ *
+ * Contains a parser table that maps a key value, which could be a protocol
+ * number, to a parser
+ */
+struct panda_parser_table {
+	int num_ents;
+	const struct panda_parser_table_entry *entries;
 };
 
 #endif /* __PANDA_TYPES_H__ */

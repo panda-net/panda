@@ -194,6 +194,46 @@ PANDA_PARSER_ADD(panda_parser_big_ether, "PANDA big parser for Ethernet",
 PANDA_PARSER_ADD(panda_parser_big_ip, "PANDA big parser for IP",
 		 &ip_overlay_node);
 
+/* L3 parser and table */
+
+PANDA_PARSER_ADD(panda_parser_big_ipv4, "PANDA big parser for IP L3",
+		 &ipv4_check_node);
+PANDA_PARSER_ADD(panda_parser_big_ipv6, "PANDA big parser for IPv6 L3",
+		 &ipv6_check_node);
+PANDA_PARSER_ADD(panda_parser_big_e8021AD, "PANDA big parser for 8021AD L3",
+		 &e8021AD_node);
+PANDA_PARSER_ADD(panda_parser_big_e8021Q, "PANDA big parser for 8021Q L3",
+		 &e8021Q_node);
+PANDA_PARSER_ADD(panda_parser_big_mpls, "PANDA big parser for MPLS L3",
+		 &mpls_node);
+PANDA_PARSER_ADD(panda_parser_big_arp, "PANDA big parser for ARP L3",
+		 &arp_node);
+PANDA_PARSER_ADD(panda_parser_big_rarp, "PANDA big parser for RARP L3",
+		 &rarp_node);
+PANDA_PARSER_ADD(panda_parser_big_tipc, "PANDA big parser for TIPC L3",
+		 &tipc_node);
+PANDA_PARSER_ADD(panda_parser_big_batman, "PANDA big parser for BATMAN L3",
+		 &batman_node);
+PANDA_PARSER_ADD(panda_parser_big_fcoe, "PANDA big parser for FCOE L3",
+		 &fcoe_node);
+PANDA_PARSER_ADD(panda_parser_big_pppoe, "PANDA big parser for PPPoe L3",
+		 &pppoe_node);
+
+PANDA_MAKE_PARSER_TABLE(l3_parser_table,
+	{ __cpu_to_be16(ETH_P_IP), &panda_parser_big_ipv4 },
+	{ __cpu_to_be16(ETH_P_IPV6), &panda_parser_big_ipv6 },
+	{ __cpu_to_be16(ETH_P_8021AD), &panda_parser_big_e8021AD, },
+	{ __cpu_to_be16(ETH_P_8021Q), &panda_parser_big_e8021Q, },
+	{ __cpu_to_be16(ETH_P_MPLS_UC), &panda_parser_big_mpls },
+	{ __cpu_to_be16(ETH_P_MPLS_MC), &panda_parser_big_mpls },
+	{ __cpu_to_be16(ETH_P_ARP), &panda_parser_big_arp },
+	{ __cpu_to_be16(ETH_P_RARP), &panda_parser_big_rarp },
+	{ __cpu_to_be16(ETH_P_TIPC), &panda_parser_big_tipc },
+	{ __cpu_to_be16(ETH_P_BATMAN), &panda_parser_big_batman },
+	{ __cpu_to_be16(ETH_P_FCOE), &panda_parser_big_fcoe },
+	{ __cpu_to_be16(ETH_P_PPP_SES), &panda_parser_big_pppoe },
+);
+
 /* Protocol tables */
 
 PANDA_MAKE_PROTO_TABLE(ether_table,
@@ -294,6 +334,15 @@ PANDA_MAKE_FLAG_FIELDS_TABLE(gre_v1_flag_fields_table,
 	{ GRE_PPTP_FLAGS_SEQ_IDX, &gre_pptp_flag_seq_node },
 	{ GRE_PPTP_FLAGS_ACK_IDX, &gre_pptp_flag_ack_node }
 );
+
+bool panda_parser_big_parse_l3(void *p, size_t len, __be16 proto,
+			       struct panda_parser_big_metadata *mdata)
+{
+	return (panda_parse_from_table(&l3_parser_table, proto, p, len,
+				      &mdata->panda_data, 0,
+				      PANDA_PARSER_BIG_ENCAP_DEPTH) ==
+							PANDA_STOP_OKAY);
+}
 
 /* Ancilary functions */
 

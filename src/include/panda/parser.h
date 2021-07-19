@@ -83,7 +83,7 @@ static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_OPTIMIZED,					\
-	.parser_entry_point = &FUNC					\
+	.parser_entry_point = FUNC					\
 };
 
 /* Helpers to create and use Kmod parser vairant */
@@ -92,7 +92,7 @@ const struct panda_parser __##PARSER##_kmod = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_KMOD,					\
-	.parser_entry_point = &FUNC					\
+	.parser_entry_point = FUNC					\
 };
 
 #define PANDA_PARSER_KMOD(PARSER, NAME, ROOT_NODE, FUNC)		\
@@ -119,7 +119,7 @@ static const struct panda_parser __##PARSER = {				\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_XDP,					\
-	.parser_xdp_entry_point = &FUNC					\
+	.parser_xdp_entry_point = FUNC					\
 };
 
 #define PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)			\
@@ -130,6 +130,16 @@ static const struct panda_parser __##PARSER = {				\
 #define PANDA_PARSER_XDP_EXT(PARSER, NAME, ROOT_NODE, FUNC)		\
 	__PANDA_PARSER_XDP(PARSER, NAME, ROOT_NODE, FUNC)		\
 	const struct panda_parser *__##PARSER##_ext = &__##PARSER;
+
+/* Helper to create a parser table */
+#define PANDA_MAKE_PARSER_TABLE(NAME, ...)				\
+	static const struct panda_parser_table_entry __##NAME[] =	\
+						{ __VA_ARGS__ };	\
+	static const struct panda_parser_table NAME =	{		\
+		.num_ents = sizeof(__##NAME) /				\
+			sizeof(struct panda_parser_table_entry),	\
+		.entries = __##NAME,					\
+	}
 
 /* Helper to create a protocol table */
 #define PANDA_MAKE_PROTO_TABLE(NAME, ...)				\
@@ -197,14 +207,12 @@ static const struct panda_parser __##PARSER = {				\
 
 #ifndef __KERNEL__
 /* Parse starting at the provided root node */
-int __panda_parse(const struct panda_parser *parser,
-		  const struct panda_parse_node *node, const void *hdr,
+int __panda_parse(const struct panda_parser *parser, const void *hdr,
 		  size_t len, struct panda_metadata *metadata,
 		  unsigned int flags, unsigned int max_encaps);
 #else
 static inline int __panda_parse(const struct panda_parser *parser,
-		  const struct panda_parse_node *node, const void *hdr,
-		  size_t len, struct panda_metadata *metadata,
+		  const void *hdr, size_t len, struct panda_metadata *metadata,
 		  unsigned int flags, unsigned int max_encaps)
 {
 	return 0;
@@ -230,16 +238,44 @@ static inline int panda_parse(const struct panda_parser *parser,
 {
 	switch (parser->parser_type) {
 	case PANDA_GENERIC:
-		return __panda_parse(parser, parser->root_node, hdr, len,
-				     metadata, flags, max_encaps);
+		return __panda_parse(parser, hdr, len, metadata, flags,
+				     max_encaps);
 	case PANDA_KMOD:
 	case PANDA_OPTIMIZED:
-		return (parser->parser_entry_point)(parser, parser->root_node,
-			hdr, len, metadata, flags, max_encaps);
+		return (parser->parser_entry_point)(parser, hdr, len, metadata,
+						    flags, max_encaps);
 	default:
 		return PANDA_STOP_FAIL;
 	}
 }
+
+static inline const struct panda_parser *panda_lookup_parser_table(
+				const struct panda_parser_table *table,
+				int key)
+{
+	int i;
+
+	for (i = 0; i < table->num_ents; i++)
+		if (table->entries[i].value == key)
+			return *table->entries[i].parser;
+
+	return NULL;
+}
+
+static inline int panda_parse_from_table(const struct panda_parser_table *table,
+					 int key, const void *hdr, size_t len,
+					 struct panda_metadata *metadata,
+					 unsigned int flags,
+					 unsigned int max_encaps)
+{
+	const struct panda_parser *parser;
+
+	if (!(parser = panda_lookup_parser_table(table, key)))
+		return PANDA_STOP_FAIL;
+
+	return panda_parse(parser, hdr, len, metadata, flags, max_encaps);
+}
+
 
 static inline int panda_parse_xdp(const struct panda_parser *parser,
 				  struct panda_ctx *ctx, const void **hdr,
@@ -295,7 +331,7 @@ static const struct panda_parser_def PANDA_SECTION_ATTR(panda_parsers)	\
 	.name = NAME,							\
 	.root_node = ROOT_NODE,						\
 	.parser_type = PANDA_OPTIMIZED,					\
-	.parser_entry_point = &FUNC					\
+	.parser_entry_point = FUNC					\
 }
 
 
@@ -304,18 +340,6 @@ struct panda_parser *panda_parser_create(const char *name,
 								*root_node);
 void panda_parser_destroy(struct panda_parser *parser);
 int panda_parser_init(void);
-
-/* Look up a parse node given
- *
- * Arguments:
- *	- node: Parse node containing look up table
- *	- proto: Protocol number to lookup
- *
- * Returns pointer to parse node if the protocol is matched else returns
- * NULL if the parse node isn't found
- */
-const struct panda_parse_node *panda_parse_lookup_by_proto(
-		const struct panda_parse_node *node, int proto);
 
 #ifndef __KERNEL__
 

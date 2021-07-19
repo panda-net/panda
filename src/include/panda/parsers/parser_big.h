@@ -85,19 +85,8 @@ static inline bool panda_parser_big_parse_ether(void *p, size_t len,
  * parser (i.e. get the start node by looking up the Ethertype in the
  * Ethernet protocol table)
  */
-static inline bool panda_parser_big_parse_l3(void *p, size_t len, __be16 proto,
-				struct panda_parser_big_metadata *mdata)
-{
-	const struct panda_parse_node *start_node =
-		panda_parse_lookup_by_proto(
-				panda_parser_big_ether->root_node, proto);
-
-	return (start_node && __panda_parse(panda_parser_big_ether,
-					    start_node, p, len,
-					    &mdata->panda_data, 0,
-					    PANDA_PARSER_BIG_ENCAP_DEPTH) ==
-						PANDA_STOP_OKAY);
-}
+bool panda_parser_big_parse_l3(void *p, size_t len, __be16 proto,
+			       struct panda_parser_big_metadata *mdata);
 
 /* Parse packet starting with IP header. Root node distinguished based
  * on IP version number

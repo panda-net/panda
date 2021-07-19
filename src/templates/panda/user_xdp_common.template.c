@@ -27,7 +27,6 @@
 <!--(macro generate_entry_parse_function)-->
 static inline int @!parser_name!@_panda_parse_@!root_name!@(
 		const struct panda_parser *parser,
-		const struct panda_parse_node *parse_node,
 		const void *hdr, size_t len,
 		struct panda_metadata *metadata,
 		unsigned int flags, unsigned int max_encaps)
