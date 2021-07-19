@@ -236,7 +236,10 @@ parse_one_tlv:
 				/* Return default error code. Returning
 				 * PANDA_OKAY means skip
 				 */
-				return parse_tlvs_node->unknown_tlv_type_ret;
+				if (parse_tlvs_node->unknown_tlv_type_ret !=
+				    PANDA_OKAY)
+					return
+					  parse_tlvs_node->unknown_tlv_type_ret;
 			}
 		}
 

@@ -199,7 +199,7 @@ static inline __attribute__((always_inline)) int __@!name!@_panda_parse_tlvs(
 						       parse_tlvs_node->
 							    tlv_wildcard_node,
 						       cp, frame, tlv_ctrl);
-			else
+			else if (parse_tlvs_node->unknown_tlv_type_ret != PANDA_OKAY)
 				return parse_tlvs_node->unknown_tlv_type_ret;
 		}
 		}
