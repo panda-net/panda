@@ -1,3 +1,73 @@
+Version 1.3
+===========
+
+Major features
+--------------
+
+    * PANDA Parser in the kernel
+
+	* Add support in PANDA compiler the Linux kernel. If output file
+	  argument has a mod.c suffix the panda-compiler will build kernel code
+	  A .mod.c file can then be linked with a source file that contains
+	  necessary kernel module glue to build a installable .ko. The
+	  module glue code calls panda_parse to invoke the in-kernel PANDA
+	  parser.
+	* Define the PANDA TC classifier, panda_cls, in samples to demonstrate
+	  the use and operation of PANDA in the kernel.
+
+    * Use C file templates in the panda-compiler
+
+	* Refactor the panda-compiler to take C file templates as input
+	  rather than outputting lines of C code from C++ (i.e. cout).
+
+Other features
+--------------
+
+	* Implement parser tables that allow mapping a value, probably a
+	  protocol number, to a parser. A side effect is that we removed
+	  the API to invoke a parser to start at some some node, instead
+	  different parsers can be created for the different start nodes
+	  being used
+	* Support for TLV overlay parse nodes. This simplifies handling of
+	  variable length TLVs such as the TCP SACK option.
+	* Add panda_ctrl_data to hold control metadata as input to the
+	  PANDA parser unctions. This carries the length of the current
+	  header, the offset of the current header relative to the start
+	  of the packet, etc.
+	* Make option to not build the optimized parsers (OPTIMZED_PARSER=n)
+	* Replace the call back function unknown_next_protocol with a
+	  wildcard node. When a lookup fails and the wildcard is not NULL
+	  for a parse node, then use the wildcard as the next node.
+	* Change TLV handling overlay TLV handling to use wildcards instead
+	  unknown handler functions
+	* Remove post handlers from parse nodes, the functionality can
+	  be provided by using wildcard or overlay nodes.
+	* Remove check_length function in TLV parse nodes. We introduce
+	  protocol nodes for individual TLV types. When parsing a TLV node,
+	  the TLV length is compared against the min_len fied if there is an
+	  associated protocol node for the parse TLV node
+	* offset_parser: A simple parser in samples/parser/offset_parser
+	  that just extracts the network layer and transport layer offsets
+	  from a packet
+	* Refactor the PANDA include header files to make them more
+	  modular and cleaner
+	* Define some new utilities include ntohll, htonll, PANDA_ASSET
+	* Change the proto_ports structure to be a union so that we can
+	  access both ports in one u32
+	* Add flow_tracer_tlvs sample that extracts IP addresses and port
+	  numbers from TCP packets in XDP and stores them in a hash table.
+	* Add installation script for Ubunutu
+	* Add a pcap file to sample pcap files that has packets with TCP SACKs
+	* Clean up IPv6 and IPv4 length check code in their protocol nodes
+	* Add setting of Python version in configure
+
+Bug fixes
+---------
+
+	* Remove unnecessary check length in GREv0 protocol node
+	* panda-compiler fixes
+	* Fix copyright notices
+
 Version 1.2
 ===========
 
@@ -63,6 +133,7 @@ Bug fixes
     * Fixes to proto_gre in preparation for proper support of flag-fields
     * Make include directory before others to fix dependencies on include
       files
+
 
 Version 1.1
 ===========
