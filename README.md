@@ -20,7 +20,7 @@ including the **panda-compiler** that builds an optimized parser, is described
 
 # Contact information
 
-For more inforamation, inqueries, or comments about the PANDA project please
+For more information, inquiries, or comments about the PANDA project please
 direct email to panda@sipanda.io.
 
 # Release note
@@ -84,6 +84,22 @@ The subdirectories of **samples** are:
 
 * **parser**: Standalone example programs for the PANDA parser.
 * **xdp**: Example PANDA in XDP programs
+
+# Installation script
+
+A convenience installation script can be used with Ubunutu 20.10 or
+later. This script clones the PANDA repository into ~/panda-net
+by default (this location can be changed by setting the TOPDIR variable).
+The script get prerequisite Ubunutu packets, and then builds and installs
+the PANDA libraries and builds the PANDA sample code. The default install
+directory is $PANDADIR/install.
+
+To use the script, script download it from
+[ubunutu-install.sh](install-scripts/ubuntu-install.sh) and run it from the
+command line.
+
+If the script is not used PANDA can be built by following the instructions
+below.
 
 # Building
 
@@ -176,7 +192,7 @@ See [simple_parser](samples/parser/simple_parser/README.md) for details.
 
 # xdp
 
-**sample/xdp** contains sample PANDA in xdp programs. See
+**samples/xdp** contains sample PANDA in xdp programs. See
 [xdp](documentation/xdp.md) for background information on PANDA in XDP.
 
 **samples/xdp/flow_tracker_simple** contains a sample PANDA Parser in XDP
@@ -192,4 +208,5 @@ See [flow_tracker_tmpl](samples/xdp/flow_tracker_tmpl/README.md) for details.
 
 # kmod
 
-**samples/kmod/cls** contains a sample kernel module that runs the PANDA Parser using the panda classifier.
+**samples/kmod/cls** contains a sample kernel module that runs the PANDA Parser using the panda classifier. For more information see
+[kmod](documentation/kmod.md).
