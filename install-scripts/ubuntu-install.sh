@@ -27,9 +27,9 @@
 #   Ubuntu 21.04 includes the 5.11 Linux kernel
 #
 
-if [ $# -eq 0 ] || [ $1 = "-h" ] || [ $1 = "--help" ]
+if [ $1 = "-h" ] || [ $1 = "--help" ]
   then
-    echo "Usage: [option...] {directory}"
+    echo "Usage: [option...] [{directory}]"
     echo "   -p, --path                  Create all directories in path "
     echo "   -h, --help                  Shows this helpful information "
     echo
@@ -54,10 +54,10 @@ then
         echo "Unable to change into that directory."
         exit
     fi
-else
+elif [ $# -gt 0 ]
+then
     # Top level directoy or another high level directory
-    fullpath=`pwd`
-    TOPDIR=$fullpath/$1
+    TOPDIR=$1
     # create directory in this location
     mkdir -p "$1" &>/dev/null
     if [ $? -gt 0 ]
@@ -71,15 +71,21 @@ else
 	echo "Unable to change into that directory."
 	exit
     fi
+else
+    # Use default install directory: ~/panda-net
+    TOPDIR="~/panda-net"
+
 fi
 
-
 echo "***********************************************************************************"
+echo "Install directory is set to $TOPDIR"
+echo
 echo "By default the PANDA parser framework install script requires Ubuntu 20.10 or later"
 echo "You are running on : "
 grep -oP 'VERSION_ID="\K[\d.]+' /etc/os-release
+echo
 while true; do
-    read -p "Do you wish to continue with the install?" yn
+    read -p "Do you wish to continue with the install? " yn
     case $yn in
         [Yy]* ) break;;
         [Nn]* ) exit;;

@@ -98,6 +98,19 @@ To use the script, script download it from
 [ubunutu-install.sh](install-scripts/ubuntu-install.sh) and run it from the
 command line.
 
+When using the installation script, the install directory for PANDA is set.
+There are three ways to do this:
+
+  ./ubuntu-install.sh
+  ./ubuntu-install.sh {directory}
+  ./ubuntu-install.sh -p {directory}
+
+Without an arguments, the default install directory is ~/panda-net. In the
+second form, the install directory is specified as an argument. In the
+third form "-p" can use specified before the directory argument indicating
+that the directories in the path should be created if they don't exist.
+(e.g. "mkdir -p" is invoked).
+
 If the script is not used PANDA can be built by following the instructions
 below.
 
