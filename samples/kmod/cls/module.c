@@ -61,8 +61,12 @@ static int do_parse(struct sk_buff *skb)
 
 	err = panda_parse(PANDA_PARSER_KMOD_NAME(panda_parser_big_ether), data,
 			  pktlen, &mdata.panda_data, 0, 1);
-	if (err != PANDA_STOP_OKAY)
+	if (err != PANDA_STOP_OKAY) {
+                pr_debug("Failed to parse packet! (%d)", err);
 		return -1;
+        }
+
+        pr_debug("Parsed packet!");
 
 	return 0;
 }
