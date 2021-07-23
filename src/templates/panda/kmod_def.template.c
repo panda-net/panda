@@ -124,7 +124,7 @@ static inline int @!parser_name!@_panda_parse_@!root_name!@(
 	int ret = PANDA_STOP_OKAY;
 	int i;
 
-	ret = __@!root_name!@_panda_parse(parser, &hdr,
+	ret = __@!root_name!@_panda_parse_impl(parser, &hdr,
 		len, 0, metadata, flags, max_encaps, frame, frame_num);
 
 	for (i = 0; i < PANDA_LOOP_COUNT; i++) {
@@ -135,7 +135,7 @@ static inline int @!parser_name!@_panda_parse_@!root_name!@(
 			break;
 		<!--(for node in graph)-->
 		case CODE_@!node!@:
-			ret = __@!node!@_panda_parse(parser, &hdr, len, 0,
+			ret = __@!node!@_panda_parse_impl(parser, &hdr, len, 0,
 						     metadata, flags,
 						     max_encaps, frame,
 						     frame_num);
@@ -164,7 +164,8 @@ PANDA_PARSER_KMOD(
 	<!--(if len(graph[name]['flag_fields_nodes']) != 0)-->
 @!generate_protocol_fields_parse_function(name=name)!@
 	<!--(end)-->
-static __always_inline int __@!name!@_panda_parse(const struct panda_parser *parser,
+static __always_inline int __@!name!@_panda_parse_impl(
+		const struct panda_parser *parser,
 		const void **hdr, size_t len, size_t offset,
 		struct panda_metadata *metadata,
 		unsigned int flags, unsigned int max_encaps,
@@ -224,8 +225,14 @@ static __always_inline int __@!name!@_panda_parse(const struct panda_parser *par
 		<!--(for edge_target in graph[name]['out_edges'])-->
 			<!--(for e in graph[name]['out_edges'][edge_target])-->
 	case @!e['macro_name']!@:
+				<!--(if e['back'])-->
 		next = CODE_@!edge_target!@;
 		return PANDA_STOP_OKAY;
+				<!--(else)-->
+		return __@!edge_target!@_panda_parse(
+			parser, hdr, len, offset, metadata, flags, max_encaps,
+			frame, frame_num);
+				<!--(end)-->
 			<!--(end)-->
 		<!--(end)-->
 	}
@@ -246,10 +253,20 @@ static __always_inline int __@!name!@_panda_parse(const struct panda_parser *par
 <!--(end)-->
 
 <!--(macro generate_protocol_parse_function_decl)-->
-static __always_inline int __@!name!@_panda_parse(const struct panda_parser *parser,
+static __always_inline int __@!name!@_panda_parse_impl(
+		const struct panda_parser *parser,
 		const void **hdr, size_t len, size_t offset,
 		struct panda_metadata *metadata, unsigned int flags,
 		unsigned int max_encaps, void *frame, unsigned frame_num);
+__attribute__((unused)) static int
+	__@!name!@_panda_parse(const struct panda_parser *parser,
+		const void **hdr, size_t len, size_t offset,
+		struct panda_metadata *metadata, unsigned int flags,
+		unsigned int max_encaps, void *frame, unsigned int frame_num)
+{
+	return __@!name!@_panda_parse_impl(parser, hdr, len, offset, metadata,
+					   flags, max_encaps, frame, frame_num);
+}
 <!--(end)-->
 
 <!--(for node in graph)-->
