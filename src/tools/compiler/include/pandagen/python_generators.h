@@ -221,6 +221,7 @@ auto make_edge_list(graph_t const& graph, vertex_descriptor_t const& v) {
 				python::dict d;
 				d.set("macro_name", graph[e].macro_name);
 				d.set("parser_node", graph[e].parser_node);
+				d.set("back", graph[e].back);
 				l.append(std::move(d));
 			}
 		}
