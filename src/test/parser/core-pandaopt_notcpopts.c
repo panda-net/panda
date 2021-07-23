@@ -179,6 +179,13 @@ PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_3, panda_parse_tcp_option_sack_3,
 			  tcp_opt_sack_metadata_3, NULL);
 PANDA_MAKE_TLV_PARSE_NODE(tcp_opt_sack_4, panda_parse_tcp_option_sack_4,
 			  tcp_opt_sack_metadata_4, NULL);
+/* Keys are possible lengths of the TCP sack option */
+PANDA_MAKE_TLV_TABLE(tcp_sack_tlv_table,
+	{ 10, &tcp_opt_sack_1 },
+	{ 18, &tcp_opt_sack_2 },
+	{ 26, &tcp_opt_sack_3 },
+	{ 34, &tcp_opt_sack_4 }
+);
 
 PANDA_MAKE_FLAG_FIELD_PARSE_NODE(gre_flag_csum_node, gre_checksum_metadata,
 				 NULL);
