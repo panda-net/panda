@@ -243,6 +243,28 @@ handle_make_flag_fields_node(G &graph, std::vector<ContainerT> const &arguments)
 }
 
 template <typename G, typename ContainerT> void
+handle_make_flag_fields_overlay_node(G &graph,
+				std::vector<ContainerT> const &arguments)
+{
+	if (arguments.size() == 6) {
+		auto name = get_identifier_from_tokens(arguments[0]);
+		auto &&node = graph[insert_node_by_name(graph, name).first];
+
+		node.parser_node = get_identifier_from_tokens(arguments[1]);
+		node.metadata = get_identifier_from_tokens(arguments[2]);
+		node.handler = get_identifier_from_tokens(arguments[3]);
+		node.wildcard_proto_node =
+				get_identifier_from_tokens(arguments[4]);
+		node.flag_fields_table =
+				get_identifier_from_tokens(arguments[5]);
+	} else {
+		// should error'out
+		std::cerr << "PANDA_MAKE_FLAG_FIELDS_OVERLAY_PARSE_NODE should "
+			     "have 6 parameter" << std::endl;
+	}
+}
+
+template <typename G, typename ContainerT> void
 handle_make_node(G &graph, std::vector<ContainerT> const &arguments)
 {
 	if (arguments.size() == 5) {
