@@ -223,3 +223,10 @@ See [flow_tracker_tmpl](samples/xdp/flow_tracker_tmpl/README.md) for details.
 
 **samples/kmod/cls** contains a sample kernel module that runs the PANDA Parser using the panda classifier. For more information see
 [kmod](documentation/kmod.md).
+
+# dpdk
+
+**samples/dpdk/dpdk_snoop_app** contains a sample app which uses DPDK stack to
+snoop packets from available DPDK driver ready interfaces (DPDK RX ports) and
+uses the PANDA Parser to extract information from the packets.
+For more information see [dpdk_snoop_app](samples/dpdk/dpdk-snoop-app/README.md).

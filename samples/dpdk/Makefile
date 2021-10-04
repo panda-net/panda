@@ -1,6 +1,6 @@
 TOPTARGETS := all clean install
 
-SUBDIRS = parser kmod xdp dpdk
+SUBDIRS = dpdk-snoop-app
 
 $(TOPTARGETS) : $(SUBDIRS)
 
