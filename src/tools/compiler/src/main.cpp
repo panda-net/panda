@@ -169,6 +169,7 @@ add_panda_macros (Context &context)
     "PANDA_DECL_PARSE_NODE(node)",
     "PANDA_DECL_TLVS_PARSE_NODE(node)",
     "PANDA_MAKE_PROTO_TABLE(table_name, ...)",
+    "PANDA_MAKE_PARSER_TABLE(table_name, ...)", //TODO: add interpretation
     "PANDA_MAKE_TLV_TABLE(table_name, ...)",
     "PANDA_MAKE_FLAG_FIELDS_TABLE(table_name, ...)",
     "PANDA_MAKE_TLV_PARSE_NODE(node, proto_tlv_node, metadata, handler)",

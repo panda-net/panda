@@ -14,6 +14,7 @@ std::vector<std::string> macros_defined{};
     "PANDA_DECL_PARSE_NODE(node)",
     "PANDA_DECL_TLVS_PARSE_NODE(node)",
     "PANDA_MAKE_PROTO_TABLE(table_name, ...)",
+    "PANDA_MAKE_PARSER_TABLE(table_name, ...)", //TODO: add interpretation
     "PANDA_MAKE_TLV_TABLE(table_name, ...)",
     "PANDA_MAKE_FLAG_FIELDS_TABLE(table_name, ...)",
     "PANDA_MAKE_TLV_PARSE_NODE(node, proto_tlv_node, metadata, handler)",
@@ -24,6 +25,7 @@ std::vector<std::string> macros_defined{};
     "table)",
     "PANDA_MAKE_FLAG_FIELDS_PARSE_NODE(node, name, metadata, pointer, table, flag_fields_table)",
     "PANDA_MAKE_FLAG_FIELDS_OVERLAY_PARSE_NODE(node, name, metadata, pointer, overlay_node, flag_fields_table)",
+    "PANDA_MAKE_LEAF_FLAG_FIELDS_PARSE_NODE(node, name, metadata, pointer, flag_fields_table, post_flag_handle)",
     "PANDA_MAKE_LEAF_PARSE_NODE(node, name, metadata, pointer)",
     "PANDA_MAKE_LEAF_TLVS_PARSE_NODE(node, name, metadata, "
     "pointer, table)",
