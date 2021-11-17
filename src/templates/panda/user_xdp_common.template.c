@@ -1,3 +1,4 @@
+<!--(if 0)-->
 // SPDX-License-Identifier: BSD-2-Clause-FreeBSD
 /*
  * Copyright (c) 2020, 2021 by Mojatatu Networks.
@@ -23,6 +24,7 @@
  * OUT OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF
  * SUCH DAMAGE.
  */
+<!--(end)-->
 
 <!--(macro generate_entry_parse_function)-->
 static inline int @!parser_name!@_panda_parse_@!root_name!@(
