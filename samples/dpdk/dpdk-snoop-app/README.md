@@ -25,6 +25,9 @@ https://doc.dpdk.org/guides/linux_gsg/index.html
 
 **Minimum DPDK lib version 20.11 is required for this script to work.**
 
+Building
+--------
+
 To build this example app:
 
 **make PANDADIR=$(MYINSTALLDIR)**
@@ -51,6 +54,9 @@ which PANDA was installed, the library path could be set by:
 
 **export LD_LIBRARY_PATH=$LD_LIBRARY_PATH:$(MYINSTALLDIR)/lib**
 
+Running
+-------
+
 The executable is **panda_dpdk_snoop_app**. Run example:
 
 **./panda_dpdk_snoop_app**
@@ -60,3 +66,8 @@ Snooped packets from dpdk ports are saved at default
 command line parameter. The output in stdout prints the IP addresses and port
 numbers for each IP packet, the TCP timestamps if found in the options of a TCP
 packet, and the computed tuple hash.
+
+Test scripts
+------------
+
+Please see [dpdk_snoop_app test](../../../src/test/parser/samples/dpdk_snoop_app/README.md) for scripts for testing the panda_dpdk_snoop_app.

@@ -1,0 +1,50 @@
+EAL: Detected 8 lcore(s)
+EAL: Detected 1 NUMA nodes
+EAL: Detected shared linkage of DPDK
+EAL: Multi-process socket /var/run/dpdk/rte/mp_socket
+EAL: Selected IOVA mode 'PA'
+EAL: No available hugepages reported in hugepages-1048576kB
+EAL: Probing VFIO support...
+EAL: VFIO support initialized
+EAL:   using IOMMU type 8 (No-IOMMU)
+EAL: Probe PCI driver: net_e1000_em (8086:100e) device: 0000:00:03.0 (socket 0)
+EAL: Ignore mapping IO port bar(1)
+EAL: Probe PCI driver: net_e1000_em (8086:100e) device: 0000:00:04.0 (socket 0)
+EAL: No legacy callbacks, legacy socket not created
+EAL: Error enabling MSI-X interrupts for fd 49
+Port 0 MAC: 52 54 00 12 34 58
+
+WARNING: Too many lcores enabled. Only 1 used.
+snopped packets will be stored at file: /tmp/dpdk_pdump.pcap
+
+Core 0 snooping packets. [Ctrl+C to quit]
+received a pkt, size: 87 bytes
+IPv4: 10.10.10.1:5353->224.0.0.251:5353
+        Hash 82a4e95d
+received a pkt, size: 107 bytes
+IPv6: fe80::2855:ddff:fe29:6ee6:5353->ff02::fb:5353
+        Hash 421bad65
+received a pkt, size: 70 bytes
+IPv6: fe80::2855:ddff:fe29:6ee6:0->ff02::2:0
+        Hash 5a13a68f
+received a pkt, size: 74 bytes
+IPv4: 10.10.10.1:47314->10.10.10.2:22
+        TCP timestamps value: 2002634293, echo 0
+        Hash b02038a7
+received a pkt, size: 74 bytes
+IPv4: 10.10.10.1:47314->10.10.10.2:22
+        TCP timestamps value: 2002635295, echo 0
+        Hash b02038a7
+received a pkt, size: 74 bytes
+IPv4: 10.10.10.1:47314->10.10.10.2:22
+        TCP timestamps value: 2002637311, echo 0
+        Hash b02038a7
+received a pkt, size: 74 bytes
+IPv4: 10.10.10.1:47314->10.10.10.2:22
+        TCP timestamps value: 2002641535, echo 0
+        Hash b02038a7
+received a pkt, size: 74 bytes
+IPv4: 10.10.10.1:47314->10.10.10.2:22
+        TCP timestamps value: 2002649731, echo 0
+        Hash b02038a7
+
