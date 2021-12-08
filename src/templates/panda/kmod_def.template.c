@@ -122,10 +122,11 @@ static inline int @!parser_name!@_panda_parse_@!root_name!@(
 	void *frame = metadata->frame_data;
 	unsigned int frame_num = 0;
 	int ret = PANDA_STOP_OKAY;
+	size_t offset;
 	int i;
 
 	ret = __@!root_name!@_panda_parse_impl(parser, &hdr,
-		len, 0, metadata, flags, max_encaps, frame, frame_num);
+		len, &offset, metadata, flags, max_encaps, frame, frame_num);
 
 	for (i = 0; i < PANDA_LOOP_COUNT; i++) {
 		if (ret != PANDA_STOP_OKAY)
@@ -135,10 +136,10 @@ static inline int @!parser_name!@_panda_parse_@!root_name!@(
 			break;
 		<!--(for node in graph)-->
 		case CODE_@!node!@:
-			ret = __@!node!@_panda_parse_impl(parser, &hdr, len, 0,
-						     metadata, flags,
-						     max_encaps, frame,
-						     frame_num);
+			ret = __@!node!@_panda_parse_impl(parser, &hdr, len,
+							  &offset, metadata,
+							  flags, max_encaps,
+							  frame, frame_num);
 			break;
 		<!--(end)-->
 		default:
@@ -166,7 +167,7 @@ PANDA_PARSER_KMOD(
 	<!--(end)-->
 static __always_inline int __@!name!@_panda_parse_impl(
 		const struct panda_parser *parser,
-		const void **hdr, size_t len, size_t offset,
+		const void **hdr, size_t len, size_t *offset,
 		struct panda_metadata *metadata,
 		unsigned int flags, unsigned int max_encaps,
 		void *frame, unsigned frame_num)
@@ -183,7 +184,7 @@ static __always_inline int __@!name!@_panda_parse_impl(
 		return ret;
 
 	ctrl.hdr_len = hlen;
-	ctrl.hdr_offset = offset;
+	ctrl.hdr_offset = *offset;
 
 	if (parse_node->ops.extract_metadata)
 		parse_node->ops.extract_metadata(*hdr, frame, ctrl);
@@ -217,7 +218,7 @@ static __always_inline int __@!name!@_panda_parse_impl(
 
 	if (!proto_node->overlay) {
 		*hdr += hlen;
-		offset += hlen;
+		*offset += hlen;
 		len -= hlen;
 	}
 
@@ -255,12 +256,12 @@ static __always_inline int __@!name!@_panda_parse_impl(
 <!--(macro generate_protocol_parse_function_decl)-->
 static __always_inline int __@!name!@_panda_parse_impl(
 		const struct panda_parser *parser,
-		const void **hdr, size_t len, size_t offset,
+		const void **hdr, size_t len, size_t *offset,
 		struct panda_metadata *metadata, unsigned int flags,
 		unsigned int max_encaps, void *frame, unsigned frame_num);
 __attribute__((unused)) static int
 	__@!name!@_panda_parse(const struct panda_parser *parser,
-		const void **hdr, size_t len, size_t offset,
+		const void **hdr, size_t len, size_t *offset,
 		struct panda_metadata *metadata, unsigned int flags,
 		unsigned int max_encaps, void *frame, unsigned int frame_num)
 {
