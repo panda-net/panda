@@ -88,7 +88,8 @@ The subdirectories of **samples** are:
 # Installation script
 
 A convenience installation script can be used with Ubunutu 20.10 or
-later. This script clones the PANDA repository into ~/panda-net
+later (note for DPDK package support 21.04 is recommended).
+This script clones the PANDA repository into ~/panda-net
 by default (this location can be changed by setting the TOPDIR variable).
 The script get prerequisite Ubunutu packets, and then builds and installs
 the PANDA libraries and builds the PANDA sample code. The default install

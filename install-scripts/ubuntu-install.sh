@@ -1,6 +1,6 @@
 #!/bin/bash
 #
-# panda-deploy.sh
+# ubuntu_install.sh
 #
 
 #
@@ -27,7 +27,9 @@
 #   Ubuntu 21.04 includes the 5.11 Linux kernel
 #
 
-if [ $1 = "-h" ] || [ $1 = "--help" ]
+ARG=${1:-${HOME}/panda-net}
+
+if [ $ARG == "-h" ] || [ $ARG == "--help" ]
   then
     echo "Usage: [option...] [{directory}]"
     echo "   -p, --path                  Create all directories in path "
@@ -38,7 +40,7 @@ fi
 #
 # create directory with a path - get PANDA source directory and create it.
 #
-if [ $1 = "-p" ] || [ $1 = "--path" ]
+if [ $ARG == "-p" ] || [ $ARG == "--path" ]
 then
     # Top level directoy or another high level directory
     TOPDIR=$2
@@ -57,15 +59,15 @@ then
 elif [ $# -gt 0 ]
 then
     # Top level directoy or another high level directory
-    TOPDIR=$1
+    TOPDIR=$ARG
     # create directory in this location
-    mkdir -p "$1" &>/dev/null
+    mkdir -p "$ARG" &>/dev/null
     if [ $? -gt 0 ]
     then
-	echo "There was a problem creating your directory: " $1
+	echo "There was a problem creating your directory: " $ARG
 	exit
     fi
-    cd "$1" &>/dev/null
+    cd "$ARG" &>/dev/null
     if [ $? -gt 0 ]
     then
 	echo "Unable to change into that directory."
@@ -73,7 +75,8 @@ then
     fi
 else
     # Use default install directory: ~/panda-net
-    TOPDIR="~/panda-net"
+    TOPDIR=$ARG
+    mkdir -p $TOPDIR
 
 fi
 
@@ -82,7 +85,15 @@ echo "Install directory is set to $TOPDIR"
 echo
 echo "By default the PANDA parser framework install script requires Ubuntu 20.10 or later"
 echo "You are running on : "
-grep -oP 'VERSION_ID="\K[\d.]+' /etc/os-release
+HOST_OS=$(grep -oP 'VERSION_ID="\K[\d.]+' /etc/os-release)
+echo $HOST_OS
+MIN_OS="20.10"
+RESULT=$(echo $HOST_OS - $MIN_OS | bc)
+CH=$(echo $RESULT | cut -c 1)
+if [ $CH == "-" ];then
+    echo "Warning: Host OS should be Ubuntu 20.10 or above"
+fi
+
 echo
 while true; do
     read -p "Do you wish to continue with the install? " yn
@@ -98,7 +109,7 @@ echo "Installing prerequisites ..."
 echo "****************************"
 echo ""
 
-sudo apt-get install -y build-essential gcc-multilib pkg-config bison flex
+sudo apt-get install -y build-essential gcc-multilib pkg-config bison flex git
 sudo apt-get install -y libboost-all-dev libpcap-dev
 
 # For creating graph visualizations from PANDA parser
@@ -118,6 +129,15 @@ echo "****************************"
 echo ""
 
 sudo apt-get install -y libelf-dev clang llvm
+
+# dpdk related packages
+
+echo ""
+echo "Installing dpdk packages ..."
+echo "****************************"
+echo ""
+
+sudo apt-get install -y libdpdk-dev
 
 # libbpf. This package not available in Ubuntu prior to 20.10 in which case
 # the library can be build and installed
@@ -145,6 +165,7 @@ echo "Get latest version of panda-net/panda from github ..."
 echo "*****************************************************"
 echo ""
 
+cd $TOPDIR
 git clone  https://github.com/panda-net/panda
 
 #SUBDIR=$TOPDIR/panda
