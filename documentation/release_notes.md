@@ -1,3 +1,34 @@
+Version 1.4
+===========
+
+Major Features
+--------------
+
+    * PANDA Parser in DPDK
+
+	* Sample DPDK based packet snooping application which parses certain
+	  fields (Ethernet, IP,  TCP and UDP headers) of the Ethernet packets
+	  using the PANDA simple parser.
+	* The parsed Ethernet packets are saved as a PCAP file as well.
+	* Uses the panda-compiler to build optimized parser program
+
+Other Features
+--------------
+	* Functional test case to verify the parsed output of simple parser
+	  matches with interpretation of the PCAP file by any application.
+	  Both the output are saved in JSON format before verifying
+	* Improvements to the ubuntu_install.sh script
+	* More path inlining to kmod for PANDA
+	* Added parser macros test to panda-compiler
+	* Add make flag fields overlay macro support in panda-compiler
+	* Add make leaf flag fields macro support in panda-compiler
+
+Bug fixes
+---------
+	* Fix pandaopt_notcpopts to not process TCP options
+	* Fix protocol offset handling in the panda-compiler kmod template
+	* Remove licenses from generate file (e.g. output of panda-compiler)
+
 Version 1.3
 ===========
 
